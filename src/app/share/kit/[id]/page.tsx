@@ -1,15 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
 
-export default async function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
+
   const { data, error } = await supabase
     .from('identity_kits')
     .select('*')
     .eq('public', true)
-    .eq('public_id', params.id)
+    .eq('public_id', id)
     .single()
 
   if (error || !data) {
@@ -17,9 +20,12 @@ export default async function Page({ params }: { params: { id: string } }) {
   }
 
   const r = typeof data.result === 'string' ? JSON.parse(data.result) : data.result
+
   return (
     <main className="min-h-screen bg-black text-white p-10">
-      <h1 className="text-3xl font-bold text-ww-violet">Artist Identity Kit — {data.inputs?.artistName || 'Untitled'}</h1>
+      <h1 className="text-3xl font-bold text-ww-violet">
+        Artist Identity Kit — {data.inputs?.artistName || 'Untitled'}
+      </h1>
       <pre className="mt-6 whitespace-pre-wrap text-white/80">{JSON.stringify(r, null, 2)}</pre>
     </main>
   )
