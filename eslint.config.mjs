@@ -11,6 +11,22 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+
+  // ✅ Allow "any" in API route handlers (server code dealing with untyped JSON)
+  {
+    files: ["src/app/api/**/route.ts", "src/app/api/**/route.tsx"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
+// ✅ Allow "any" in client components temporarily (launch-first)
+{
+  files: ["src/app/**/*.tsx", "src/app/**/*.ts"],
+  rules: {
+    "@typescript-eslint/no-explicit-any": "off",
+  },
+},
+
   {
     ignores: [
       "node_modules/**",

@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
+/* Optional: your background + colors */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ww-violet-soft: rgba(109, 40, 217, 0.12);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html, body { height: 100%; }
+* { box-sizing: border-box; }
+
+body {
+  background:
+    radial-gradient(900px 600px at 20% -10%, var(--ww-violet-soft), transparent 60%),
+    radial-gradient(800px 500px at 120% 0%, rgba(139,92,246,0.08), transparent 60%),
+    #000;
+  color: #fff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:focus-visible {
+  outline: 2px solid #6D28D9;
+  outline-offset: 2px;
+}
+
+a,
+button {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  background-color: transparent;
+  border: none;
+}
+
+@layer components {
+  .ww-btn-primary {
+    @apply px-6 py-3 rounded-full text-white font-semibold transition;
+    @apply bg-violet-600 hover:bg-violet-700;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* --- Space Grotesk font wire-up (non-destructive) --- */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* keep once, avoid duplicate rule confusion */
+:focus-visible {
+  outline: 2px solid #6D28D9;
+  outline-offset: 2px;
+}
+
+/* Thin, subtle scrollbar + scroll lock for idea pool and similar containers */
+.ww-scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+  overscroll-behavior: contain; /* <- prevents scroll from bubbling to page */
+}
+
+.ww-scroll-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ww-scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ww-scroll-thin::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45); /* slate-ish */
+  border-radius: 999px;
+}
+
+.ww-scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
 }
