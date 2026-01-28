@@ -2,34 +2,66 @@ import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@supabase/supabase-js'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
+type Mode = 'kit' | 'release'
 
-// We read latest kit globally. For strict per-user scoping,
-// send userId from the client and add `.eq('user_id', userId)`.
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+  if (!url || !anon) return null
+  return createClient(url, anon)
+}
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json() as any
-    const { mode, dates } = body as { mode: 'kit' | 'release', dates: string[] }
+    const body = (await req.json().catch(() => ({}))) as {
+      mode?: Mode
+      dates?: string[]
+      release?: { title?: string; status?: 'unreleased' | 'released'; date?: string; goals?: string }
+    }
+
+    const mode = body.mode
+    const dates = body.dates
+
+    if (mode !== 'kit' && mode !== 'release') {
+      return NextResponse.json({ error: 'invalid mode' }, { status: 400 })
+    }
 
     if (!Array.isArray(dates) || dates.length !== 7) {
       return NextResponse.json({ error: 'need 7 dates' }, { status: 400 })
     }
 
+    // --- Build-safe: create clients INSIDE the request handler ---
+    const supabase = getSupabase()
+    const apiKey = process.env.OPENAI_API_KEY
+
+    // If either is missing, return a usable fallback (don’t crash build)
+    if (!apiKey) {
+      const fallback = dates.map((d, i) => ({
+        date: d,
+        title: `Post ${i + 1} — brand moment`,
+        platform: i % 2 === 0 ? 'Instagram' : 'TikTok',
+        notes: 'Fallback: OPENAI_API_KEY not set on server.',
+      }))
+      return NextResponse.json(fallback)
+    }
+
+    const openai = new OpenAI({ apiKey })
+
     let context = ''
+
     if (mode === 'kit') {
-      const { data: kits } = await supabase
-        .from('identity_kits')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1)
-      const kit = kits?.[0]?.result ?? {}
-      context = `LATEST IDENTITY KIT (truncated JSON):
-${JSON.stringify(kit).slice(0, 5000)}`
+      if (!supabase) {
+        context = 'LATEST IDENTITY KIT: (unavailable — missing SUPABASE env on server)'
+      } else {
+        const { data: kits } = await supabase
+          .from('identity_kits')
+          .select('result, created_at')
+          .order('created_at', { ascending: false })
+          .limit(1)
+
+        const kit = kits?.[0]?.result ?? {}
+        context = `LATEST IDENTITY KIT (truncated JSON):\n${JSON.stringify(kit).slice(0, 5000)}`
+      }
     } else {
       const rel = body.release || {}
       context = `RELEASE BRIEF:
@@ -64,21 +96,25 @@ ${context}
     const completion = await openai.responses.create({
       model: 'gpt-4.1-mini',
       input: prompt,
-      temperature: 0.7
+      temperature: 0.7,
     })
 
     const text = completion.output_text || ''
     const match = text.match(/\[[\s\S]*\]/)
-    let out: any[] = []
+
+    let out: unknown = []
     if (match) {
-      try { out = JSON.parse(match[0]) } catch {}
+      try {
+        out = JSON.parse(match[0])
+      } catch {}
     }
+
     if (!Array.isArray(out) || out.length !== dates.length) {
       out = dates.map((d, i) => ({
         date: d,
-        title: `Post ${i+1} — brand moment`,
+        title: `Post ${i + 1} — brand moment`,
         platform: i % 2 === 0 ? 'Instagram' : 'TikTok',
-        notes: 'Fallback suggestion (parser failed).'
+        notes: 'Fallback: parser failed.',
       }))
     }
 
@@ -88,4 +124,3 @@ ${context}
     return NextResponse.json({ error: 'suggest-failed' }, { status: 500 })
   }
 }
-
