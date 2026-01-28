@@ -1,18 +1,20 @@
 import { createClient } from '@supabase/supabase-js'
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
-    const { id } = await params
+    
 
   const { data, error } = await supabase
     .from('campaign_concepts')
     .select('*')
     .eq('public', true)
-        .eq('public_id', id)
+    .eq('public_id', id)
 
     .single()
 
