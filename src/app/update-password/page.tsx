@@ -1,19 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
-import { Loader2, KeyRound, Check } from 'lucide-react'
+import { Loader2, KeyRound } from 'lucide-react'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export default function UpdatePasswordPage() {
+function UpdatePasswordInner() {
   const router = useRouter()
   const params = useSearchParams()
+
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [sessionReady, setSessionReady] = useState(false)
@@ -64,7 +65,7 @@ export default function UpdatePasswordPage() {
               type="password"
               required
               value={password}
-              onChange={(e)=>setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full p-3 rounded-xl bg-black border border-white/20 text-white placeholder-white/40 focus:border-ww-violet focus:outline-none transition"
             />
@@ -87,5 +88,21 @@ export default function UpdatePasswordPage() {
         </form>
       </div>
     </main>
+  )
+}
+
+export default function UpdatePasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-black/60 shadow-xl p-6">
+            <div className="text-white/60 text-sm">Loading…</div>
+          </div>
+        </main>
+      }
+    >
+      <UpdatePasswordInner />
+    </Suspense>
   )
 }
