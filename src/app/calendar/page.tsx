@@ -282,7 +282,15 @@ function isGenericCaption(s: string) {
 
 // ---------- Component ----------
 export default function CalendarPage() {
-  const { profile, hasAnyProfile, applyTo, save } = useWwProfile()
+  const {
+  profile,
+  hasProfile: hasAnyProfile,
+  setLocalOnly: applyTo,
+  updateProfile: save,
+} = useWwProfile()
+
+  
+
 
   // ---------- Shared styles ----------
   const primaryBtn =

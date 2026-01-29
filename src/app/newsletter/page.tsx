@@ -115,7 +115,13 @@ function buildNewsletterPdfLines(
 /* ---------- Main component ---------- */
 
 export default function NewsletterPage() {
-  const { profile, hasAnyProfile, applyTo, save } = useWwProfile()
+  const {
+  profile,
+  hasProfile: hasAnyProfile,
+  setLocalOnly: applyTo,
+  updateProfile: save,
+} = useWwProfile()
+
 
   const [activeTab, setActiveTab] = useState<'outline' | 'draft'>('outline')
 

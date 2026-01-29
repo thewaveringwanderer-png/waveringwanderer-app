@@ -170,7 +170,13 @@ function buildReleaseStrategyPdfLines(args: {
 // --------- component ----------
 
 export default function ReleaseStrategyPage() {
-  const { profile, hasAnyProfile, save, applyTo } = useWwProfile()
+  const {
+  profile,
+  hasProfile: hasAnyProfile,
+  updateProfile: save,
+  setLocalOnly: applyTo,
+} = useWwProfile()
+
 
   const [artistName, setArtistName] = useState('')
   const [projectTitle, setProjectTitle] = useState('')

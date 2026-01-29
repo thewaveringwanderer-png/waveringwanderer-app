@@ -224,7 +224,13 @@ function buildPdfLines(pressKit: PressKitState): PdfLine[] {
 // ---------- Component ----------
 
 export default function PressKitPage() {
-  const { profile, hasAnyProfile, applyTo, save } = useWwProfile()
+  const {
+  profile,
+  hasProfile: hasAnyProfile,
+  setLocalOnly: applyTo,
+  updateProfile: save,
+} = useWwProfile()
+
 
   const [pressKit, setPressKit] = useState<PressKitState>({
     artistName: '',

@@ -155,7 +155,13 @@ function isHexColour(s: string) {
 }
 
 export default function IdentityKitPage() {
-  const { profile, hasAnyProfile, applyTo, save } = useWwProfile()
+  const {
+  profile,
+  hasProfile: hasAnyProfile,
+  setLocalOnly: applyTo,
+  updateProfile: save,
+} = useWwProfile()
+
 
   const [tab, setTab] = useState<'kit' | 'campaign'>('kit')
 

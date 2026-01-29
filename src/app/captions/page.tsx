@@ -270,7 +270,13 @@ function buildAllCaptionsPdfLines(args: {
 
 // ---------- Component ----------
 export default function CaptionsPage() {
-  const { profile, hasAnyProfile, applyTo, save } = useWwProfile()
+  const {
+  profile,
+  hasProfile: hasAnyProfile,
+  setLocalOnly: applyTo,
+  updateProfile: save,
+} = useWwProfile()
+
 
   // which tab is visible
   const [activeTab, setActiveTab] = useState<'generate' | 'polish'>('generate')
