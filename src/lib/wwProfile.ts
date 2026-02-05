@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { PILOT_EMAILS } from '@/lib/pilotAllowlist'
 
 export type Tier = 'free' | 'creator' | 'pro'
 
@@ -11,6 +12,7 @@ export type Usage = {
 export type WwProfile = {
   artistName?: string
   tone?: string
+is_pilot?: boolean
 
   // billing
   tier?: Tier
@@ -34,9 +36,11 @@ const STORAGE_KEY = 'ww_profile'
 
 const TIER_ORDER: Tier[] = ['free', 'creator', 'pro']
 
-export function effectiveTier(profile?: WwProfile | null): Tier {
-  return (profile?.tier_override as Tier) || (profile?.tier as Tier) || 'free'
+export function effectiveTier(profile?: WwProfile) {
+  if (profile?.is_pilot) return 'pro'
+  return (profile?.tier as any) || 'free'
 }
+
 
 export function hasTier(current: Tier, required: Tier): boolean {
   return TIER_ORDER.indexOf(current) >= TIER_ORDER.indexOf(required)
@@ -85,6 +89,20 @@ export async function loadWwProfile(): Promise<WwProfile | null> {
   const supabase = getSupabase()
   const local = readLocalWwProfile() || {}
 
+  // get logged in user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // ---- PILOT AUTO-UPGRADE ----
+  if (user?.email && PILOT_EMAILS.includes(user.email)) {
+    await supabase
+      .from('ww_profiles')
+      .update({ is_pilot: true })
+      .eq('user_id', user.id)
+  }
+  // ---------------------------
+
   const { data, error } = await supabase.from('ww_profiles').select('*').single()
   if (error || !data) return local
 
@@ -92,6 +110,7 @@ export async function loadWwProfile(): Promise<WwProfile | null> {
   writeLocalWwProfile(merged)
   return merged
 }
+
 
 export async function saveWwProfile(patch: Partial<WwProfile>): Promise<WwProfile | null> {
   const supabase = getSupabase()
