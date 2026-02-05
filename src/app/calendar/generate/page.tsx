@@ -2,9 +2,12 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
 import { CalendarDays, Sparkles, Save, UploadCloud, Loader2 } from 'lucide-react'
+import { useWwProfile } from '@/hooks/useWwProfile'
+import { bumpUsage, getUsage } from '@/lib/wwProfile'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -68,6 +71,26 @@ function getErrorMessage(e: unknown): string {
 /* ---------------- Component ---------------- */
 
 export default function CalendarGeneratorPage() {
+  const router = useRouter()
+
+  // WW profile (tier + usage)
+  const { profile, tier, refresh, setLocalOnly } = useWwProfile()
+
+
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+    const usage = useMemo(() => {
+  if (!mounted) return {}
+  return getUsage(profile || {})
+}, [mounted, profile])
+
+  const usedCalendarGenerations = Number((usage as any).calendar_generate_uses || 0)
+
+  const safeTier = mounted ? tier : 'free'
+  const freeLimitReached = safeTier === 'free' && usedCalendarGenerations >= 1
+
+
   const [userId, setUserId] = useState<string | null>(null)
   const [kits, setKits] = useState<KitRow[]>([])
 
@@ -87,6 +110,12 @@ export default function CalendarGeneratorPage() {
   const [pushing, setPushing] = useState(false)
 
   const [calendar, setCalendar] = useState<GeneratedCalendar | null>(null)
+  useEffect(() => {
+    if (!mounted) return
+    if (safeTier === 'free' && durationDays > 7) {
+      setDurationDays(7)
+    }
+  }, [mounted, safeTier, durationDays])
 
   useEffect(() => {
     ;(async () => {
@@ -118,61 +147,87 @@ export default function CalendarGeneratorPage() {
   }
 
   async function handleGenerate() {
-    try {
-      setGenerating(true)
-      setCalendar(null)
+  try {
+    // 1) Free tier guard (BEFORE doing any work)
+    if (freeLimitReached) {
+      toast.error('Free plan includes 1 calendar generation. Upgrade to generate again.')
+return
 
-      if (mode === 'identity_kit' && !selectedKit) {
-        toast.error('Please select an Identity Kit')
-        return
-      }
-      if (mode === 'project' && !projectTitle) {
-        toast.error('Please enter a project title')
-        return
-      }
-
-      const payload =
-        mode === 'identity_kit'
-          ? {
-              mode,
-              identityKit: selectedKit?.result ?? null,
-              durationDays,
-              platforms,
-            }
-          : {
-              mode,
-              projectInfo: {
-                title: projectTitle,
-                releaseDate: projectDate || undefined,
-                theme: projectTheme || '',
-                type: projectType,
-              },
-              durationDays,
-              platforms,
-            }
-
-      const res = await fetch('/api/calendar/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-
-      const data: unknown = await res.json()
-
-      if (!res.ok) {
-        const msg = isRecord(data) ? getStringField(data, 'error') : null
-        toast.error(msg || 'Generation failed')
-        return
-      }
-
-      setCalendar(data as GeneratedCalendar)
-      toast.success('Calendar generated')
-    } catch (e: unknown) {
-      toast.error(getErrorMessage(e) || 'Error generating calendar')
-    } finally {
-      setGenerating(false)
     }
+
+    setGenerating(true)
+    setCalendar(null)
+
+    // 2) Basic validation
+    if (mode === 'identity_kit' && !selectedKit) {
+      toast.error('Please select an Identity Kit')
+      return
+    }
+    if (mode === 'project' && !projectTitle) {
+      toast.error('Please enter a project title')
+      return
+    }
+
+    // ✅ Free plan max 7 days (enforced at payload level)
+    const effectiveDurationDays = safeTier === 'free' ? Math.min(durationDays, 7) : durationDays
+    if (safeTier === 'free' && durationDays > 7) {
+      toast.message('Free plan generates up to 7 days. Upgrade for full length.')
+    }
+
+    // 3) Build payload
+    const payload =
+      mode === 'identity_kit'
+        ? {
+            mode,
+            identityKit: selectedKit?.result ?? null,
+            durationDays: effectiveDurationDays,
+            platforms,
+          }
+        : {
+            mode,
+            projectInfo: {
+              title: projectTitle,
+              releaseDate: projectDate || undefined,
+              theme: projectTheme || '',
+              type: projectType,
+            },
+            durationDays: effectiveDurationDays,
+            platforms,
+          }
+
+    // 4) Call API
+    const res = await fetch('/api/calendar/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+
+    const data: unknown = await res.json()
+
+    if (!res.ok) {
+      const msg = isRecord(data) ? getStringField(data, 'error') : null
+      toast.error(msg || 'Generation failed')
+      return
+    }
+
+    // 5) Success: show calendar
+    setCalendar(data as GeneratedCalendar)
+    toast.success('Calendar generated')
+
+    // 6) Count usage (only on Free)
+    if (safeTier === 'free') {
+  const updated = await bumpUsage('calendar_generate_uses' as any)
+  if (updated) setLocalOnly(updated as any)
+  await refresh()
+}
+
+  } catch (e: unknown) {
+    toast.error(getErrorMessage(e) || 'Error generating calendar')
+  } finally {
+    setGenerating(false)
   }
+}
+
 
   async function handleSaveGenerated() {
     if (!calendar) return
@@ -228,8 +283,6 @@ export default function CalendarGeneratorPage() {
         },
       }))
 
-      // NOTE: you currently insert into content_calendar.
-      // If you want this to go to calendar_items instead, tell me and I’ll adjust rows to match your table.
       const { error } = await supabase.from('content_calendar').insert(rows)
 
       if (error) throw error
@@ -247,10 +300,17 @@ export default function CalendarGeneratorPage() {
       <div className="mx-auto max-w-5xl space-y-8">
         {/* Header */}
         <header className="flex items-center justify-between border-b border-white/10 pb-4">
-          <h1 className="text-2xl md:text-3xl font-bold">
-            <span className="text-white">AI Content Calendar </span>
-            <span className="text-ww-violet">Generator</span>
-          </h1>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">
+              <span className="text-white">AI Content Calendar </span>
+              <span className="text-ww-violet">Generator</span>
+            </h1>
+            {tier === 'free' && (
+              <p className="mt-2 text-sm text-white/60">
+                Free plan: {usedCalendarGenerations}/1 generation used
+              </p>
+            )}
+          </div>
           <div className="text-white/60 text-sm inline-flex items-center gap-2">
             <CalendarDays className="w-4 h-4" />
             Plan 30–90 days in one go
@@ -419,12 +479,24 @@ export default function CalendarGeneratorPage() {
             <button
               type="button"
               onClick={handleGenerate}
-              disabled={generating}
+             disabled={generating || freeLimitReached}
               className="group px-6 h-11 rounded-full border border-ww-violet/30 bg-black/40 text-white font-semibold inline-flex items-center gap-2 transition-all duration-300 active:scale-95 disabled:opacity-50 hover:shadow-[0_0_20px_rgba(186,85,211,0.5)] hover:border-ww-violet"
             >
               {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               {generating ? 'Generating…' : 'Generate Calendar'}
             </button>
+{freeLimitReached && (
+  <div className="mt-3 rounded-2xl border border-ww-violet/40 bg-ww-violet/10 p-3 text-sm text-white/80 flex items-center justify-between gap-3">
+    <span>You’ve used your 1 free calendar generation.</span>
+    <button
+      type="button"
+      onClick={() => router.push('/pricing')}
+      className="px-4 h-9 rounded-full bg-ww-violet text-white font-semibold"
+    >
+      Upgrade
+    </button>
+  </div>
+)}
 
             {calendar && (
               <>

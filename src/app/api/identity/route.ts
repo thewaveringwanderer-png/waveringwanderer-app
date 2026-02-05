@@ -10,6 +10,39 @@ type Inputs = {
   audience?: string
   goal?: string
 }
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+
+function buildIdentityPreview(full: any) {
+  return {
+    brand_essence: full?.brand_essence ?? '',
+    one_line_positioning: full?.one_line_positioning ?? '',
+    archetype: full?.archetype ?? null,
+    bio_short: full?.bio_short ?? '',
+    tone_of_voice: Array.isArray(full?.tone_of_voice) ? full.tone_of_voice.slice(0, 4) : [],
+    value_props: Array.isArray(full?.value_props) ? full.value_props.slice(0, 3) : [],
+    audience_persona: full?.audience_persona
+      ? {
+          nickname: full.audience_persona.nickname ?? '',
+          demographics: full.audience_persona.demographics ?? '',
+          psychographics: full.audience_persona.psychographics ?? '',
+          adjacent_artists: Array.isArray(full.audience_persona.adjacent_artists)
+            ? full.audience_persona.adjacent_artists.slice(0, 4)
+            : [],
+        }
+      : null,
+    content_pillars: Array.isArray(full?.content_pillars)
+      ? full.content_pillars.slice(0, 3).map((p: any) => ({
+          name: p?.name ?? '',
+          why: p?.why ?? '',
+          formats: Array.isArray(p?.formats) ? p.formats.slice(0, 3) : [],
+        }))
+      : [],
+  }
+}
 
 export async function POST(req: Request) {
   let inputs: Inputs = {}
@@ -25,6 +58,51 @@ export async function POST(req: Request) {
     audience = '',
     goal = '',
   } = inputs
+  const authHeader = req.headers.get('authorization') || ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : ''
+
+  if (!token) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const supabaseAuth = createClient(supabaseUrl, supabaseAnon)
+  const { data: userData } = await supabaseAuth.auth.getUser(token)
+  const uid = userData?.user?.id
+
+  if (!uid) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!serviceKey) {
+    return NextResponse.json({ error: 'Missing service role key' }, { status: 500 })
+  }
+
+    const supabaseAdmin = createClient(supabaseUrl, serviceKey)
+
+  // --- Load profile row (if missing, treat as free with 0 usage) ---
+  const { data: profileRow, error: profileErr } = await supabaseAdmin
+    .from('ww_profiles')
+    .select('tier, usage')
+    .eq('user_id', uid)
+    .maybeSingle()
+
+  if (profileErr) {
+    console.error('[identity] ww_profiles read error', profileErr)
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+  }
+
+  const tier = ((profileRow?.tier as any) || 'free') as 'free' | 'creator' | 'pro'
+  const usage: Record<string, any> = (profileRow?.usage as any) || {}
+
+  const used = Number(usage.identity_generate_uses || 0)
+
+  // ✅ Block free users after 1 use
+  if (tier === 'free' && used >= 1) {
+    return NextResponse.json(
+      { error: 'FREE_LIMIT', message: 'Free plan includes 1 Identity Kit generation.' },
+      { status: 429 }
+    )
+  }
 
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
@@ -114,13 +192,54 @@ Be precise. Use concrete nouns and scenes. Avoid generic language.
 
     if (!meetsMinimums(result)) {
       result = await deepenResult(openai, result, { artistName, genre, influences, brandWords, audience, goal })
+    }      
+   // ✅ Increment usage AFTER successful generation (single source of truth)
+const nextUsage = { ...usage, identity_generate_uses: used + 1 }
+
+const { error: upsertErr } = await supabaseAdmin
+  .from('ww_profiles')
+  .upsert([{ user_id: uid, tier, usage: nextUsage }], { onConflict: 'user_id' })
+
+if (upsertErr) {
+  console.error('[identity] ww_profiles usage upsert error', upsertErr)
+  return NextResponse.json(
+    { error: 'SERVER_ERROR', message: 'Could not update usage tracking.' },
+    { status: 500 }
+  )
+}
+
+
+
+    if (tier === 'free') {
+      return NextResponse.json(
+        {
+          result: buildIdentityPreview(result),
+          _preview: true,
+          _locked: [
+            'Full visual identity system',
+            'Deep platform strategy',
+            'Full 90-day plan',
+            'SEO keywords + taglines',
+          ],
+        },
+        { status: 200 }
+      )
     }
 
-    return NextResponse.json({ result }, { status: 200 })
+    return NextResponse.json({ result, _preview: false }, { status: 200 })
+
   } catch (e: unknown) {
-  console.error('[identity]', e)
-  return NextResponse.json({ error: 'Server error' }, { status: 500 })
+  const msg =
+    e instanceof Error ? e.message : typeof e === 'string' ? e : JSON.stringify(e)
+
+  console.error('[identity] route error:', msg)
+
+  return NextResponse.json(
+    { error: 'SERVER_ERROR', message: msg },
+    { status: 500 }
+  )
 }
+
 
 }
 

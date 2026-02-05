@@ -5,6 +5,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
 import { useWwProfile } from '@/hooks/useWwProfile'
+import { getUsage } from '@/lib/wwProfile' // add at top with your imports
+import { useRouter } from 'next/navigation'
+
 import * as identityKitPdf from '@/lib/exports/identityKitPdf'
 import { buildCampaignPdfLines } from '@/lib/exports/campaignPdf'
 import {
@@ -155,6 +158,8 @@ function isHexColour(s: string) {
 }
 
 export default function IdentityKitPage() {
+    const router = useRouter()
+
   const {
   profile,
   hasProfile: hasAnyProfile,
@@ -189,13 +194,61 @@ const [selectedCampaignId, setSelectedCampaignId] = useState<string>('')
   const [showSavedCampaigns, setShowSavedCampaigns] = useState(true)
 
   // UI state
+  const [identityFreeLimitReached, setIdentityFreeLimitReached] = useState(false)
+
   const [submitting, setSubmitting] = useState(false)
+const [authExpired, setAuthExpired] = useState(false)
   const [savingKit, setSavingKit] = useState(false)
   const [loadingCampaigns, setLoadingCampaigns] = useState(false)
   const [savingCampaigns, setSavingCampaigns] = useState(false)
   const [downloadingPdf, setDownloadingPdf] = useState(false)
 const [pulseResultGlow, setPulseResultGlow] = useState(false)
 const [pulseCampaignGlow, setPulseCampaignGlow] = useState(false)
+const [autoSavingKit, setAutoSavingKit] = useState(false)
+const [kitSavedForCurrentResult, setKitSavedForCurrentResult] = useState(false)
+const [mounted, setMounted] = useState(false)
+useEffect(() => setMounted(true), [])
+
+async function autoSaveKitQuiet(resultToSave: any) {
+  try {
+    setAutoSavingKit(true)
+
+    const { data: userData } = await supabase.auth.getUser()
+    const uid = userData?.user?.id
+
+    const payloadBase: any = {
+      inputs: { artistName, genre, influences, brandWords, audience, goal },
+      result: resultToSave,
+    }
+
+    let insertRes = await supabase
+      .from('identity_kits')
+      .insert([uid ? { ...payloadBase, user_id: uid } : payloadBase])
+      .select()
+      .single()
+
+    // fallback for older schema
+    if (
+      insertRes.error &&
+      String(insertRes.error.message || '').toLowerCase().includes('column') &&
+      String(insertRes.error.message || '').includes('user_id')
+    ) {
+      insertRes = await supabase.from('identity_kits').insert([payloadBase]).select().single()
+    }
+
+    if (!insertRes.error && insertRes.data) {
+      const row = insertRes.data as KitRow
+      setKits(prev => [row, ...prev])
+      setSelectedKitId(row.id)
+      setKitSavedForCurrentResult(true)
+    }
+  } catch {
+    // silent on purpose
+  } finally {
+    setAutoSavingKit(false)
+  }
+}
+
 
   // ✅ Campaign PDF state (hooks MUST be inside component)
   const [downloadingCampaignPdf, setDownloadingCampaignPdf] = useState(false)
@@ -327,95 +380,108 @@ const [downloadingConceptIndex, setDownloadingConceptIndex] = useState<number | 
 
   // ---------- Actions ----------
   async function handleGenerateKit() {
-    void save({ artistName, genre, audience, goal })
-    setSubmitting(true)
-    setLoadedKitId('')
+  void save({ artistName, genre, audience, goal })
+  setSubmitting(true)
+  setLoadedKitId('')
 
-    setResult(null)
-    setCampaigns(null)
-    setCollapseIdentityCard(false)
-    setCollapseCampaignCard(false)
+  setResult(null)
+  setCampaigns(null)
+  setCollapseIdentityCard(false)
+  setCollapseCampaignCard(false)
 
-    try {
-      const response = await fetch('/api/identity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ artistName, genre, influences, brandWords, audience, goal }),
-      })
+  try {
+  // clear previous flags
+  setIdentityFreeLimitReached(false)
+  setAuthExpired(false)
 
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        toast.error(data?.error || 'Failed to generate')
-        return
-      }
+  // get token
+  let sessionRes = await supabase.auth.getSession()
+  let token = sessionRes.data.session?.access_token
 
-      setResult(data.result || data)
-      setResult(data.result || data)
-
-// clear “loaded” selection to reduce confusion
-setSelectedKitId('')
-// if you implemented loadedKitId earlier, also do: setLoadedKitId('')
-
-setPulseResultGlow(true)
-
-setTimeout(() => {
-  identityCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}, 150)
-
-setTimeout(() => {
-  setPulseResultGlow(false)
-}, 2200)
-
-    } catch {
-      toast.error('Failed to generate')
-    } finally {
-      setSubmitting(false)
-    }
+  // refresh once if missing
+  if (!token) {
+    await supabase.auth.refreshSession()
+    sessionRes = await supabase.auth.getSession()
+    token = sessionRes.data.session?.access_token
   }
 
-  async function handleSaveKit() {
-    if (!result) return toast.error('Generate first!')
-    setSavingKit(true)
+  let response = await fetch('/api/identity', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({ artistName, genre, influences, brandWords, audience, goal }),
+})
 
-    try {
-      const { data: userData } = await supabase.auth.getUser()
-      const uid = userData?.user?.id
+// If unauthorized, refresh once and retry
+if (response.status === 401) {
+  await supabase.auth.refreshSession()
+  const retrySession = await supabase.auth.getSession()
+  const retryToken = retrySession.data.session?.access_token
 
-      const payloadBase: any = {
-        inputs: { artistName, genre, influences, brandWords, audience, goal },
-        result,
-      }
-
-      let insertRes = await supabase
-        .from('identity_kits')
-        .insert([uid ? { ...payloadBase, user_id: uid } : payloadBase])
-        .select()
-        .single()
-
-      // fallback for older schemas
-      if (
-        insertRes.error &&
-        String(insertRes.error.message || '').toLowerCase().includes('column') &&
-        String(insertRes.error.message || '').includes('user_id')
-      ) {
-        insertRes = await supabase.from('identity_kits').insert([payloadBase]).select().single()
-      }
-
-      if (insertRes.error) throw insertRes.error
-      const row = insertRes.data as KitRow
-
-      setKits(prev => [row, ...prev])
-      setSelectedKitId(row.id)
-      toast.success('Saved ✅')
-
-      if (!showSavedKits) setShowSavedKits(true)
-      setTimeout(() => savedSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250)
-    } catch (e: any) {
-      toast.error(e?.message || 'Error saving')
-    } finally {
-      setSavingKit(false)
-    }
+  if (!retryToken) {
+    setAuthExpired(true)
+    toast.error('Your session expired — please log in again.')
+    return
   }
+
+  response = await fetch('/api/identity', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${retryToken}`,
+    },
+    body: JSON.stringify({ artistName, genre, influences, brandWords, audience, goal }),
+  })
+}
+
+const data = await response.json().catch(() => ({}))
+
+
+  // ✅ free limit
+  if (response.status === 429 && data?.error === 'FREE_LIMIT') {
+  setIdentityFreeLimitReached(true)
+  toast.error(data?.message || 'Free plan limit reached')
+  return
+}
+
+
+  // ✅ unauthenticated (DON'T redirect)
+  if (response.status === 401) {
+    setAuthExpired(true)
+    toast.error(data?.message || data?.error || 'You need to log in again.')
+    return
+  }
+
+  if (!response.ok) {
+    toast.error(data?.error || 'Failed to generate')
+    return
+  }
+
+  const next = data.result || data
+setResult(next)
+setKitSavedForCurrentResult(false)
+
+// autosave (especially important for free users)
+void autoSaveKitQuiet(next)
+
+setKitSavedForCurrentResult(true)
+
+  setSelectedKitId('')
+  setPulseResultGlow(true)
+
+  setTimeout(() => identityCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150)
+  setTimeout(() => setPulseResultGlow(false), 2200)
+} catch (e: any) {
+  toast.error(e?.message || 'Failed to generate')
+} finally {
+  setSubmitting(false)
+}
+
+}
+
+
 
   function handleLoadSavedKit(id: string) {
     const kit = kits.find(k => k.id === id)
@@ -762,6 +828,49 @@ const base = safeBase ? `${safeBase} identity kit` : 'identity kit'
       </div>
     )
   }
+async function handleSaveKit() {
+  if (!result) return toast.error('Generate first!')
+  setSavingKit(true)
+
+  try {
+    const { data: userData } = await supabase.auth.getUser()
+    const uid = userData?.user?.id
+
+    const payloadBase: any = {
+      inputs: { artistName, genre, influences, brandWords, audience, goal },
+      result,
+    }
+
+    let insertRes = await supabase
+      .from('identity_kits')
+      .insert([uid ? { ...payloadBase, user_id: uid } : payloadBase])
+      .select()
+      .single()
+
+    // fallback for older schemas
+    if (
+      insertRes.error &&
+      String(insertRes.error.message || '').toLowerCase().includes('column') &&
+      String(insertRes.error.message || '').includes('user_id')
+    ) {
+      insertRes = await supabase.from('identity_kits').insert([payloadBase]).select().single()
+    }
+
+    if (insertRes.error) throw insertRes.error
+
+    const row = insertRes.data as KitRow
+    setKits(prev => [row, ...prev])
+    setSelectedKitId(row.id)
+    toast.success('Saved ✅')
+
+    if (!showSavedKits) setShowSavedKits(true)
+    setTimeout(() => savedSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250)
+  } catch (e: any) {
+    toast.error(e?.message || 'Error saving')
+  } finally {
+    setSavingKit(false)
+  }
+}
 
   return (
     <main className="min-h-screen bg-black text-white" style={{ overflowAnchor: 'none' as any }}>
@@ -777,7 +886,7 @@ const base = safeBase ? `${safeBase} identity kit` : 'identity kit'
             </h1>
           </div>
 
-          {hasAnyProfile && (
+          {mounted && hasAnyProfile && (
             <button type="button" onClick={applyProfileFromCentral} className={outlineBtn}>
               <Sparkles className="w-4 h-4" />
               Apply WW profile
@@ -947,13 +1056,67 @@ const base = safeBase ? `${safeBase} identity kit` : 'identity kit'
           </div>
 
           {/* Tab-specific actions */}
+          {identityFreeLimitReached && (
+  <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+    <p className="text-sm text-white/80">
+      You’ve used your 1 free Identity Kit generation.
+    </p>
+    <button
+      type="button"
+      onClick={() => router.push('/pricing')}
+      className={outlineBtn + ' h-9'}
+    >
+      Upgrade
+    </button>
+  </div>
+)}
+
           <div className="flex flex-wrap gap-2 pt-1">
             {tab === 'kit' ? (
               <>
-                <button type="button" onClick={handleGenerateKit} disabled={submitting} className={primaryBtn}>
+                <button type="button" onClick={handleGenerateKit} disabled={submitting || identityFreeLimitReached}
+ className={primaryBtn}>
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                   {submitting ? 'Generating…' : 'Generate'}
                 </button>
+{identityFreeLimitReached && (
+  <div className="mt-3 rounded-2xl border border-ww-violet/40 bg-ww-violet/10 p-4 shadow-[0_0_18px_rgba(186,85,211,0.25)]">
+    <div className="flex items-start justify-between gap-3 flex-wrap">
+      <div>
+        <p className="text-xs uppercase tracking-wide text-white/50">Free limit reached</p>
+        <p className="text-sm text-white/80 mt-1">
+          You’ve used your 1 free Identity Kit generation.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => window.location.assign('/pricing')}
+        className="inline-flex items-center gap-2 px-4 h-9 rounded-full bg-ww-violet text-white text-sm font-semibold
+          shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)] active:scale-95 transition"
+      >
+        Upgrade
+        <ArrowRight className="w-4 h-4" />
+      </button>
+    </div>
+  </div>
+)}
+
+{authExpired && (
+  <div className="mt-3 rounded-2xl border border-white/10 bg-black/60 p-4">
+    <p className="text-xs uppercase tracking-wide text-white/50">Session expired</p>
+    <p className="text-sm text-white/80 mt-1">Please log in again to generate.</p>
+    <button
+      type="button"
+      onClick={() => window.location.assign('/login')}
+      className={outlineBtn + ' h-9 mt-3'}
+    >
+      Go to login
+      <ArrowRight className="w-4 h-4" />
+    </button>
+  </div>
+)}
+
 
                 
               </>
@@ -969,6 +1132,23 @@ const base = safeBase ? `${safeBase} identity kit` : 'identity kit'
             )}
           </div>
         </section>
+
+
+
+{authExpired && (
+  <div className="mt-3 rounded-2xl border border-white/10 bg-black/60 p-4">
+    <p className="text-xs uppercase tracking-wide text-white/50">Session expired</p>
+    <p className="text-sm text-white/80 mt-1">Please log in again to generate.</p>
+    <button
+      type="button"
+      onClick={() => window.location.assign('/login')}
+      className={outlineBtn + ' h-9 mt-3'}
+    >
+      Go to login
+      <ArrowRight className="w-4 h-4" />
+    </button>
+  </div>
+)}
 
         {/* Results */}
         <section ref={resultRef} className="space-y-6 pb-16" style={{ overflowAnchor: 'none' as any }}>
@@ -995,7 +1175,13 @@ const base = safeBase ? `${safeBase} identity kit` : 'identity kit'
                   {/* Collapse / expand this card */}
                   <button
                     type="button"
-                    className={miniOutlineBtn}
+                    className={
+  miniOutlineBtn +
+  (!kitSavedForCurrentResult
+    ? ' animate-pulse border-ww-violet/60 shadow-[0_0_18px_rgba(186,85,211,0.55)]'
+    : '')
+}
+
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
@@ -1013,7 +1199,8 @@ const base = safeBase ? `${safeBase} identity kit` : 'identity kit'
   className={miniOutlineBtn}
 >
   {savingKit ? <Loader2 className="w-4 h-4 animate-spin" /> : <SaveIcon className="w-4 h-4" />}
-  {savingKit ? 'Saving…' : 'Save'}
+  {autoSavingKit || savingKit ? 'Saving…' : kitSavedForCurrentResult ? 'Saved' : 'Save'}
+
 </button>
 
 

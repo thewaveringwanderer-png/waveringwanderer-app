@@ -4,6 +4,9 @@
 import { useEffect, useMemo, useState, type SVGProps } from 'react'
 import { Toaster, toast } from 'sonner'
 import { useWwProfile } from '@/hooks/useWwProfile'
+import { useRouter } from 'next/navigation'
+import LimitReachedPill from '@/components/ww/LimitReachedPill'
+
 import {
   Sparkles,
   Wand2,
@@ -117,12 +120,13 @@ function buildNewsletterPdfLines(
 export default function NewsletterPage() {
   const {
   profile,
+  tier,
   hasProfile: hasAnyProfile,
   setLocalOnly: applyTo,
   updateProfile: save,
 } = useWwProfile()
-
-
+const router = useRouter()
+const isProLocked = tier !== 'pro'
   const [activeTab, setActiveTab] = useState<'outline' | 'draft'>('outline')
 
   // Inputs for outline generator
@@ -132,6 +136,7 @@ export default function NewsletterPage() {
   const [voiceAndVibe, setVoiceAndVibe] = useState('')
   const [mainTheme, setMainTheme] = useState('')
   const [extraContext, setExtraContext] = useState('')
+  
 
   // AI helper: theme ideas
   const [themeIdeas, setThemeIdeas] = useState<string[]>([])
@@ -692,11 +697,11 @@ export default function NewsletterPage() {
 
               <div className="pt-1 flex flex-wrap items-center gap-3">
                 <button
-                  type="button"
-                  onClick={handleGenerateOutline}
-                  disabled={loadingOutline}
-                  className={primaryButtonClass}
-                >
+  type="button"
+  onClick={handleGenerateOutline}
+  disabled={isProLocked}
+>
+
                   {loadingOutline ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -709,6 +714,13 @@ export default function NewsletterPage() {
                     </>
                   )}
                 </button>
+                {isProLocked ? (
+  <LimitReachedPill
+    message="Newsletter is available on Pro."
+    onUpgrade={() => router.push('/pricing')}
+  />
+) : null}
+
                 <p className="text-[0.7rem] text-white/55">
                   WW will suggest 2–3 routes you can take – including stories, CTAs and
                   metrics to watch.

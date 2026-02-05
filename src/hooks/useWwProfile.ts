@@ -8,9 +8,11 @@ import {
   readLocalWwProfile,
   writeLocalWwProfile,
   mergeWwProfiles,
+  effectiveTier,
 } from '@/lib/wwProfile'
 
 type UseWwProfileResult = {
+  tier: 'free' | 'creator' | 'pro'
   profile: WwProfile
   hasProfile: boolean
   loading: boolean
@@ -23,6 +25,8 @@ type UseWwProfileResult = {
 
 export function useWwProfile(): UseWwProfileResult {
   const [profile, setProfile] = useState<WwProfile>(() => readLocalWwProfile() || {})
+  const tier = useMemo(() => effectiveTier(profile), [profile])
+
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -104,6 +108,7 @@ export function useWwProfile(): UseWwProfileResult {
   const clearError = useCallback(() => setError(null), [])
 
   return {
+    tier,
     profile,
     hasProfile,
     loading,

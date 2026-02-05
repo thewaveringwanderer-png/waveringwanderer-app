@@ -4,6 +4,8 @@
 import { useState, useEffect, useMemo, Fragment, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
+import { hasFeature } from '@/lib/hasFeature'
+
 import {
   CalendarDays,
   Loader2,

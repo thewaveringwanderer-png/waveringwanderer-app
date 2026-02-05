@@ -1,9 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
 import { useWwProfile } from '@/hooks/useWwProfile'
+import { bumpUsage, getUsage } from '@/lib/wwProfile'
+import { useRouter } from 'next/navigation'
+import LimitReachedPill from '@/components/ww/LimitReachedPill'
+
 import {
   Sparkles,
   Image as ImageIcon,
@@ -270,12 +274,27 @@ function buildAllCaptionsPdfLines(args: {
 
 // ---------- Component ----------
 export default function CaptionsPage() {
-  const {
+ const {
   profile,
+  tier,
+  refresh,
   hasProfile: hasAnyProfile,
   setLocalOnly: applyTo,
   updateProfile: save,
 } = useWwProfile()
+
+const router = useRouter()
+
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  
+
+const usage = useMemo(() => (mounted ? getUsage(profile) : {}), [mounted, profile])
+const usedCaptionGenerations = Number((usage as any).captions_generate_uses || 0)
+const safeTier = mounted ? tier : 'free'
+const freeCaptionLimitReached = safeTier === 'free' && usedCaptionGenerations >= 1
+const isCaptionLocked = freeCaptionLimitReached
+
 
 
   // which tab is visible
@@ -291,6 +310,7 @@ export default function CaptionsPage() {
   const [imageHint, setImageHint] = useState('')
   const [includeHashtags, setIncludeHashtags] = useState(true)
   const [variantCount, setVariantCount] = useState(4)
+const [captionsFreeLimitReached, setCaptionsFreeLimitReached] = useState(false)
 
   const [genResult, setGenResult] = useState<GenerateResult | null>(null)
   const [loadingGenerate, setLoadingGenerate] = useState(false)
@@ -309,10 +329,12 @@ export default function CaptionsPage() {
 
   // ✅ Non-destructive: if local fields are empty, hydrate from central profile
   useEffect(() => {
-    if (profile.artistName && !artistName) setArtistName(profile.artistName)
-    if (profile.tone && tone === 'brand-consistent, concise, human, engaging') setTone(profile.tone)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile])
+  if (profile?.artistName && !artistName) setArtistName(profile.artistName)
+  if (profile?.tone && tone === 'brand-consistent, concise, human, engaging') setTone(profile.tone)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [profile])
+
+
 
   function applyProfileFromCentral() {
     applyTo({ setArtistName, setTone })
@@ -355,6 +377,15 @@ export default function CaptionsPage() {
 
   // ---------- Actions: Generate ----------
   async function handleGenerate() {
+    if (loadingGenerate) return
+
+    if (activeTab === 'generate' && freeCaptionLimitReached) {
+  toast.error('Free plan includes 1 caption generation. Upgrade to generate again.')
+return
+
+}
+
+
     const effectiveTopic =
       topic || (sourceKind === 'image' ? imageHint || 'Visual-based post' : 'Music / artist post')
 
@@ -369,6 +400,7 @@ export default function CaptionsPage() {
     setGenResult(null)
 
     try {
+      
       const res = await fetch('/api/captions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -415,6 +447,13 @@ export default function CaptionsPage() {
 
       setGenResult({ variants: normalised })
       toast.success('Captions generated ✨')
+      if (safeTier === 'free') {
+  await bumpUsage('captions_generate_uses')
+  await refresh()
+}
+
+
+
     } catch (e: any) {
       console.error(e)
       toast.error(e?.message || 'Something went wrong')
@@ -678,7 +717,8 @@ export default function CaptionsPage() {
         </div>
 
         {/* ✅ Central profile banner */}
-        {hasAnyProfile && (
+        {mounted && hasAnyProfile && (
+
           <div className="p-3 rounded-2xl border border-ww-violet/40 bg-ww-violet/10 text-xs flex flex-wrap items-center justify-between gap-2">
             <span className="text-white/80">Load your saved artist details and tone from your WW profile?</span>
             <button
@@ -721,7 +761,8 @@ export default function CaptionsPage() {
       </section>
 
       {/* ----------- Generate TAB ----------- */}
-      {activeTab === 'generate' && (
+      {mounted && activeTab === 'generate' && (
+
         <section className="mx-auto max-w-5xl px-4 pb-10 space-y-8">
           {/* Generator Card */}
           <section className="rounded-3xl border border-white/10 bg-black/70 p-5 md:p-7 space-y-5">
@@ -771,13 +812,13 @@ export default function CaptionsPage() {
                   className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
                   placeholder="Artist name"
                 />
-                {profile.artistName && !artistName && (
+                {profile?.artistName && !artistName && (
                   <button
                     type="button"
                     onClick={() => setArtistName(profile.artistName!)}
                     className="mt-1 text-[0.7rem] text-ww-violet hover:underline"
                   >
-                    Use “{profile.artistName}” from profile
+                    Use “{profile?.artistName}” from profile
                   </button>
                 )}
               </div>
@@ -882,7 +923,8 @@ export default function CaptionsPage() {
               <button
                 type="button"
                 onClick={handleGenerate}
-                disabled={loadingGenerate}
+                disabled={loadingGenerate || freeCaptionLimitReached}
+
                 className="inline-flex items-center gap-2 px-5 h-10 rounded-full bg-ww-violet text-sm font-semibold shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)] active:scale-95 transition disabled:opacity-60"
               >
                 {loadingGenerate ? (
@@ -897,6 +939,24 @@ export default function CaptionsPage() {
                   </>
                 )}
               </button>
+              {isCaptionLocked ? (
+  <LimitReachedPill
+    message="You've used your 1 free caption generation."
+    onUpgrade={() => router.push('/pricing')}
+  />
+) : null}
+
+
+
+<button
+  type="button"
+  onClick={handleSendAllToMomentum}
+  disabled={!genResult || loadingGenerate}
+  className="inline-flex items-center gap-2 px-4 h-10 rounded-full border border-white/15 text-sm text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-40"
+>
+  <Send className="w-4 h-4" />
+  Send All
+</button>
 
               <button
                 type="button"
@@ -979,15 +1039,7 @@ export default function CaptionsPage() {
                           </>
                         )}
                       </button>
-                      <button
-  type="button"
-  onClick={handleSendAllToMomentum}
-  disabled={!genResult || loadingGenerate}
-  className="inline-flex items-center gap-2 px-4 h-10 rounded-full border border-white/15 text-sm text-white/80 hover:border-ww-violet hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.7)] transition disabled:opacity-40"
->
-  <Send className="w-4 h-4" />
-  Send All
-</button>
+                      
 
 
                       <button
@@ -1027,7 +1079,8 @@ export default function CaptionsPage() {
       )}
 
       {/* ----------- Polish TAB ----------- */}
-      {activeTab === 'polish' && (
+      {mounted && activeTab === 'polish' && (
+
         <section className="mx-auto max-w-5xl px-4 pb-12 space-y-6">
           <section className="rounded-3xl border border-white/10 bg-black/70 p-5 md:p-7 space-y-4">
             <div className="flex items-center justify-between gap-3">

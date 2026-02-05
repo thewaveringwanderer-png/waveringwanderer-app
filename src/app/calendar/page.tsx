@@ -2,9 +2,15 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import LimitReachedPill from '@/components/ww/LimitReachedPill'
+
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
 import { useWwProfile } from '@/hooks/useWwProfile'
+import { effectiveTier, getUsage, bumpUsage, readLocalWwProfile } from '@/lib/wwProfile'
+
+
 import ContentCardModal, { type ContentCard as SharedContentCard } from '@/components/ww/ContentCardModal'
 import { buildStandardHeader, renderWwPdf, type PdfLine } from '@/lib/wwPdf'
 import ContentCard from '@/components/ww/ContentCard'
@@ -29,6 +35,8 @@ import {
   X,
 } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
+
+
 
 
 // ---------- Supabase ----------
@@ -282,12 +290,27 @@ function isGenericCaption(s: string) {
 
 // ---------- Component ----------
 export default function CalendarPage() {
+  const router = useRouter()
+
+  const [usageTick, setUsageTick] = useState(0)
+
   const {
   profile,
   hasProfile: hasAnyProfile,
   setLocalOnly: applyTo,
   updateProfile: save,
 } = useWwProfile()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const tier = effectiveTier(profile)
+  const usage = useMemo(() => (mounted ? getUsage(profile) : {}), [mounted, profile])
+const usedCalendarGenerations = Number((usage as any).calendar_generate_uses || 0)
+
+const safeTier = mounted ? tier : 'free'
+const isCalendarLocked = mounted && safeTier === 'free' && usedCalendarGenerations >= 1
+
+const freeLimitReached = tier === 'free' && usedCalendarGenerations >= 1
+
 
   
 
@@ -333,14 +356,15 @@ export default function CalendarPage() {
   const POSTS_PER_DAY = 1
 
   // ✅ Week plan span (local generator)
-const [weekSpan, setWeekSpan] = useState<1 | 2>(1)
+
 
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['tiktok', 'instagram', 'youtube'])
   const [releaseContext, setReleaseContext] = useState('')
   const [showAdvanced, setShowAdvanced] = useState(false)
 
   // ✅ Schedule length for API generator
-  const [scheduleLength, setScheduleLength] = useState<'7' | '14' | '30' | '60' | '90'>('30')
+  const [scheduleLength, setScheduleLength] = useState<'7' | '14' | '30'>('30')
+
 
 
   // Energy pattern (Mon..Sun)
@@ -790,6 +814,11 @@ const [weekSpan, setWeekSpan] = useState<1 | 2>(1)
      
 
   async function handleGenerateWeekPlan() {
+        if (freeLimitReached) {
+      toast.error('Free plan includes 1 calendar generation. Upgrade to generate again.')
+      return
+    }
+
     void save({ artistName, genre, audience, goal, tone })
     setGenerating(true)
 
@@ -805,7 +834,7 @@ const [weekSpan, setWeekSpan] = useState<1 | 2>(1)
 const batchLabel = `Week plan (${dateKey(weekStart)})`
 
       const rows: Array<Partial<CalendarItem>> = []
-const genDays = Array.from({ length: weekSpan * 7 }).map((_, i) => addDays(weekStart, i))
+const genDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i))
 
       genDays.forEach((day, dayIndex) => {
 
@@ -853,6 +882,13 @@ const genDays = Array.from({ length: weekSpan * 7 }).map((_, i) => addDays(weekS
 
       setItems(prev => [...prev, ...saved])
       toast.success('Week plan generated and saved ✅')
+
+           if (tier === 'free') {
+  await bumpUsage('calendar_generate_uses' as any)
+  setUsageTick(t => t + 1)
+}
+
+
     } catch (e: any) {
       console.error('[calendar-v2] generate error', e)
       toast.error(e?.message || 'Could not generate week plan')
@@ -1038,6 +1074,11 @@ if (data?._fallback) {
 
       setItems(prev => [...prev, ...saved])
       toast.success(`${scheduleLength}-day schedule generated and saved ✅`)
+      if (tier === 'free') {
+  await bumpUsage('calendar_generate_uses' as any)
+  setUsageTick(t => t + 1)
+}
+
     } catch (e: any) {
       console.error('[calendar-v2] generate schedule api error', e)
       toast.error(e?.message || 'Could not generate schedule')
@@ -1425,7 +1466,7 @@ async function handleSendMonthToMomentum() {
           </div>
 
           {/* Apply WW profile as a clean button (no banner) */}
-          {hasAnyProfile && (
+          {mounted && hasAnyProfile && (
             <button type="button" onClick={applyProfileFromCentral} className={outlineBtn}>
               <Sparkles className="w-4 h-4" />
               Apply WW profile
@@ -1555,13 +1596,7 @@ async function handleSendMonthToMomentum() {
 
               
 
-              <div className="space-y-1">
-  <p className={labelClass}>Weeks</p>
-  <select className={inputClass} value={weekSpan} onChange={e => setWeekSpan(parseInt(e.target.value, 10) as any)}>
-    <option value={1}>1 week</option>
-    <option value={2}>2 weeks</option>
-  </select>
-</div>
+              
 
 
               <div className="space-y-1">
@@ -1575,11 +1610,10 @@ async function handleSendMonthToMomentum() {
               <div className="space-y-1">
                 <p className={labelClass}>Schedule length</p>
                 <select className={inputClass} value={scheduleLength} onChange={e => setScheduleLength(e.target.value as any)}>
-                  <option value="7">1 week</option>
-<option value="14">2 weeks</option>
-<option value="30">30 days</option>
-<option value="60">60 days</option>
-<option value="90">90 days</option>
+                   <option value="7">1 week</option>
+  <option value="14">2 weeks</option>
+  <option value="30">1 month</option>
+
 
                 </select>
               </div>
@@ -1686,33 +1720,35 @@ async function handleSendMonthToMomentum() {
               <button
   type="button"
   onClick={() => {
-    if (scheduleLength === '7') handleGenerateWeekPlan()
-    else handleGenerateScheduleFromApi()
-  }}
-  disabled={generating}
-  className={primaryBtn}
+  if (tier === 'free' && scheduleLength !== '7') {
+    toast.error('Free plan can generate 1 week only. Upgrade to generate more.')
+    return
+  }
+
+  if (scheduleLength === '7') handleGenerateWeekPlan()
+  else handleGenerateScheduleFromApi()
+}}
+
+  disabled={!!(generating || isCalendarLocked)}
+
+  className={`${primaryBtn} ${freeLimitReached ? 'opacity-70' : ''}`}
 >
+
 
                 {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 {generating ? 'Generating…' : 'Generate plan'}
 
               </button>
-
-              
-
-            
-              
-
-
-              
-          
-
-              
-
-              
+{freeLimitReached ? (
+  <LimitReachedPill
+    message="You've used your 1 free calendar generation."
+    onUpgrade={() => router.push('/pricing')}
+  />
+) : null}
 
               <p className="text-[0.7rem] text-white/45">
-                Week plan creates <span className="text-white/75 font-semibold">{POSTS_PER_DAY * 7 * weekSpan}
+                Week plan creates <span className="text-white/75 font-semibold">{POSTS_PER_DAY * 7}
+
 
 </span> cards.
               </p>

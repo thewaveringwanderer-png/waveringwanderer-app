@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+import LimitReachedPill from '@/components/ww/LimitReachedPill'
+
+
 import {
   Sparkles,
   Radar,
@@ -21,6 +25,7 @@ import {
 } from 'lucide-react'
 
 import { useWwProfile } from '@/hooks/useWwProfile'
+
 
 // ---------- Supabase ----------
 const supabase = createClient(
@@ -143,7 +148,16 @@ function formatDate(iso: string) {
 }
 
 export default function TrendsPage() {
-  const { profile, saveProfile, loading: profileLoading } = useWwProfile() as any
+  const { profile, tier, saveProfile, loading: profileLoading } = useWwProfile() as any
+  const router = useRouter()
+
+// ✅ Avoid hydration mismatch (tier can differ server vs client)
+const [mounted, setMounted] = useState(false)
+useEffect(() => setMounted(true), [])
+
+const safeTier = mounted ? tier : 'free'
+const isProLocked = safeTier !== 'pro'
+
 const [currentTrendSessionId, setCurrentTrendSessionId] = useState<string | null>(null)
 
   // Tabs
@@ -176,6 +190,7 @@ const [currentTrendSessionId, setCurrentTrendSessionId] = useState<string | null
   const [sendingAll, setSendingAll] = useState(false)
 
   // Peer Radar state
+  
   const [peerSourceMode, setPeerSourceMode] = useState<'manual' | 'ai'>('manual')
   const [peerArtists, setPeerArtists] = useState('')
   const [peerVibe, setPeerVibe] = useState('')
@@ -318,6 +333,11 @@ if (currentTrendSessionId === id) setCurrentTrendSessionId(null)
 
   // ---------- Trend Finder ----------
   async function handleGenerateTrends() {
+    if (isProLocked) {
+  toast.error('Trends is available on Pro.')
+  return
+}
+
     setTrendLoading(true)
     setTrendResult(null)
 setCurrentTrendSessionId(null)
@@ -641,6 +661,11 @@ const existingIdx = new Set<number>()
 
   // ---------- Peer Radar ----------
   async function handleRunPeerRadar() {
+      if (isProLocked) {
+    toast.error('Peer Radar is available on Pro.')
+    return
+  }
+
     if (peerSourceMode === 'manual' && !peerArtists.trim()) {
       toast.error('Add at least one reference artist or switch to "Let Peer Radar decide".')
       return
@@ -890,7 +915,8 @@ const existingIdx = new Set<number>()
                 <button
                   type="button"
                   onClick={handleGenerateTrends}
-                  disabled={trendLoading}
+                  disabled={trendLoading || isProLocked}
+
                   className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-ww-violet text-white font-semibold text-sm transition-all hover:shadow-[0_0_20px_rgba(186,85,211,0.7)] active:scale-95 disabled:opacity-60"
                 >
                   {trendLoading ? (
@@ -905,6 +931,13 @@ const existingIdx = new Set<number>()
                     </>
                   )}
                 </button>
+                {isProLocked ? (
+  <LimitReachedPill
+    message="Trends is available on Pro."
+    onUpgrade={() => router.push('/pricing')}
+  />
+) : null}
+
                 <p className="text-xs text-white/50">
                   The model will return 3–4 concrete, shootable ideas tailored to your lane.
                 </p>
@@ -1288,7 +1321,7 @@ const existingIdx = new Set<number>()
                 <button
                   type="button"
                   onClick={handleRunPeerRadar}
-                  disabled={peerLoading}
+                  disabled={peerLoading || isProLocked}
                   className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-ww-violet text-white font-semibold text-sm transition-all hover:shadow-[0_0_20px_rgba(186,85,211,0.7)] active:scale-95 disabled:opacity-60"
                 >
                   {peerLoading ? (
@@ -1303,6 +1336,13 @@ const existingIdx = new Set<number>()
                     </>
                   )}
                 </button>
+                {isProLocked ? (
+  <LimitReachedPill
+    message="Peer Radar is available on Pro."
+    onUpgrade={() => router.push('/pricing')}
+  />
+) : null}
+
                 <p className="text-xs text-white/50">
                   Peer Radar will analyse patterns in your lane and suggest structures you can adapt.
                 </p>
