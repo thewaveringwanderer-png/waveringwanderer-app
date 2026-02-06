@@ -31,9 +31,15 @@ type ReleaseStrategyPlan = {
   positioning: string
   keyMoments: string[]
   phases: ReleaseStrategyPhase[]
+  playlistKeywords: {
+    primary: string[]
+    secondary: string[]
+    avoid: string[]
+  }
   contentThemes: string[]
   metrics: string[]
 }
+
 
 // --------- PDF mapping (Release Strategy → PdfLine[]) ----------
 
@@ -187,6 +193,11 @@ export default function ReleaseStrategyPage() {
   const [secondaryGoals, setSecondaryGoals] = useState('')
   const [coreStory, setCoreStory] = useState('')
   const [keyTracks, setKeyTracks] = useState('')
+  const [songMood, setSongMood] = useState('')
+const [songEnergy, setSongEnergy] = useState('')
+const [referenceArtists, setReferenceArtists] = useState('')
+const [targetListener, setTargetListener] = useState('')
+
   const [runwayWeeks, setRunwayWeeks] = useState<number>(6)
   const [platformFocus, setPlatformFocus] = useState('TikTok + Instagram Reels')
   const [budgetNotes, setBudgetNotes] = useState('')
@@ -206,15 +217,12 @@ export default function ReleaseStrategyPage() {
     'active:scale-95 transition disabled:opacity-60'
 
   function applyProfile() {
-    applyTo({
-      setArtistName: (v: string) => setArtistName(prev => prev || v),
-      setGoal: (v: string) =>
-        setHeadlineGoal(prev =>
-          prev || `Turn this ${releaseType} into a clear step towards: ${v}`
-        ),
-    })
-    toast.success('Profile applied ✅')
-  }
+  // Pull from WW profile and apply to local input state (not setLocalOnly)
+  setArtistName(prev => prev || (profile?.artistName as string) || '')
+  setHeadlineGoal(prev => prev || (profile?.goal as string) || '')
+  toast.success('Profile applied ✅')
+}
+
 
   async function handleGeneratePlan() {
     if (!artistName || !projectTitle) {
@@ -235,38 +243,113 @@ export default function ReleaseStrategyPage() {
 
     try {
       const res = await fetch('/api/release-strategy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          artistName,
-          projectTitle,
-          releaseType,
-          releaseDate,
-          headlineGoal,
-          secondaryGoals,
-          coreStory,
-          keyTracks,
-          runwayWeeks,
-          platformFocus,
-          budgetNotes,
-          profile,
-        }),
-      })
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    artistName,
+    projectTitle,
+    releaseType,
+    releaseDate,
+    headlineGoal,
+    secondaryGoals,
+    coreStory,
+    keyTracks,
+    runwayWeeks,
+    platformFocus,
+    budgetNotes,
+    profile,
+    songMood,
+songEnergy,
+referenceArtists,
+targetListener,
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || 'Failed to generate release strategy')
-      }
+  }),
+})
 
-      const data = (await res.json()) as
-        | { plan?: ReleaseStrategyPlan }
-        | ReleaseStrategyPlan
+const rawText = await res.text()
+console.log('[release-strategy raw]', rawText)
 
-      const finalPlan =
-        'plan' in data ? (data.plan as ReleaseStrategyPlan) : (data as ReleaseStrategyPlan)
+let cleaned = rawText.trim()
 
-      setPlan(finalPlan)
-      toast.success('Release strategy generated ✨')
+// If API returned ```json ... ``` (markdown), strip the fences
+if (cleaned.startsWith('```')) {
+  // remove first fence line (``` or ```json)
+  cleaned = cleaned.replace(/^```[a-zA-Z]*\n?/, '')
+  // remove ending fence
+  cleaned = cleaned.replace(/```$/, '').trim()
+}
+
+let data: unknown
+try {
+  data = JSON.parse(cleaned)
+} catch {
+  throw new Error('API returned non-JSON response')
+}
+
+if (!res.ok) {
+  const errObj = data as any
+  throw new Error(errObj?.error || 'Failed to generate release strategy')
+}
+
+// Accept either { plan: ... } or direct plan
+const response = data as any
+
+// Normalize whatever the API gives us into WW shape
+const raw =
+  response?.plan ??
+  response?.strategy ??
+  response
+
+const finalPlan: ReleaseStrategyPlan = {
+  summary: String(raw?.summary || 'Release strategy overview'),
+  positioning: String(raw?.positioning || ''),
+  keyMoments: Array.isArray(raw?.keyMoments)
+    ? raw.keyMoments.map(String)
+    : [],
+
+  phases: Array.isArray(raw?.phases)
+    ? raw.phases.map((p: any) => ({
+        label: String(p.label || 'Phase'),
+        timeframe: String(p.timeframe || ''),
+        focus: String(p.focus || ''),
+        actions: Array.isArray(p.actions)
+          ? p.actions.map(String)
+          : [],
+      }))
+    : [],
+
+  playlistKeywords: {
+    primary: Array.isArray(raw?.playlistKeywords?.primary)
+      ? raw.playlistKeywords.primary.map(String)
+      : [],
+    secondary: Array.isArray(raw?.playlistKeywords?.secondary)
+      ? raw.playlistKeywords.secondary.map(String)
+      : [],
+    avoid: Array.isArray(raw?.playlistKeywords?.avoid)
+      ? raw.playlistKeywords.avoid.map(String)
+      : [],
+  },
+
+  contentThemes: Array.isArray(raw?.contentThemes)
+    ? raw.contentThemes.map(String)
+    : [],
+
+  metrics: Array.isArray(raw?.metrics)
+    ? raw.metrics.map(String)
+    : [],
+}
+
+
+setPlan(finalPlan)
+toast.success('Release strategy generated ✨')
+
+
+setPlan(finalPlan)
+toast.success('Release strategy generated ✨')
+
+
+
+
     } catch (e: any) {
       console.error(e)
       toast.error(e?.message || 'Could not generate release strategy')
@@ -355,7 +438,8 @@ export default function ReleaseStrategyPage() {
         )}
 
         {/* layout */}
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1.35fr)]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1.35fr)] lg:items-stretch">
+
           {/* LEFT – inputs */}
           <section className="rounded-3xl border border-white/10 bg-black/75 p-5 md:p-6 space-y-5">
             {/* core row */}
@@ -468,6 +552,41 @@ export default function ReleaseStrategyPage() {
                 />
               </div>
             </div>
+<div className="space-y-1">
+  <p className="text-xs text-white/50">Song mood (e.g. dark, hopeful, aggressive)</p>
+  <input
+    value={songMood}
+    onChange={e => setSongMood(e.target.value)}
+    className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-xs"
+  />
+</div>
+
+<div className="space-y-1">
+  <p className="text-xs text-white/50">Energy level (low / mid / high)</p>
+  <input
+    value={songEnergy}
+    onChange={e => setSongEnergy(e.target.value)}
+    className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-xs"
+  />
+</div>
+
+<div className="space-y-1">
+  <p className="text-xs text-white/50">Reference artists</p>
+  <input
+    value={referenceArtists}
+    onChange={e => setReferenceArtists(e.target.value)}
+    className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-xs"
+  />
+</div>
+
+<div className="space-y-1">
+  <p className="text-xs text-white/50">Target listener (describe fan)</p>
+  <input
+    value={targetListener}
+    onChange={e => setTargetListener(e.target.value)}
+    className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-xs"
+  />
+</div>
 
             {/* runway, platforms, budget */}
             <div className="grid gap-3 md:grid-cols-3">
@@ -529,9 +648,11 @@ export default function ReleaseStrategyPage() {
           </section>
 
           {/* RIGHT – plan preview */}
-          <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-black to-zinc-900 p-5 md:p-7 shadow-[0_0_26px_rgba(0,0,0,0.7)]">
+          <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-black to-zinc-900 p-5 md:p-7 shadow-[0_0_26px_rgba(0,0,0,0.7)] h-full">
+
             {plan ? (
-              <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-1 text-sm leading-relaxed text-white/85">
+              <div className="space-y-5 h-full overflow-y-auto pr-1 text-sm leading-relaxed text-white/85">
+
                 <header className="border-b border-white/10 pb-4 space-y-1">
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -623,6 +744,19 @@ export default function ReleaseStrategyPage() {
                     </div>
                   </section>
                 )}
+{plan.playlistKeywords && (
+  <section className="space-y-2">
+    <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50">
+      Playlist Search Keywords
+    </h3>
+
+    <div className="text-xs text-white/80 space-y-1">
+      <p><b>Primary:</b> {plan.playlistKeywords.primary.join(' · ')}</p>
+      <p><b>Secondary:</b> {plan.playlistKeywords.secondary.join(' · ')}</p>
+      <p className="text-white/60"><b>Avoid:</b> {plan.playlistKeywords.avoid.join(' · ')}</p>
+    </div>
+  </section>
+)}
 
                 {plan.contentThemes?.length > 0 && (
                   <section className="space-y-1">
