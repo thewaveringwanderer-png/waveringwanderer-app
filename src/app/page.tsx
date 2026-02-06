@@ -157,9 +157,9 @@ export default function HomePage() {
         </section>
 
         {/* How it works */}
-        <section id="how" className="py-16 border-t border-white/10">
+        <section id="how" className="py-16 border-t border-white/10 text-center">
           <h2 className="text-2xl md:text-3xl font-bold">How it works</h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="mt-8 grid gap-4 md:grid-cols-3 text-center">
             {[
               ["1", "Tell us about your music", "Your vibe, goals, audience, and direction."],
               ["2", "Generate your toolkit", "Identity, assets, and plans tailored to you."],
@@ -198,7 +198,7 @@ export default function HomePage() {
 
         {/* Pricing */}
         <section id="pricing" className="mx-auto max-w-6xl px-4 py-16 border-t border-white/10">
-          <div className="mb-8">
+          <div className="mb-8 text-center">
             <h2 className="text-3xl font-bold text-white">Pricing</h2>
             <p className="mt-2 text-white/70">
               Start free. Upgrade when you’re ready to operate like a professional.
