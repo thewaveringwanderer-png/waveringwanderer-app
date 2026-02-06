@@ -37,9 +37,11 @@ const STORAGE_KEY = 'ww_profile'
 const TIER_ORDER: Tier[] = ['free', 'creator', 'pro']
 
 export function effectiveTier(profile?: WwProfile) {
-  if (profile?.is_pilot) return 'pro'
-  return (profile?.tier as any) || 'free'
+  const override = profile?.tier_override as Tier | null | undefined
+  if (override) return override
+  return (profile?.tier as Tier) || 'free'
 }
+
 
 
 export function hasTier(current: Tier, required: Tier): boolean {
@@ -89,27 +91,40 @@ export async function loadWwProfile(): Promise<WwProfile | null> {
   const supabase = getSupabase()
   const local = readLocalWwProfile() || {}
 
-  // get logged in user
   const {
     data: { user },
+    error: userErr,
   } = await supabase.auth.getUser()
 
-  // ---- PILOT AUTO-UPGRADE ----
-  if (user?.email && PILOT_EMAILS.includes(user.email)) {
-    await supabase
-      .from('ww_profiles')
-      .update({ is_pilot: true })
-      .eq('user_id', user.id)
+  // Not logged in yet → just return local
+  if (userErr || !user) {
+    writeLocalWwProfile(local)
+    return local
   }
-  // ---------------------------
 
-  const { data, error } = await supabase.from('ww_profiles').select('*').single()
-  if (error || !data) return local
+  // ✅ Fetch THIS user's row only
+  const { data, error } = await supabase
+    .from('ww_profiles')
+    .select('profile')
+    .eq('user_id', user.id)
+    .maybeSingle()
 
-  const merged = mergeWwProfiles(local, (data as any).profile || {})
+  const dbProfile = !error && data ? ((data as any).profile || {}) : {}
+  let merged = mergeWwProfiles(local, dbProfile)
+
+  // ✅ Pilot allowlist => force Pro override locally
+  const email = (user.email || '').trim().toLowerCase()
+  const allow = PILOT_EMAILS.map(e => e.trim().toLowerCase())
+
+  if (email && allow.includes(email)) {
+    merged = mergeWwProfiles(merged, { tier_override: 'pro' })
+  }
+
   writeLocalWwProfile(merged)
   return merged
 }
+
+
 
 
 export async function saveWwProfile(patch: Partial<WwProfile>): Promise<WwProfile | null> {
