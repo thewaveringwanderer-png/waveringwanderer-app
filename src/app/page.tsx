@@ -28,16 +28,28 @@ export default function HomePage() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-white/70 hover:text-white transition">
-              Sign in
-            </Link>
             <Link
-              href="/login"
-              className="inline-flex items-center justify-center rounded-full bg-ww-violet px-4 h-10 text-sm font-semibold text-white transition hover:shadow-[0_0_18px_rgba(186,85,211,0.55)] active:scale-[0.99] hover:shadow-[0_0_18px_rgba(186,85,211,0.55)]
-"
-            >
-              Get started free
-            </Link>
+  href="/login"
+  className="inline-flex items-center justify-center rounded-full px-4 h-10 text-sm font-semibold
+  border border-white/15 bg-white/5 text-white/85
+  hover:bg-ww-violet/15 hover:border-ww-violet/60 hover:text-white
+  hover:shadow-[0_0_18px_rgba(186,85,211,0.55)]
+  transition active:scale-[0.99]"
+>
+  Sign in
+</Link>
+
+<Link
+  href="/login"
+  className="inline-flex items-center justify-center rounded-full px-4 h-10 text-sm font-semibold text-white
+  bg-ww-violet border border-white/20
+  shadow-[0_0_16px_rgba(186,85,211,0.55)]
+  hover:shadow-[0_0_22px_rgba(186,85,211,0.9)]
+  transition active:scale-[0.99]"
+>
+  Get started free
+</Link>
+
           </div>
         </header>
 
@@ -55,8 +67,8 @@ export default function HomePage() {
 </span>
 
 
-            <h1 className="mt-5 text-4xl md:text-6xl font-bold leading-[1.06]">
-              Operate like a professional artist — without a manager or label.
+            <h1 className="mt-5 text-xl md:text-5xl font-bold leading-[1.06]">
+              Operate like a professional artist.
             </h1>
 
             <p className="mt-5 text-base md:text-lg text-white/70 leading-relaxed">
@@ -69,22 +81,23 @@ export default function HomePage() {
 
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center rounded-full 
-border border-white/15 bg-white/5 
-px-6 h-11 text-sm font-semibold 
-text-white/90 
-hover:bg-ww-violet/20 hover:border-ww-violet 
-hover:shadow-[0_0_18px_rgba(186,85,211,0.55)] 
-transition"
+                className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 h-11 text-sm font-semibold text-white/90 hover:bg-white/10 hover:border-ww-violet/60 hover:shadow-[0_0_22px_rgba(186,85,211,0.55)] transition"
+
               >
                 Get started free
               </Link>
               <a
-                href="#tools"
-                className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 h-11 text-sm font-semibold text-white/90 hover:bg-white/10 transition"
-              >
-                Explore tools
-              </a>
+  href="#tools"
+  className="inline-flex items-center justify-center rounded-full
+  border border-white/15 bg-white/5
+  px-6 h-11 text-sm font-semibold text-white/90
+  hover:bg-ww-violet/15 hover:border-ww-violet/60 hover:text-white
+  hover:shadow-[0_0_18px_rgba(186,85,211,0.55)]
+  transition active:scale-[0.99]"
+>
+  Explore tools
+</a>
+
             </div>
 
             <p className="mt-6 text-sm text-white/60 text-center">
@@ -103,10 +116,30 @@ transition"
               ["Consistency", "Turn one song into weeks of content."],
               ["Momentum", "Run releases without burning out."],
             ].map(([title, desc]) => (
-              <div key={title} className="rounded-2xl border border-white/10 bg-black/60 p-5">
-                <div className="text-sm font-semibold">{title}</div>
-                <div className="mt-2 text-sm text-white/70">{desc}</div>
-              </div>
+              <div
+  key={title}
+  className="
+    group
+    relative
+    rounded-2xl
+    border border-white/10
+    bg-gradient-to-b from-white/[0.04] to-black
+    p-6
+    transition
+    hover:-translate-y-[2px]
+    hover:border-ww-violet/40
+    hover:shadow-[0_0_22px_rgba(186,85,211,0.35)]
+  "
+>
+
+  <div className="flex flex-col items-center gap-2">
+  <span className="h-1.5 w-6 rounded-full bg-ww-violet/80 shadow-[0_0_10px_rgba(186,85,211,0.6)]" />
+  <div className="text-sm font-semibold">{title}</div>
+</div>
+
+  <div className="mt-2 text-sm text-white/70">{desc}</div>
+</div>
+
             ))}
           </div>
         </section>
@@ -145,30 +178,43 @@ transition"
               ],
             ].map(([title, desc]) => (
               <div
-                key={title}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 transition"
-              >
-                <div className="text-base font-semibold text-center">{title}</div>
+  key={title}
+  className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center hover:bg-white/10 transition"
+>
+  <div className="text-base font-semibold flex items-center justify-center gap-2">
+  {title}
+</div>
 
-                <div className="mt-2 text-sm text-white/70">{desc}</div>
-              </div>
+  <div className="mt-2 text-sm text-white/70">{desc}</div>
+</div>
+
             ))}
           </div>
 
-          <div className="mt-10 rounded-2xl border border-white/10 bg-black/60 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <div className="text-sm font-semibold">Less overwhelm. More output. Same voice.</div>
-              <div className="mt-1 text-sm text-white/70">
-                Build professional assets faster so you can spend more time creating.
-              </div>
-            </div>
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center rounded-full bg-ww-violet px-6 h-11 text-sm font-semibold text-white transition hover:shadow-[0_0_18px_rgba(186,85,211,0.55)] active:scale-[0.99]"
-            >
-              Start free
-            </Link>
-          </div>
+          <div className="mt-10 flex flex-col items-center gap-4">
+  {/* CTA pill */}
+  <div className="w-full max-w-3xl rounded-2xl border border-white/10 bg-black/60 px-6 py-6 text-center">
+    <div className="text-sm font-semibold">
+      Less overwhelm. More output. Same voice.
+    </div>
+    <div className="mt-1 text-sm text-white/70">
+      Build professional assets faster so you can spend more time creating.
+    </div>
+  </div>
+
+  {/* Button underneath */}
+  <Link
+    href="/login"
+    className="inline-flex items-center justify-center rounded-full px-7 h-11 text-sm font-semibold text-white
+    bg-ww-violet border border-white/20
+    shadow-[0_0_16px_rgba(186,85,211,0.55)]
+    hover:shadow-[0_0_22px_rgba(186,85,211,0.9)]
+    transition active:scale-[0.99]"
+  >
+    Start free
+  </Link>
+</div>
+
         </section>
 
         {/* How it works */}
@@ -180,8 +226,28 @@ transition"
               ["2", "Generate your toolkit", "Identity, assets, and plans tailored to you."],
               ["3", "Build momentum", "Execute consistently with clarity and confidence."],
             ].map(([num, title, desc]) => (
-              <div key={num} className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                <div className="text-xs text-white/60">Step {num}</div>
+              <div
+  key={num}
+  className="
+    group
+    relative
+    rounded-2xl
+    border border-white/10
+    bg-gradient-to-b from-white/[0.05] to-black
+    p-6
+    transition
+    hover:-translate-y-[2px]
+    hover:border-ww-violet/40
+    hover:shadow-[0_0_24px_rgba(186,85,211,0.4)]
+  "
+>
+
+                <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full 
+  bg-ww-violet/15 text-sm font-semibold text-ww-violet
+  shadow-[0_0_12px_rgba(186,85,211,0.4)]">
+  {num}
+</div>
+
                 <div className="mt-2 font-semibold">{title}</div>
                 <div className="mt-2 text-sm text-white/70">{desc}</div>
               </div>
@@ -254,7 +320,8 @@ transition"
                       "inline-flex items-center justify-center w-full h-10 rounded-full text-sm font-semibold transition",
                       tier.highlight
                         ? "bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)]"
-                        : "border border-white/15 text-white/90 hover:border-ww-violet",
+                        : "border border-white/15 text-white/90 hover:border-ww-violet/70 hover:shadow-[0_0_22px_rgba(186,85,211,0.35)]",
+
                     ].join(" ")}
                   >
                     {tier.cta}
@@ -275,7 +342,12 @@ transition"
             <div className="mt-6 flex justify-center">
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center rounded-full bg-ww-violet px-7 h-11 text-sm font-semibold text-white transition hover:shadow-[0_0_18px_rgba(186,85,211,0.55)] active:scale-[0.99]"
+                className="inline-flex items-center justify-center rounded-full px-7 h-11 text-sm font-semibold text-white
+bg-ww-violet border border-white/20
+shadow-[0_0_16px_rgba(186,85,211,0.55)]
+hover:shadow-[0_0_22px_rgba(186,85,211,0.9)]
+transition active:scale-[0.99]"
+
               >
                 Get started free
               </Link>
