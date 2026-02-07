@@ -33,7 +33,8 @@ export default function HomePage() {
             </Link>
             <Link
               href="/login"
-              className="inline-flex items-center justify-center rounded-full bg-ww-violet px-4 h-10 text-sm font-semibold text-white transition hover:shadow-[0_0_18px_rgba(186,85,211,0.55)] active:scale-[0.99]"
+              className="inline-flex items-center justify-center rounded-full bg-ww-violet px-4 h-10 text-sm font-semibold text-white transition hover:shadow-[0_0_18px_rgba(186,85,211,0.55)] active:scale-[0.99] hover:shadow-[0_0_18px_rgba(186,85,211,0.55)]
+"
             >
               Get started free
             </Link>
@@ -44,10 +45,15 @@ export default function HomePage() {
         <section className="pt-10 pb-16 md:pt-16 md:pb-20">
   <div className="max-w-3xl mx-auto text-center">
 
-<p className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
-              <span className="h-1.5 w-1.5 rounded-full bg-ww-violet" />
-              Built for busy independent artists
-            </p>
+<span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-1.5 text-xs text-white/75">
+  <span className="relative h-3 w-5">
+    <span className="absolute inset-0 rounded-full bg-ww-violet/25 blur-[6px]" />
+    <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 rounded-full bg-ww-violet/80" />
+    <span className="absolute left-0 top-[3px] h-[2px] w-full rounded-full bg-white/10" />
+  </span>
+  Built for busy independent artists
+</span>
+
 
             <h1 className="mt-5 text-4xl md:text-6xl font-bold leading-[1.06]">
               Operate like a professional artist — without a manager or label.
@@ -63,7 +69,13 @@ export default function HomePage() {
 
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center rounded-full bg-ww-violet px-6 h-11 text-sm font-semibold text-white transition hover:shadow-[0_0_18px_rgba(186,85,211,0.55)] active:scale-[0.99]"
+                className="inline-flex items-center justify-center rounded-full 
+border border-white/15 bg-white/5 
+px-6 h-11 text-sm font-semibold 
+text-white/90 
+hover:bg-ww-violet/20 hover:border-ww-violet 
+hover:shadow-[0_0_18px_rgba(186,85,211,0.55)] 
+transition"
               >
                 Get started free
               </Link>
@@ -84,7 +96,8 @@ export default function HomePage() {
 
         {/* Value strip */}
         <section className="pb-16">
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-3 text-center">
+
             {[
               ["Clarity", "Know exactly what you’re building and why."],
               ["Consistency", "Turn one song into weeks of content."],
@@ -111,7 +124,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-10 grid gap-4 md:grid-cols-2">
+          <div className="mt-10 grid gap-4 md:grid-cols-2 text-center">
+
             {[
               [
                 "🎤 Artist Identity",
@@ -134,7 +148,8 @@ export default function HomePage() {
                 key={title}
                 className="rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 transition"
               >
-                <div className="text-base font-semibold">{title}</div>
+                <div className="text-base font-semibold text-center">{title}</div>
+
                 <div className="mt-2 text-sm text-white/70">{desc}</div>
               </div>
             ))}
