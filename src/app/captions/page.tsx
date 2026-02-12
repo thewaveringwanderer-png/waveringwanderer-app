@@ -315,6 +315,10 @@ const [captionsFreeLimitReached, setCaptionsFreeLimitReached] = useState(false)
   const [genResult, setGenResult] = useState<GenerateResult | null>(null)
   const [loadingGenerate, setLoadingGenerate] = useState(false)
   const [copyIndex, setCopyIndex] = useState<number | null>(null)
+  const [sendingOneIndex, setSendingOneIndex] = useState<number | null>(null)
+  const [sendingAll, setSendingAll] = useState(false)
+
+
   const [downloadingPdfIdx, setDownloadingPdfIdx] = useState<number | null>(null)
   const [downloadingAllPdf, setDownloadingAllPdf] = useState(false)
 
@@ -461,6 +465,66 @@ return
       setLoadingGenerate(false)
     }
   }
+async function handleSendVariantToMomentum(idx: number) {
+  const v = genResult?.variants?.[idx]
+  const text = v?.text?.trim()
+  if (!text) {
+    toast.error('No caption text to send')
+    return
+  }
+
+  setSendingOneIndex(idx)
+  try {
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    if (userError || !userData?.user) {
+      toast.error('You must be logged in to send to Momentum Board')
+      return
+    }
+
+    const effectiveTopic =
+      topic || (sourceKind === 'image' ? imageHint || 'Visual-based post' : 'Music / artist post')
+
+    const core = normalizeHashtagList(v?.hashtags?.core)
+    const niche = normalizeHashtagList(v?.hashtags?.niche)
+    const allTags = [...core, ...niche]
+
+    const row = {
+      user_id: userData.user.id,
+      title: `${platformLabel[platform]} caption — Variant ${idx + 1}`,
+      caption: text,
+      platform,            // must be one of: instagram/tiktok/youtube/facebook/x
+      status: 'planned',   // ✅ IMPORTANT: matches your DB check constraint
+      scheduled_at: null,
+      hashtags: allTags.length ? allTags : null,
+      in_momentum: true,   // ✅ REQUIRED because Momentum Board filters on this
+      feature: 'captions',
+      metadata: {
+        source: 'captions_generator',
+        sourceKind,
+        artistName,
+        platform,
+        topic: effectiveTopic,
+        keywords,
+        tone,
+        includeHashtags,
+        variantCount,
+        variant_index: idx,
+        imageHint: sourceKind === 'image' ? imageHint : null,
+      },
+    }
+
+    const { error } = await supabase.from('content_calendar').insert([row])
+    if (error) throw new Error(error.message || 'Could not send to Momentum Board')
+
+    toast.success('Sent to Momentum Board ✅')
+  } catch (e: any) {
+    console.error('[captions->momentum] error', e)
+    toast.error(e?.message || 'Could not send to Momentum Board')
+  } finally {
+    setSendingOneIndex(null)
+  }
+}
+
 
   async function handleSaveVariant(idx: number) {
     if (!genResult || !genResult.variants[idx]) {
@@ -495,89 +559,46 @@ return
       .map(t => t.replace(/^#/, '')) // store without '#'
   }
 
-  async function _handleSendVariantToMomentum(idx: number) {
-    if (!genResult?.variants?.[idx]) return toast.error('Nothing to send yet')
-
-    try {
-      const { data: userData, error: userError } = await supabase.auth.getUser()
-      if (userError || !userData?.user) {
-        toast.error('You must be logged in to send to Momentum Board')
-        return
-      }
-
-      const v = genResult.variants[idx]
-      const effectiveTopic =
-        topic || (sourceKind === 'image' ? imageHint || 'Visual-based post' : 'Music / artist post')
-
-      const core = normalizeHashtagList(v.hashtags?.core)
-      const niche = normalizeHashtagList(v.hashtags?.niche)
-      const allTags = [...core, ...niche]
-
-      const row = {
-        user_id: userData.user.id,
-        title: `${platformLabel[platform]} caption — Variant ${idx + 1}`,
-        caption: v.text || null,
-        platform, // matches Momentum Board filters
-        status: 'idea',
-        scheduled_at: null,
-        hashtags: allTags.length ? allTags : null,
-        in_momentum: true,
-        feature: 'captions',
-        metadata: {
-          source: 'captions',
-          sourceKind,
-          artistName,
-          platform,
-          topic: effectiveTopic,
-          keywords,
-          tone,
-          includeHashtags,
-          variantCount,
-          variant_index: idx,
-          imageHint: sourceKind === 'image' ? imageHint : null,
-        },
-      }
-
-      const { error } = await supabase.from('content_calendar').insert([row])
-      if (error) throw new Error(error.message || 'Could not send to Momentum Board')
-
-      toast.success('Sent to Momentum Board ✅')
-    } catch (e: any) {
-      console.error('[captions-send-one]', e)
-      toast.error(e?.message || 'Could not send to Momentum Board')
-    }
-  }
+ 
 
   async function handleSendAllToMomentum() {
-    if (!genResult?.variants?.length) return toast.error('Nothing to send yet')
+  if (!genResult?.variants?.length) {
+    toast.error('Nothing to send yet')
+    return
+  }
 
-    try {
-      const { data: userData, error: userError } = await supabase.auth.getUser()
-      if (userError || !userData?.user) {
-        toast.error('You must be logged in to send to Momentum Board')
-        return
-      }
+  setSendingAll(true)
+  try {
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    if (userError || !userData?.user) {
+      toast.error('You must be logged in to send to Momentum Board')
+      return
+    }
 
-      const effectiveTopic =
-        topic || (sourceKind === 'image' ? imageHint || 'Visual-based post' : 'Music / artist post')
+    const effectiveTopic =
+      topic || (sourceKind === 'image' ? imageHint || 'Visual-based post' : 'Music / artist post')
 
-      const rows = genResult.variants.map((v, idx) => {
-        const core = normalizeHashtagList(v.hashtags?.core)
-        const niche = normalizeHashtagList(v.hashtags?.niche)
+    const rows = genResult.variants
+      .map((v, idx) => {
+        const text = (v?.text || '').trim()
+        if (!text) return null
+
+        const core = normalizeHashtagList(v?.hashtags?.core)
+        const niche = normalizeHashtagList(v?.hashtags?.niche)
         const allTags = [...core, ...niche]
 
         return {
           user_id: userData.user.id,
           title: `${platformLabel[platform]} caption — Variant ${idx + 1}`,
-          caption: v.text || null,
-          platform,
-          status: 'idea',
+          caption: text,
+          platform,            // instagram/tiktok/youtube/facebook/x
+          status: 'planned',   // ✅ MUST be allowed by DB check constraint
           scheduled_at: null,
           hashtags: allTags.length ? allTags : null,
-          in_momentum: true,
+          in_momentum: true,   // ✅ required by Momentum Board query
           feature: 'captions',
           metadata: {
-            source: 'captions',
+            source: 'captions_generator',
             sourceKind,
             artistName,
             platform,
@@ -592,16 +613,34 @@ return
           },
         }
       })
+      .filter(Boolean)
 
-      const { error } = await supabase.from('content_calendar').insert(rows)
-      if (error) throw new Error(error.message || 'Could not send all to Momentum Board')
-
-      toast.success('All captions sent to Momentum Board ✅')
-    } catch (e: any) {
-      console.error('[captions-send-all]', e)
-      toast.error(e?.message || 'Could not send all to Momentum Board')
+    if (!rows.length) {
+      toast.error('No caption text to send')
+      return
     }
+
+    const { error } = await supabase.from('content_calendar').insert(rows as any)
+    if (error) throw error
+
+    toast.success('All captions sent to Momentum Board ✅')
+  } catch (e: any) {
+    // ✅ Make the error visible instead of "{}"
+    const msg =
+      e?.message ||
+      e?.details ||
+      e?.hint ||
+      (typeof e === 'string' ? e : '') ||
+      'Could not send all to Momentum Board'
+
+    console.error('[captions-send-all]', e)
+    toast.error(msg)
+  } finally {
+    setSendingAll(false)
   }
+}
+
+
 
 
   async function handleCopyAll() {
@@ -946,19 +985,35 @@ return
   />
 ) : null}
 
+            
+            </div>
 
+            {/* Platform tip */}
+            <p className="text-xs text-white/50 pt-1">{currentPlatformTip()}</p>
+          </section>
 
-<button
+          {/* Generate Results */}
+          {Array.isArray(genResult?.variants) && genResult!.variants.length > 0 && (
+            <section className="space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+  <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+    <Sparkles className="w-4 h-4 text-ww-violet" />
+    Generated variants
+  </h2>
+
+  <div className="flex flex-wrap gap-2 items-center">
+   <button
   type="button"
   onClick={handleSendAllToMomentum}
-  disabled={!genResult || loadingGenerate}
+  disabled={!genResult || loadingGenerate || sendingAll}
+
+
   className="inline-flex items-center gap-2 px-4 h-10 rounded-full border border-white/15 text-sm text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-40"
 >
   <Send className="w-4 h-4" />
   Send All
 </button>
-
-              <button
+<button
                 type="button"
                 onClick={handleCopyAll}
                 disabled={!genResult}
@@ -967,7 +1022,6 @@ return
                 <Clipboard className="w-4 h-4" />
                 Copy All
               </button>
-
               <button
                 type="button"
                 onClick={handleDownloadAllPdf}
@@ -986,19 +1040,10 @@ return
                   </>
                 )}
               </button>
-            </div>
+              
+  </div>
+</div>
 
-            {/* Platform tip */}
-            <p className="text-xs text-white/50 pt-1">{currentPlatformTip()}</p>
-          </section>
-
-          {/* Generate Results */}
-          {Array.isArray(genResult?.variants) && genResult!.variants.length > 0 && (
-            <section className="space-y-4">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-ww-violet" />
-                Generated variants
-              </h2>
               <div className="grid gap-4 md:grid-cols-2">
                 {genResult!.variants.map((v, idx) => (
                   <div key={idx} className="rounded-2xl border border-white/10 bg-black/70 p-4 flex flex-col gap-3">
@@ -1069,6 +1114,25 @@ return
                           </>
                         )}
                       </button>
+                      <button
+  type="button"
+  onClick={() => handleSendVariantToMomentum(idx)}
+  disabled={sendingOneIndex === idx}
+  className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full bg-ww-violet/20 border border-ww-violet/70 text-xs text-ww-violet hover:bg-ww-violet/30 transition disabled:opacity-60"
+>
+  {sendingOneIndex === idx ? (
+    <>
+      <Loader2 className="w-3 h-3 animate-spin" />
+      Sending…
+    </>
+  ) : (
+    <>
+      <Send className="w-3 h-3" />
+      Send
+    </>
+  )}
+</button>
+
                     </div>
                   </div>
                 ))}

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+export const runtime = 'nodejs'
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -144,22 +145,29 @@ export async function POST(req: Request) {
       ],
     })
 
-    // Extract text from Responses API
-    let rawText = ''
-    const anyRes = response as any
+   // ---- Extract raw text (Responses API) ----
+const rawText = (response as any).output_text as string | undefined
 
-    if (anyRes.output?.[0]?.content?.[0]?.text) {
-      rawText = anyRes.output[0].content[0].text as string
-    } else if (typeof anyRes.output_text === 'function') {
-      rawText = await anyRes.output_text()
-    }
+if (!rawText || !rawText.trim()) {
+  console.error('[peers] empty output_text', response)
+  throw new Error('Peer Radar returned empty output.')
+}
 
-    let parsed: any
-    try {
-      parsed = rawText ? JSON.parse(rawText) : {}
-    } catch {
-      parsed = { raw: rawText }
-    }
+// If the model ever wraps JSON in code fences, strip them.
+const cleaned = rawText
+  .trim()
+  .replace(/^```(?:json)?/i, '')
+  .replace(/```$/, '')
+  .trim()
+
+let parsed: any
+try {
+  parsed = JSON.parse(cleaned)
+} catch (e) {
+  console.error('[peers] JSON parse failed. Raw:', cleaned)
+  throw new Error('Peer Radar returned invalid JSON.')
+}
+
 
     // Basic safety: ensure we always send a predictable shape
     if (!Array.isArray(parsed.artists)) {
@@ -172,7 +180,8 @@ export async function POST(req: Request) {
       parsed.platform = platform
     }
 
-    return NextResponse.json(parsed)
+    return NextResponse.json({ ok: true, ...parsed })
+
   } catch (err: any) {
     console.error('[peers] error', err)
     return NextResponse.json(

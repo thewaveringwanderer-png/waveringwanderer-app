@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import LimitReachedPill from '@/components/ww/LimitReachedPill'
+import { buildStandardHeader, renderWwPdf, type PdfLine } from '@/lib/wwPdf'
 
 
 import {
@@ -88,19 +89,21 @@ type PeerRadarResult = {
   raw?: string
 }
 
-type SavedTrendSession = {
+type SavedSession = {
   id: string
   created_at: string
+  type: 'trends' | 'peers'
   input: any
   output: any
 }
+
 
 // ---------- Platform labels/icons ----------
 const platformLabels: Record<string, string> = {
   instagram: 'Instagram',
   tiktok: 'TikTok',
   youtube: 'YouTube Shorts',
-  X: 'X ',
+  x: 'X ',
   spotify: 'Spotify Canvas',
 }
 
@@ -108,7 +111,7 @@ const platformIcons: Record<string, ReactNode> = {
   instagram: <Instagram className="w-4 h-4" />,
   tiktok: <Music2 className="w-4 h-4" />,
   youtube: <Video className="w-4 h-4" />,
-  X: <Radio className="w-4 h-4" />,
+  x: <Radio className="w-4 h-4" />,
   spotify: <Music2 className="w-4 h-4" />,
 }
 
@@ -125,10 +128,10 @@ function mapPlatformForCalendar(
       return p
   
     case 'spotify':
-      // Momentum table doesn't allow spotify, so choose a safe default
-      
-    default:
-      return 'instagram'
+  return 'instagram'
+default:
+  return 'instagram'
+
   }
 }
 
@@ -146,10 +149,181 @@ function formatDate(iso: string) {
     return iso
   }
 }
+function buildTrendsPdfLines(args: {
+  artistName: string
+  platformLabel: string
+  genre: string
+  audience: string
+  goal: string
+  energy: string
+  releaseContext: string
+  result: TrendResponse
+}): PdfLine[] {
+  const lines: PdfLine[] = []
+
+  lines.push({ kind: 'title', text: 'Trend Finder' })
+  lines.push({ kind: 'subtitle', text: `${args.artistName || 'Artist'} • ${args.platformLabel}` })
+  lines.push({ kind: 'divider' })
+  lines.push({ kind: 'spacer', height: 10 })
+
+  lines.push({ kind: 'sectionTitle', text: 'Context' })
+  lines.push({ kind: 'body', text: `Genre/lane: ${args.genre || '—'}` })
+  lines.push({ kind: 'body', text: `Audience: ${args.audience || '—'}` })
+  lines.push({ kind: 'body', text: `Goal: ${args.goal || '—'}` })
+  lines.push({ kind: 'body', text: `Energy: ${args.energy || '—'}` })
+  if (args.releaseContext) lines.push({ kind: 'body', text: `Release context: ${args.releaseContext}` })
+
+  lines.push({ kind: 'spacer', height: 10 })
+
+  if (args.result.summary) {
+    lines.push({ kind: 'sectionTitle', text: 'Summary' })
+    lines.push({ kind: 'body', text: args.result.summary })
+    lines.push({ kind: 'spacer', height: 10 })
+  }
+
+  lines.push({ kind: 'sectionTitle', text: 'Trend ideas' })
+
+  ;(args.result.trends || []).forEach((t, i) => {
+    lines.push({ kind: 'body', text: `${i + 1}. ${t.name || 'Idea'}` })
+    if (t.description) lines.push({ kind: 'body', text: `• ${t.description}` })
+    if (t.hook_template) lines.push({ kind: 'body', text: `• Hook: ${t.hook_template}` })
+    if (t.suggested_visuals) lines.push({ kind: 'body', text: `• Visuals: ${t.suggested_visuals}` })
+    if (t.caption_angle) lines.push({ kind: 'body', text: `• Caption angle: ${t.caption_angle}` })
+    lines.push({ kind: 'spacer', height: 8 })
+  })
+
+  return lines
+}
+
+function buildPeersPdfLines(args: {
+  artistName: string
+  platformLabel: string
+  genre: string
+  audience: string
+  goal: string
+  peerVibe: string
+  result: PeerRadarResult
+}): PdfLine[] {
+  const lines: PdfLine[] = []
+
+  lines.push({ kind: 'title', text: 'Peer Radar' })
+  lines.push({ kind: 'subtitle', text: `${args.artistName || 'Artist'} • ${args.platformLabel}` })
+  lines.push({ kind: 'divider' })
+  lines.push({ kind: 'spacer', height: 10 })
+
+  lines.push({ kind: 'sectionTitle', text: 'Context' })
+  lines.push({ kind: 'body', text: `Genre/lane: ${args.genre || '—'}` })
+  lines.push({ kind: 'body', text: `Audience: ${args.audience || '—'}` })
+  lines.push({ kind: 'body', text: `Goal: ${args.goal || '—'}` })
+  if (args.peerVibe) lines.push({ kind: 'body', text: `Vibe: ${args.peerVibe}` })
+
+  if (args.result.summary) {
+    lines.push({ kind: 'spacer', height: 10 })
+    lines.push({ kind: 'sectionTitle', text: 'Lane summary' })
+    lines.push({ kind: 'body', text: args.result.summary })
+  }
+
+  if (args.result.reference_artists_used?.length) {
+    lines.push({ kind: 'spacer', height: 10 })
+    lines.push({ kind: 'sectionTitle', text: 'Reference artists used' })
+    lines.push({ kind: 'body', text: args.result.reference_artists_used.join(' • ') })
+  }
+
+  lines.push({ kind: 'spacer', height: 10 })
+  lines.push({ kind: 'sectionTitle', text: 'Peer breakdowns' })
+
+  ;(args.result.artists || []).forEach((a, i) => {
+    lines.push({ kind: 'body', text: `${i + 1}. ${a.name}` })
+    if (a.positioning) lines.push({ kind: 'body', text: `• Positioning: ${a.positioning}` })
+    if (a.content_pillars?.length) lines.push({ kind: 'body', text: `• Pillars: ${a.content_pillars.join(' • ')}` })
+    if (a.hook_patterns?.length) lines.push({ kind: 'body', text: `• Hooks: ${a.hook_patterns.join(' • ')}` })
+    if (a.visual_language) lines.push({ kind: 'body', text: `• Visuals: ${a.visual_language}` })
+    if (a.cadence) lines.push({ kind: 'body', text: `• Cadence: ${a.cadence}` })
+
+    if (a.stealable_structures?.length) {
+      lines.push({ kind: 'body', text: `• Stealable structures:` })
+      a.stealable_structures.forEach(s => lines.push({ kind: 'body', text: `  - ${s}` }))
+    }
+
+    lines.push({ kind: 'spacer', height: 10 })
+  })
+
+  if (args.result.for_you) {
+    lines.push({ kind: 'sectionTitle', text: 'For you' })
+
+    if (args.result.for_you.suggested_pillars?.length) {
+      lines.push({ kind: 'body', text: `Suggested pillars: ${args.result.for_you.suggested_pillars.join(' • ')}` })
+    }
+
+    if (args.result.for_you.format_starters?.length) {
+      lines.push({ kind: 'body', text: 'Format starters:' })
+      args.result.for_you.format_starters.forEach(s => lines.push({ kind: 'body', text: `- ${s}` }))
+    }
+
+    if (args.result.for_you.warnings?.length) {
+      lines.push({ kind: 'body', text: 'Warnings:' })
+      args.result.for_you.warnings.forEach(s => lines.push({ kind: 'body', text: `- ${s}` }))
+    }
+  }
+
+  return lines
+}
+
 
 export default function TrendsPage() {
-  const { profile, tier, saveProfile, loading: profileLoading } = useWwProfile() as any
+  const { profile, tier, updateProfile, loading: profileLoading } = useWwProfile()
+const [exportingPdf, setExportingPdf] = useState(false)
+
   const router = useRouter()
+  async function handleExportTrendsPdf() {
+  if (!trendResult?.trends?.length) return
+  setExportingPdf(true)
+  try {
+    const lines = buildTrendsPdfLines({
+      artistName,
+      platformLabel,
+      genre,
+      audience,
+      goal,
+      energy,
+      releaseContext,
+      result: trendResult,
+    })
+    renderWwPdf(lines, `trend-finder-${platform}`)
+
+    toast.success('Trends exported as PDF ✅')
+  } catch (e: any) {
+    console.error('[trends-pdf]', e)
+    toast.error(e?.message || 'Could not export trends PDF')
+  } finally {
+    setExportingPdf(false)
+  }
+}
+
+async function handleExportPeersPdf() {
+  if (!peerResult?.artists?.length) return
+  setExportingPdf(true)
+  try {
+    const lines = buildPeersPdfLines({
+      artistName,
+      platformLabel,
+      genre,
+      audience,
+      goal,
+      peerVibe,
+      result: peerResult,
+    })
+    renderWwPdf(lines, `peer-radar-${platform}`)
+
+    toast.success('Peer Radar exported as PDF ✅')
+  } catch (e: any) {
+    console.error('[peers-pdf]', e)
+    toast.error(e?.message || 'Could not export Peer Radar PDF')
+  } finally {
+    setExportingPdf(false)
+  }
+}
+
 
 // ✅ Avoid hydration mismatch (tier can differ server vs client)
 const [mounted, setMounted] = useState(false)
@@ -157,6 +331,7 @@ useEffect(() => setMounted(true), [])
 
 const safeTier = mounted ? tier : 'free'
 const isProLocked = safeTier !== 'pro'
+const isPdfLocked = safeTier === 'free'
 
 const [currentTrendSessionId, setCurrentTrendSessionId] = useState<string | null>(null)
 
@@ -164,7 +339,8 @@ const [currentTrendSessionId, setCurrentTrendSessionId] = useState<string | null
   const [activeTab, setActiveTab] = useState<'trends' | 'peers'>('trends')
 
   // Saved trends (Trend Finder sessions)
-  const [savedTrendSessions, setSavedTrendSessions] = useState<SavedTrendSession[]>([])
+  const [savedSessions, setSavedSessions] = useState<SavedSession[]>([])
+
   const [loadingSavedTrends, setLoadingSavedTrends] = useState(false)
   const [deletingSavedId, setDeletingSavedId] = useState<string | null>(null)
 
@@ -226,7 +402,9 @@ const [currentTrendSessionId, setCurrentTrendSessionId] = useState<string | null
   }, [profileLoading, profile, didApplyProfile])
 
   const hasProfileSuggestion =
-    !!profile && (!!profile.artistName || !!profile.genre || !!profile.audience || !!profile.goal)
+  mounted && !!profile && (!!profile.artistName || !!profile.genre || !!profile.audience || !!profile.goal)
+
+
 
   function applyProfileFromStore() {
     if (!profile) return
@@ -240,14 +418,15 @@ const [currentTrendSessionId, setCurrentTrendSessionId] = useState<string | null
   // ---------- Persist helper ----------
   async function persistProfileContext() {
     try {
-      if (typeof saveProfile === 'function') {
-        await saveProfile({
-          artistName: artistName || undefined,
-          genre: genre || undefined,
-          audience: audience || undefined,
-          goal: goal || undefined,
-        })
-      }
+      if (typeof updateProfile === 'function') {
+  await updateProfile({
+    artistName: artistName || undefined,
+    genre: genre || undefined,
+    audience: audience || undefined,
+    goal: goal || undefined,
+  })
+}
+
     } catch (e: any) {
       console.warn('[ww-profile] save failed', e)
       toast.error(e?.message || 'Could not save profile context')
@@ -260,20 +439,22 @@ const [currentTrendSessionId, setCurrentTrendSessionId] = useState<string | null
     try {
       const { data: userData, error: userError } = await supabase.auth.getUser()
       if (userError || !userData?.user) {
-        setSavedTrendSessions([])
+        setSavedSessions([])
         return
       }
 
       const { data, error } = await supabase
         .from('trend_insights')
-        .select('id, created_at, input, output')
-        .eq('user_id', userData.user.id)
-        .eq('type', 'trends')
+.select('id, created_at, type, input, output')
+.eq('user_id', userData.user.id)
+.in('type', ['trends', 'peers'])
+
         .order('created_at', { ascending: false })
         .limit(25)
 
       if (error) throw error
-      setSavedTrendSessions((data as SavedTrendSession[]) || [])
+      setSavedSessions((data as SavedSession[]) || [])
+
     } catch (e: any) {
       console.error('[trend-sessions] fetch error', e)
       toast.error(e?.message || 'Could not load saved trends')
@@ -287,49 +468,68 @@ const [currentTrendSessionId, setCurrentTrendSessionId] = useState<string | null
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function handleLoadSavedTrend(session: SavedTrendSession) {
+  function handleLoadSavedSession(session: SavedSession) {
+  // restore common
+  if (session.input) {
+    setArtistName(session.input.artistName ?? '')
+    setGenre(session.input.genre ?? '')
+    setAudience(session.input.audience ?? '')
+    setGoal(session.input.goal ?? '')
+
+    const restoredPlatform = session.input.platform === 'twitter' ? 'x' : session.input.platform
+    if (restoredPlatform) setPlatform(restoredPlatform)
+    setSessionName(session.input.sessionName ?? '')
+  }
+
+  if (session.type === 'trends') {
+    setActiveTab('trends')
     setTrendResult(session.output)
-setCurrentTrendSessionId(session.id)
-
-    if (session.input) {
-      setArtistName(session.input.artistName ?? '')
-      setGenre(session.input.genre ?? '')
-      setAudience(session.input.audience ?? '')
-      setGoal(session.input.goal ?? '')
-      setPlatform(session.input.platform === 'x' ? 'twitter' : session.input.platform ?? 'instagram')
-const restoredPlatform = session.input.platform === 'twitter' ? 'x' : session.input.platform
-setPlatform(restoredPlatform ?? 'instagram')
-
-      setEnergy(session.input.energy ?? 'medium')
-      setReleaseContext(session.input.releaseContext ?? '')
-      setSessionName(session.input.sessionName ?? '')
-    }
-
-    toast.success('Saved trend session loaded ✅')
+    setCurrentTrendSessionId(session.id)
+    setEnergy(session.input?.energy ?? 'medium')
+    setReleaseContext(session.input?.releaseContext ?? '')
+    toast.success('Saved Trend session loaded ✅')
+    return
   }
 
-  async function handleDeleteSavedTrend(id: string) {
-    const ok = window.confirm('Delete this saved trend session? This cannot be undone.')
-    if (!ok) return
-if (currentTrendSessionId === id) setCurrentTrendSessionId(null)
+  if (session.type === 'peers') {
+    setActiveTab('peers')
+    setPeerSourceMode(session.input?.peerSourceMode ?? 'manual')
+    setPeerArtists(session.input?.peerArtists ?? '')
+    setPeerVibe(session.input?.peerVibe ?? '')
+    setPeerFocus(session.input?.peerFocus ?? { pillars: true, hooks: true, visuals: true, cadence: false })
 
-    setDeletingSavedId(id)
-
-    const prev = savedTrendSessions
-    setSavedTrendSessions(sessions => sessions.filter(s => s.id !== id))
-
-    try {
-      const { error } = await supabase.from('trend_insights').delete().eq('id', id)
-      if (error) throw error
-      toast.success('Deleted saved session ✅')
-    } catch (e: any) {
-      console.error('[trend-sessions] delete error', e)
-      toast.error(e?.message || 'Could not delete saved session')
-      setSavedTrendSessions(prev)
-    } finally {
-      setDeletingSavedId(null)
-    }
+    setPeerResult(session.output)
+    toast.success('Saved Peer Radar session loaded ✅')
+    return
   }
+}
+
+
+  async function handleDeleteSavedSession(id: string) {
+  const ok = window.confirm('Delete this saved session? This cannot be undone.')
+  if (!ok) return
+
+  if (currentTrendSessionId === id) setCurrentTrendSessionId(null)
+
+  setDeletingSavedId(id)
+
+  const prev = savedSessions
+  setSavedSessions(sessions => sessions.filter(s => s.id !== id))
+
+  try {
+    const { error } = await supabase.from('trend_insights').delete().eq('id', id)
+    if (error) throw error
+    toast.success('Deleted saved session ✅')
+  } catch (e: any) {
+    console.error('[trend-sessions] delete error', e)
+    toast.error(e?.message || 'Could not delete saved session')
+    setSavedSessions(prev)
+  } finally {
+    setDeletingSavedId(null)
+  }
+}
+
+
 
   // ---------- Trend Finder ----------
   async function handleGenerateTrends() {
@@ -386,6 +586,7 @@ async function handleSaveSession() {
     return
   }
 
+
   setSavingSession(true)
   try {
     const { data: userData, error: userError } = await supabase.auth.getUser()
@@ -437,7 +638,58 @@ async function handleSaveSession() {
     setSavingSession(false)
   }
 }
+async function handleSavePeerSession() {
+  if (!peerResult?.artists?.length) {
+    toast.error('No Peer Radar result to save yet')
+    return
+  }
 
+  setSavingSession(true)
+  try {
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    if (userError || !userData?.user) {
+      toast.error('You must be logged in to save sessions')
+      return
+    }
+
+    const inputPayload = {
+      artistName,
+      genre,
+      audience,
+      goal,
+      platform,
+      peerSourceMode,
+      peerArtists,
+      peerVibe,
+      peerFocus,
+      sessionName: sessionName || null,
+    }
+
+    const { data, error } = await supabase
+      .from('trend_insights')
+      .insert([
+        {
+          user_id: userData.user.id,
+          type: 'peers',
+          input: inputPayload,
+          output: peerResult,
+        },
+      ])
+      .select('id')
+      .single()
+
+    if (error) throw error
+
+    toast.success('Peer Radar session saved ✅')
+    setSessionName('')
+    void fetchSavedTrendSessions()
+  } catch (e: any) {
+    console.error('[save-peer-session] error', e)
+    toast.error(e?.message || 'Could not save Peer Radar session')
+  } finally {
+    setSavingSession(false)
+  }
+}
 
   // ---------- Momentum Board send ----------
 
@@ -513,37 +765,17 @@ async function handleSendIdeaToBoard(idea: TrendIdea, idx: number) {
     if (idea.hashtags?.core) allTags.push(...idea.hashtags.core)
     if (idea.hashtags?.niche) allTags.push(...idea.hashtags.niche)
 
-    const { error } = await supabase.from('momentum_items').insert([
-      {
-        user_id: userData.user.id,
-        feature: 'trends',
-        title: idea.name || `Trend idea ${idx + 1}`,
-        caption: caption || null,
-        platform: calendarPlatform,
-        status: 'idea',
-        scheduled_at: null,
-        hashtags: allTags.length ? allTags : null,
-        metadata: {
-          source: 'trend_finder',
-          trend_session_id: sessionId,
-          trend_index: idx,
-          energy,
-          genre,
-          goal,
-          audience,
-          platform_ui: platform,
-          batch: false,
-        },
-      },
-    ])
+
     // ✅ Dedupe: if this idea already exists for this session + index, don’t insert again
 const { data: existingOne, error: exErr } = await supabase
-  .from('momentum_items')
+  .from('content_calendar')
   .select('id')
   .eq('user_id', userData.user.id)
   .eq('feature', 'trends')
-  .eq('metadata->>trend_session_id', sessionId)
   .eq('metadata->>trend_index', String(idx))
+  .eq('in_momentum', true)
+.eq('metadata->>trend_session_id', String(sessionId))
+
   .limit(1)
 
 if (exErr) throw exErr
@@ -552,9 +784,32 @@ if (existingOne?.length) {
   toast.info('That idea is already in Momentum ✅')
   return
 }
+const { error } = await supabase.from('content_calendar').insert([
+  {
+    user_id: userData.user.id,
+    feature: 'trends',
+    title: idea.name || `Trend idea ${idx + 1}`,
+    caption: caption || null,
+    platform: calendarPlatform,   // ✅ instagram/tiktok/youtube/facebook/x
+    status: 'planned',            // ✅ use planned (safe with your check constraint)
+    scheduled_at: null,
+    hashtags: allTags.length ? allTags : null,
+    in_momentum: true,            // ✅ REQUIRED for Momentum Board to show it
+    metadata: {
+      source: 'trend_finder',
+      trend_session_id: sessionId,
+      trend_index: idx,
+      energy,
+      genre,
+      goal,
+      audience,
+      platform_ui: platform,
+      batch: false,
+    },
+  },
+])
+if (error) throw error
 
-
-    if (error) throw error
     toast.success('Idea sent to Momentum Board ✅')
   } catch (e: any) {
     console.error('[send-one] error', e)
@@ -586,10 +841,13 @@ if (existingOne?.length) {
 
     // ✅ fetch existing ids for this session so we can skip duplicates
     const { data: existing, error: existingErr } = await supabase
-  .from('momentum_items')
+  .from('content_calendar')
   .select('metadata')
   .eq('user_id', userData.user.id)
   .eq('feature', 'trends')
+  .eq('in_momentum', true)
+.eq('metadata->>trend_session_id', String(sessionId))
+
 
 if (existingErr) throw existingErr
 
@@ -619,14 +877,15 @@ const existingIdx = new Set<number>()
         if (idea.hashtags?.niche) allTags.push(...idea.hashtags.niche)
 
         return {
-          user_id: userData.user.id,
-          feature: 'trends',
-          title: idea.name || `Trend idea ${idx + 1}`,
-          caption: caption || null,
-          platform: calendarPlatform,
-          status: 'idea',
-          scheduled_at: null,
-          hashtags: allTags.length ? allTags : null,
+  user_id: userData.user.id,
+  feature: 'trends',
+  title: idea.name || `Trend idea ${idx + 1}`,
+  caption: caption || null,
+  platform: calendarPlatform,
+  status: 'planned', // ✅ must match DB constraint
+  scheduled_at: null,
+  in_momentum: true,
+  hashtags: allTags.length ? allTags : null,
           metadata: {
             source: 'trend_finder',
             trend_session_id: sessionId,
@@ -645,17 +904,26 @@ const existingIdx = new Set<number>()
       toast.info('Everything in this session is already in Momentum ✅')
       return
     }
+console.log('[send-all] statuses:', rows.map(r => r.status))
 
-    const { error } = await supabase.from('momentum_items').insert(rows)
-    if (error) throw error
+    const { error } = await supabase.from('content_calendar').insert(rows)
+if (error) throw new Error(error.message || 'Could not send all ideas')
+
+
 
     toast.success(`Sent ${rows.length} new idea(s) ✅`)
   } catch (e: any) {
-    console.error('[send-all] error', e)
-    toast.error(e?.message || 'Could not send all ideas')
-  } finally {
-    setSendingAll(false)
-  }
+  console.error('[send-all] error RAW', e)
+  const msg =
+    e?.message ||
+    e?.error?.message ||
+    (typeof e === 'string' ? e : '') ||
+    'Could not send all ideas'
+  toast.error(msg)
+} finally {
+  setSendingAll(false)
+}
+
 }
 
 
@@ -1002,8 +1270,17 @@ const existingIdx = new Set<number>()
                         </>
                       )}
                     </button>
+                    <button
+  type="button"
+  onClick={handleExportTrendsPdf}
+  disabled={exportingPdf || !trendResult?.trends?.length}
+  className="inline-flex items-center gap-2 px-3 h-9 rounded-full border border-white/15 text-xs text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-60"
+>
+  Export PDF
+</button>
                   </div>
                 </div>
+
 
                 {trendResult.trends?.length ? (
                   <div className="grid gap-4 md:grid-cols-2">
@@ -1139,9 +1416,9 @@ const existingIdx = new Set<number>()
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Loading saved sessions…
                 </div>
-              ) : savedTrendSessions.length ? (
+              ) : savedSessions.length ? (
                 <div className="grid gap-3">
-                  {savedTrendSessions.map(s => (
+                  {savedSessions.map(s => (
                     <div
                       key={s.id}
                       className="rounded-2xl border border-white/10 bg-black/70 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
@@ -1161,7 +1438,8 @@ const existingIdx = new Set<number>()
                       <div className="flex items-center gap-2 shrink-0">
                         <button
                           type="button"
-                          onClick={() => handleLoadSavedTrend(s)}
+                          onClick={() => handleLoadSavedSession(s)}
+
                           className="inline-flex items-center gap-2 px-3 h-9 rounded-full bg-ww-violet/20 border border-ww-violet/60 text-xs text-ww-violet hover:bg-ww-violet/30 transition"
                         >
                           <FolderOpen className="w-3 h-3" />
@@ -1170,7 +1448,8 @@ const existingIdx = new Set<number>()
 
                         <button
                           type="button"
-                          onClick={() => void handleDeleteSavedTrend(s.id)}
+                          onClick={() => void handleDeleteSavedSession(s.id)}
+
                           disabled={deletingSavedId === s.id}
                           className="inline-flex items-center gap-2 px-3 h-9 rounded-full border border-white/15 text-xs text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-60"
                         >
@@ -1349,7 +1628,166 @@ const existingIdx = new Set<number>()
               </div>
             </section>
 
-            {/* ✅ Keep your existing Peer Radar results rendering below this line */}
+            {/* Peer Radar results */}
+{peerResult && (
+  <section className="p-5 md:p-6 rounded-2xl bg-black/60 border border-white/10 space-y-5">
+    <div className="flex flex-col gap-2">
+      <h2 className="text-lg font-semibold flex items-center gap-2">
+        <Activity className="w-4 h-4 text-ww-violet" />
+        Peer Radar results for {platformLabel}
+      </h2>
+<div className="flex flex-wrap gap-2">
+  <button
+    type="button"
+    onClick={handleSavePeerSession}
+    disabled={savingSession}
+    className="inline-flex items-center gap-2 px-3 h-9 rounded-full border border-white/15 text-xs text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-60"
+  >
+    <Save className="w-3 h-3" />
+    Save session
+  </button>
+
+  <button
+    type="button"
+    onClick={handleExportPeersPdf}
+    disabled={exportingPdf || !peerResult?.artists?.length}
+    className="inline-flex items-center gap-2 px-3 h-9 rounded-full border border-white/15 text-xs text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-60"
+  >
+    Export PDF
+  </button>
+</div>
+
+      {peerResult.reference_artists_used?.length ? (
+        <p className="text-xs text-white/60">
+          Reference artists used:{' '}
+          <span className="text-white/80">
+            {peerResult.reference_artists_used.join(', ')}
+          </span>
+        </p>
+      ) : null}
+
+      {peerResult.summary ? (
+        <p className="text-sm text-white/75">{peerResult.summary}</p>
+      ) : null}
+    </div>
+
+    {peerResult.artists?.length ? (
+      <div className="grid gap-4 md:grid-cols-2">
+        {peerResult.artists.map((a, idx) => (
+          <article
+            key={`${a.name}-${idx}`}
+            className="rounded-2xl border border-white/10 bg-black/70 p-4 space-y-3 hover:border-ww-violet/80 hover:shadow-[0_0_18px_rgba(186,85,211,0.35)] transition"
+          >
+            <div>
+              <div className="text-base font-semibold">{a.name}</div>
+              {a.positioning ? (
+                <div className="text-xs text-white/60 mt-1">{a.positioning}</div>
+              ) : null}
+            </div>
+
+            {a.content_pillars?.length ? (
+              <div>
+                <div className="text-xs uppercase tracking-wide text-white/50 mb-1">Content pillars</div>
+                <ul className="text-sm text-white/80 space-y-1 list-disc pl-5">
+                  {a.content_pillars.map((p, i) => (
+                    <li key={i}>{p}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {a.hook_patterns?.length ? (
+              <div>
+                <div className="text-xs uppercase tracking-wide text-white/50 mb-1">Hook patterns</div>
+                <ul className="text-sm text-white/80 space-y-1 list-disc pl-5">
+                  {a.hook_patterns.map((h, i) => (
+                    <li key={i}>{h}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {a.visual_language ? (
+              <div>
+                <div className="text-xs uppercase tracking-wide text-white/50 mb-1">Visual language</div>
+                <p className="text-sm text-white/80">{a.visual_language}</p>
+              </div>
+            ) : null}
+
+            {a.cadence ? (
+              <div>
+                <div className="text-xs uppercase tracking-wide text-white/50 mb-1">Cadence</div>
+                <p className="text-sm text-white/80">{a.cadence}</p>
+              </div>
+            ) : null}
+
+            {a.stealable_structures?.length ? (
+              <div>
+                <div className="text-xs uppercase tracking-wide text-white/50 mb-1">Stealable structures</div>
+                <ul className="text-sm text-white/80 space-y-1 list-disc pl-5">
+                  {a.stealable_structures.map((s, i) => (
+                    <li key={i}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </article>
+        ))}
+      </div>
+    ) : (
+      <p className="text-sm text-white/60">
+        No peer artists returned. Try adding a clearer genre/audience/goal and run again.
+      </p>
+    )}
+
+    {peerResult.for_you ? (
+      <div className="rounded-2xl border border-white/10 bg-black/70 p-4 space-y-3">
+        <div className="text-sm font-semibold">For you</div>
+
+        {peerResult.for_you.suggested_pillars?.length ? (
+          <div>
+            <div className="text-xs uppercase tracking-wide text-white/50 mb-1">Suggested pillars</div>
+            <ul className="text-sm text-white/80 space-y-1 list-disc pl-5">
+              {peerResult.for_you.suggested_pillars.map((p, i) => (
+                <li key={i}>{p}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {peerResult.for_you.format_starters?.length ? (
+          <div>
+            <div className="text-xs uppercase tracking-wide text-white/50 mb-1">Format starters</div>
+            <ul className="text-sm text-white/80 space-y-1 list-disc pl-5">
+              {peerResult.for_you.format_starters.map((f, i) => (
+                <li key={i}>{f}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {peerResult.for_you.warnings?.length ? (
+          <div>
+            <div className="text-xs uppercase tracking-wide text-white/50 mb-1">Warnings</div>
+            <ul className="text-sm text-white/80 space-y-1 list-disc pl-5">
+              {peerResult.for_you.warnings.map((w, i) => (
+                <li key={i}>{w}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+    ) : null}
+
+    {peerResult.raw ? (
+      <details className="text-xs text-white/50">
+        <summary className="cursor-pointer">Raw model output (debug)</summary>
+        <pre className="mt-2 whitespace-pre-wrap break-words text-[0.7rem]">{peerResult.raw}</pre>
+      </details>
+    ) : null}
+  </section>
+)}
+
             {/* If you paste your current Peer Radar results JSX, I’ll merge it cleanly into this file. */}
           </>
         )}
