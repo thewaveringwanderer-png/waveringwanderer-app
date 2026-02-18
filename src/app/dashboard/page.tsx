@@ -6,6 +6,11 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { useWwProfile } from '@/hooks/useWwProfile'
 import { effectiveTier } from '@/lib/wwProfile'
+import { toast } from 'sonner'
+import { TowerControl } from 'lucide-react'
+
+
+
 
 
 import {
@@ -19,6 +24,9 @@ import {
   Mail,
   LogOut,
   FileText,          // icon for Press Kit
+  Sparkles,
+  Lock,
+
 } from 'lucide-react'
 
 const supabase = createClient(
@@ -44,7 +52,13 @@ export default function DashboardPage() {
 
   const router = useRouter()
   const [checking, setChecking] = useState(true)
-const { profile, tier, updateProfile } = useWwProfile()
+const { profile, tier, updateProfile, loading: profileLoading } = useWwProfile()
+const showIdentityBanner =
+  !profileLoading &&
+  !!profile &&
+  !profile.onboarding_started &&
+  !profile.identity_completed
+
 
 const hasTier = (current: 'free' | 'creator' | 'pro', needed: 'free' | 'creator' | 'pro') => {
   const rank = { free: 0, creator: 1, pro: 2 } as const
@@ -84,19 +98,21 @@ const newsletterLocked = !hasTier(tier, 'pro')
       title: 'Identity Kit & Campaigns',
       desc: 'Generate a pro brand kit, save versions, and spin up shootable campaign concepts.',
       icon: <Palette className="w-5 h-5" />,
-      badge: 'Live',
+      badge: 'Beta',
     },
     {
       href: '/calendar',
       title: 'Content Calendar',
       desc: 'Plan monthly/weekly posts, auto-generate ideas from your kit or an upcoming release.',
       icon: <CalendarDays className="w-5 h-5" />,
+      badge: 'Beta',
     },
     {
       href: '/captions',
       title: 'Captions & Hashtags',
       desc: 'Platform-ready copy in your tone of voice with smart hashtag sets.',
       icon: <Type className="w-5 h-5" />,
+      badge: 'Beta',
     },
     {
       href: '/trends',
@@ -105,20 +121,21 @@ const newsletterLocked = !hasTier(tier, 'pro')
       title: 'Trend Finder',
       desc: 'Find timely sounds, challenges, and angles aligned with your brand.',
       icon: <TrendingUp className="w-5 h-5" />,
+      badge: 'Beta',
     },
     {
       href: '/strategy-board',
       title: 'Momentum Board',
       desc: 'Drag content ideas from every tool into one lane and move them from idea to planned, scheduled, and posted.',
       icon: <Compass className="w-5 h-5" />,
-      badge: 'New',
+      badge: 'Beta',
     },
     {
       href: pressKitLocked ? '/pricing' : '/press-kit',
       title: 'Press Kit Generator',
       desc: 'Draft a clean EPK and release one-sheet with smart-fill from your WW profile or web-style info.',
       icon: <FileText className="w-5 h-5" />,
-      badge: 'Pro-ready',
+      badge: 'Beta',
     },
     {
       href: '/release-strategy',
@@ -134,7 +151,15 @@ const newsletterLocked = !hasTier(tier, 'pro')
       icon: <Mail className="w-5 h-5" />,
       badge: 'Beta',
     },
-    
+    {
+  href: '#',
+  title: 'The Lighthouse',
+  desc: 'Expand ideas. Clarify direction. Execute with confidence.',
+  icon: <TowerControl className="w-5 h-5" />,
+  badge: 'Coming soon',
+}
+
+
 
   ]
 
@@ -154,7 +179,7 @@ const newsletterLocked = !hasTier(tier, 'pro')
 
 
 
-{!profile?.onboarding_started && !profile?.identity_completed && (
+{showIdentityBanner && (
   <section className="mb-8">
     <div className="relative overflow-hidden rounded-3xl border border-ww-violet/40 bg-black/60 p-6 md:p-8 shadow-[0_0_40px_rgba(186,85,211,0.18)]">
       {/* glow layer */}
@@ -192,6 +217,8 @@ const newsletterLocked = !hasTier(tier, 'pro')
   <Link
     href="/identity"
       onClick={() => void markOnboardingStarted()}
+
+
     className="relative inline-flex items-center justify-center text-center leading-none rounded-full px-6 h-11 text-sm font-semibold text-white
     bg-ww-violet
     border border-white/20
@@ -201,6 +228,17 @@ const newsletterLocked = !hasTier(tier, 'pro')
   >
     Generate Identity Kit
   </Link>
+  <button
+    type="button"
+    onClick={async () => {
+      await updateProfile({ onboarding_started: true })
+      toast.success('Got it ✅')
+    }}
+    className="inline-flex items-center justify-center rounded-full px-6 h-11 text-sm font-semibold
+      border border-white/15 text-white/80 hover:border-ww-violet hover:bg-ww-violet/10 transition"
+  >
+    Dismiss
+  </button>
 </div>
 
 
@@ -238,25 +276,46 @@ const newsletterLocked = !hasTier(tier, 'pro')
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {cards.map((c) => {
             const isMomentum = c.href === '/strategy-board'
+            const isLighthouse = c.title === 'The Lighthouse'
+
             return (
               <Link
                 key={`${c.title}:${c.href}`}
 
                 href={c.href}
-                  onClick={() => void markOnboardingStarted()}
+                  onClick={(e) => {
+  if (isLighthouse) {
+    e.preventDefault()
+    toast.info('The Lighthouse is coming soon 🔮')
+    return
+  }
+  void markOnboardingStarted()
+}}
+
                 className={
-                  isMomentum
-                    ? 'group rounded-2xl border border-ww-violet/70 bg-gradient-to-br from-black via-black to-ww-violet/25 p-5 transition shadow-[0_0_26px_rgba(186,85,211,0.45)] hover:shadow-[0_0_32px_rgba(186,85,211,0.7)]'
-                    : 'group rounded-2xl border border-white/10 bg-black/50 p-5 transition hover:border-ww-violet/80 hover:shadow-[0_0_22px_rgba(186,85,211,0.35)]'
-                }
+  isMomentum
+    ? 'group rounded-2xl border border-ww-violet/70 bg-gradient-to-br from-black via-black to-ww-violet/25 p-5 transition shadow-[0_0_26px_rgba(186,85,211,0.45)] hover:shadow-[0_0_32px_rgba(186,85,211,0.7)]'
+    : isLighthouse
+? 'group relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-black via-black to-white/[0.03] p-5 transition hover:border-white/25 hover:shadow-[0_0_24px_rgba(255,255,255,0.06)]'
+    : 'group rounded-2xl border border-white/10 bg-black/50 p-5 transition hover:border-ww-violet/80 hover:shadow-[0_0_22px_rgba(186,85,211,0.35)]'
+}
+
               >
+                {isLighthouse && (
+  <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500">
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.08),transparent_60%)]" />
+  </div>
+)}
                 <div className="flex items-center justify-between">
                   <div className="inline-flex items-center gap-2 text-white">
                     <span
                       className={
                         isMomentum
                           ? 'inline-flex items-center justify-center w-9 h-9 rounded-full bg-ww-violet/20 border border-ww-violet/60 text-ww-violet'
-                          : 'inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/5 border border-white/10 text-ww-violet'
+                          : isLighthouse
+? 'inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/5 border border-white/15 text-white/70'
+: 'inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/5 border border-white/10 text-ww-violet'
+
                       }
                     >
                       {c.icon}
@@ -264,28 +323,43 @@ const newsletterLocked = !hasTier(tier, 'pro')
                     <h3 className="font-semibold">{c.title}</h3>
                   </div>
                   {c.badge && (
-                    <span
-                      className={
-                        isMomentum
-                          ? 'text-xs px-2 py-1 rounded-full border border-white/60 bg-white/10 text-white/90'
-                          : 'text-xs px-2 py-1 rounded-full border border-ww-violet/40 text-ww-violet/90'
-                      }
-                    >
-                      {c.badge}
-                    </span>
-                  )}
+  <span
+    className={
+      isMomentum
+        ? 'text-xs px-2 py-1 rounded-full border border-white/60 bg-white/10 text-white/90'
+        : isLighthouse
+        ? 'text-[10px] px-2 py-1 rounded-full border border-white/20 bg-white/5 text-white/60 uppercase tracking-wide'
+        : 'text-xs px-2 py-1 rounded-full border border-ww-violet/40 text-ww-violet/90'
+    }
+  >
+    {c.badge}
+  </span>
+)}
+
                 </div>
                 <p className="mt-3 text-white/70">{c.desc}</p>
                 <div
-                  className={
-                    isMomentum
-                      ? 'mt-4 inline-flex items-center gap-2 text-white/95'
-                      : 'mt-4 inline-flex items-center gap-2 text-ww-violet/90'
-                  }
-                >
-                  Open
-                  <ArrowRight className="w-4 h-4 transition -translate-x-0 group-hover:translate-x-0.5" />
-                </div>
+  className={
+    isMomentum
+      ? 'mt-4 inline-flex items-center gap-2 text-white/95'
+      : isLighthouse
+      ? 'mt-4 inline-flex items-center gap-2 text-white/55'
+      : 'mt-4 inline-flex items-center gap-2 text-ww-violet/90'
+  }
+>
+  {isLighthouse ? (
+    <>
+      <Lock className="w-4 h-4 opacity-70" />
+<span className="tracking-wide uppercase text-[11px]">Coming soon</span>
+
+    </>
+  ) : (
+    <>
+      Open
+      <ArrowRight className="w-4 h-4 transition -translate-x-0 group-hover:translate-x-0.5" />
+    </>
+  )}
+</div>
               </Link>
             )
           })}
@@ -294,3 +368,4 @@ const newsletterLocked = !hasTier(tier, 'pro')
     </main>
   )
 }
+

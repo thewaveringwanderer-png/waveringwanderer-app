@@ -133,10 +133,24 @@ export async function saveWwProfile(patch: Partial<WwProfile>): Promise<WwProfil
   const current = readLocalWwProfile() || {}
   const next = mergeWwProfiles(current, patch)
 
+  const {
+    data: { user },
+    error: userErr,
+  } = await supabase.auth.getUser()
+
+  // Not logged in → local only
+  if (userErr || !user) {
+    writeLocalWwProfile(next)
+    return next
+  }
+
   const { data, error } = await supabase
     .from('ww_profiles')
-    .upsert({ profile: next })
-    .select()
+    .upsert(
+      { user_id: user.id, profile: next },
+      { onConflict: 'user_id' } // ✅ important
+    )
+    .select('profile')
     .single()
 
   // if DB fails, still keep local optimistic state
@@ -145,10 +159,12 @@ export async function saveWwProfile(patch: Partial<WwProfile>): Promise<WwProfil
     return next
   }
 
-  const finalProfile = ((data as any).profile || next) as WwProfile
+  const finalProfile = ((data as any)?.profile || next) as WwProfile
   writeLocalWwProfile(finalProfile)
   return finalProfile
 }
+
+
 
 export async function bumpUsage(key: keyof Usage): Promise<WwProfile | null> {
   const current = readLocalWwProfile() || {}
@@ -163,3 +179,4 @@ export async function bumpUsage(key: keyof Usage): Promise<WwProfile | null> {
     usage: nextUsage,
   })
 }
+
