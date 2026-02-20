@@ -33,6 +33,7 @@ import {
   ChevronDown,
   ChevronRight as ChevronRightIcon,
   X,
+  
 } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 
@@ -240,6 +241,12 @@ function pick<T>(arr: T[], seed: number) {
   return arr[seed % arr.length]
 }
 
+function randomSalt(len = 8) {
+  // Client-only: uses Web Crypto
+  const bytes = new Uint8Array(len)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+}
 
 type MixState = {
   promo: number
@@ -256,12 +263,10 @@ function reorder<T>(list: T[], startIndex: number, endIndex: number) {
   return result
 }
 
-function weeksFromScheduleLength(len: '7' | '14' | '30' | '60' | '90') {
+function weeksFromScheduleLength(len: '7' | '14' | '30') {
   if (len === '7') return 1
   if (len === '14') return 2
-  if (len === '60') return 8
-  if (len === '90') return 13 // ~91 days
-  return 4 // ~28 days (marketed as 30)
+  return 4 // 30-ish
 }
 
 
@@ -344,6 +349,8 @@ const freeLimitReached = tier === 'free' && usedCalendarGenerations >= 1
   const [audience, setAudience] = useState('')
   const [goal, setGoal] = useState('')
   const [tone, setTone] = useState('brand-consistent, concise, human, engaging')
+  const [lyrics, setLyrics] = useState('')
+  const [lyricsFocus, setLyricsFocus] = useState<'general' | 'hook' | 'verse' | 'chorus'>('general')
 
   // ---------- View mode ----------
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week')
@@ -626,11 +633,7 @@ const freeLimitReached = tier === 'free' && usedCalendarGenerations >= 1
   }
 
 
-  // ---------- Generation (local/week template) ----------
-  function choosePlatform(i: number) {
-    const pool = selectedPlatforms.length ? selectedPlatforms : ['instagram']
-    return pool[i % pool.length]
-  }
+ 
 
   function pickContentTypeFromMix(seed: number) {
     const buckets: Array<{ key: keyof MixState; w: number }> = [
@@ -813,89 +816,7 @@ const freeLimitReached = tier === 'free' && usedCalendarGenerations >= 1
 
      
 
-  async function handleGenerateWeekPlan() {
-        if (freeLimitReached) {
-      toast.error('Free plan includes 1 calendar generation. Upgrade to generate again.')
-      return
-    }
-
-    void save({ artistName, genre, audience, goal, tone })
-    setGenerating(true)
-
-    try {
-      const { data: userData, error: userError } = await supabase.auth.getUser()
-      if (userError || !userData?.user) {
-        toast.error('You must be logged in to generate a week plan')
-        return
-      }
-
-      const uid = userData.user.id
-      const batchId = `cal_${Date.now()}`
-const batchLabel = `Week plan (${dateKey(weekStart)})`
-
-      const rows: Array<Partial<CalendarItem>> = []
-const genDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i))
-
-      genDays.forEach((day, dayIndex) => {
-
-        const dayName = day.toLocaleDateString('en-GB', { weekday: 'long' })
-        const energy = energyPattern[dayIndex] || 'medium'
-        for (let j = 0; j < POSTS_PER_DAY; j++) {
-
-          const seed = dayIndex * 101 + j * 37 + (artistName.length || 0)
-          const contentType = pickContentTypeFromMix(seed)
-          const platform = choosePlatform(dayIndex + j)
-
-          rows.push({
-            user_id: uid,
-            feature: 'calendar',
-            in_momentum: false,
-            status: 'planned',
-            platform,
-            scheduled_at: toIsoAtDayWithMinutes(day, j), // keep order stable within the day
-            title: titleTemplate({ focus: focusMode, energy, contentType, platform, dayName }),
-            caption: captionTemplate({ focus: focusMode, energy, contentType, platform, dayName, seed }),
-
-            hashtags: null,
-            metadata: {
-              batchId,
-              batchLabel,
-              source: 'calendar_v2_local',
-              focusMode,
-              energy,
-              contentType,
-              artistName,
-              genre,
-              audience,
-              goal,
-              tone,
-              releaseContext: releaseContext || null,
-              promptVersion: 'v2.2-ui-clean-energy',
-            },
-          })
-        }
-      })
-
-      const saved = await insertCalendarRows(rows)
-            _setLastBatchId(batchId)
-      _setLastBatchLabel(batchLabel)
-
-      setItems(prev => [...prev, ...saved])
-      toast.success('Week plan generated and saved ✅')
-
-           if (tier === 'free') {
-  await bumpUsage('calendar_generate_uses' as any)
-  setUsageTick(t => t + 1)
-}
-
-
-    } catch (e: any) {
-      console.error('[calendar-v2] generate error', e)
-      toast.error(e?.message || 'Could not generate week plan')
-    } finally {
-      setGenerating(false)
-    }
-  }
+  
 
   // ---------- Generation (API: 30/60/90 schedule) ----------
   async function handleGenerateScheduleFromApi() {
@@ -914,14 +835,31 @@ const genDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i))
       const batchId = `cal_${Date.now()}`
       const startDate = dateKey(weekStart)
 const batchLabel = `${scheduleLength} schedule (${startDate})`
-
+const noveltySeed = randomSalt()
       
 
             // UI is posts/day -> API expects posts/week
       // Cap to avoid huge plans that become repetitive (e.g. 21/week)
-      const postsPerWeek = POSTS_PER_DAY * 7
+      
+// Aim: ~1 post/day across selected duration
+// 7 days => 7 slots, 14 => 14, 30 => ~30
+const targetTotal =
+  scheduleLength === '7' ? 7 :
+  scheduleLength === '14' ? 14 :
+  30
 
+const postsPerWeek = Math.max(1, Math.round(targetTotal / weeks))
 
+const avoidTitles = items
+  .slice(-60)
+  .flatMap(it => {
+    const t = (it.title || '').toString().trim()
+    const lastLine = (it.caption || '').toString().trim().split('\n').slice(-1)[0] || ''
+    return [t, lastLine]
+  })
+  .map(s => s.trim())
+  .filter(Boolean)
+  .slice(-60)
       
 
       const res = await fetch('/api/calendar', {
@@ -932,10 +870,20 @@ const batchLabel = `${scheduleLength} schedule (${startDate})`
           genre,
           audience,
           goal,
+          focusMode,
+          mix,
+          energyPattern,
+          releaseContext,
+          tone,
+          lyrics: lyrics.trim(),
+          lyricsFocus,
+          avoidTitles,
           startDate,
           weeks,
           postsPerWeek,
           platforms: selectedPlatforms.length ? selectedPlatforms : ['instagram'],
+          noveltySeed,
+          
         }),
       })
 
@@ -1019,7 +967,9 @@ if (data?._fallback) {
   }
 
   // Otherwise fall back to your richer local captionTemplate
-  const seed = hashSeed(`${dayKey}|${safeString(it.platform)}|${idx}|${focusMode}|${artistName}|${genre}|${audience}|${goal}`)
+  const seed = hashSeed(
+  `${noveltySeed}|${dayKey}|${safeString(it.platform)}|${idx}|${focusMode}|${artistName}|${genre}|${audience}|${goal}`
+)
   const dayName = dayDate.toLocaleDateString('en-GB', { weekday: 'long' })
   const energy =
     energyPattern[
@@ -1551,19 +1501,7 @@ async function handleSendMonthToMomentum() {
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <p className={labelClass}>Week starting (Mon)</p>
-                <input
-                  type="date"
-                  className={inputClass}
-                  value={dateKey(weekStart)}
-                  onChange={e => {
-  if (!e.target.value) return
-  setWeekStart(startOfWeekMonday(new Date(e.target.value + 'T12:00:00')))
-}}
-
-                />
-              </div>
+             
             </div>
 
             {/* Platforms */}
@@ -1603,6 +1541,31 @@ async function handleSendMonthToMomentum() {
                 <p className={labelClass}>Release / gig context (optional)</p>
                 <input className={inputClass} placeholder="Single name, date, gig, theme…" value={releaseContext} onChange={e => setReleaseContext(e.target.value)} />
               </div>
+              <div className="space-y-1">
+  <p className={labelClass}>Lyrics (optional)</p>
+
+  <select
+    className={inputClass}
+    value={lyricsFocus}
+    onChange={e => setLyricsFocus(e.target.value as any)}
+  >
+    <option value="general">Use lyrics (general)</option>
+    <option value="hook">Focus on hook</option>
+    <option value="chorus">Focus on chorus</option>
+    <option value="verse">Focus on verse</option>
+  </select>
+
+  <textarea
+    className={inputClass + ' min-h-[120px]'}
+    placeholder="Paste lyrics or a section (chorus/verse). Tip: keep it short for best results."
+    value={lyrics}
+    onChange={e => setLyrics(e.target.value)}
+  />
+
+  <p className="text-[0.7rem] text-white/45">
+    Optional. Used to tailor themes + angles. Keep it to ~1 verse/chorus for cleaner outputs.
+  </p>
+</div>
             </div>
 
             {/* ✅ Schedule length (API generator) */}
@@ -1720,13 +1683,13 @@ async function handleSendMonthToMomentum() {
               <button
   type="button"
   onClick={() => {
+  // Keep your paywall logic if you want:
   if (tier === 'free' && scheduleLength !== '7') {
     toast.error('Free plan can generate 1 week only. Upgrade to generate more.')
     return
   }
 
-  if (scheduleLength === '7') handleGenerateWeekPlan()
-  else handleGenerateScheduleFromApi()
+  handleGenerateScheduleFromApi()
 }}
 
   disabled={!!(generating || isCalendarLocked)}
@@ -1747,11 +1710,12 @@ async function handleSendMonthToMomentum() {
 ) : null}
 
               <p className="text-[0.7rem] text-white/45">
-                Week plan creates <span className="text-white/75 font-semibold">{POSTS_PER_DAY * 7}
-
-
-</span> cards.
-              </p>
+  Generates about{' '}
+  <span className="text-white/75 font-semibold">
+    {scheduleLength === '7' ? 7 : scheduleLength === '14' ? 14 : 30}
+  </span>{' '}
+  cards.
+</p>
             </div>
           </section>
 
@@ -2010,7 +1974,7 @@ async function handleSendMonthToMomentum() {
   <ContentCard
     variant="mini"
     title={item.title || item.metadata?.api?.short_label || 'Untitled'}
-
+previewText={item.caption || ''}
     subtitle={platformLabel(item.platform)}
     statusDotClass={statusDotColor(item.status)}
     // optional: tiny preview line (only if you want it in month view)

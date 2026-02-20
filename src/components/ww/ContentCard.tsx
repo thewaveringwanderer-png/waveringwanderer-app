@@ -33,6 +33,36 @@ function parseCaptionSections(caption: string) {
   const keys = ['IDEA:', 'FORMAT:', 'ANGLE:', 'CTA:', 'PILLAR:']
   const hasAnyKey = keys.some(k => up.includes(k))
 
+  
+
+  function buildMiniPreviewLines(caption: string) {
+  const s = parseCaptionSections(caption)
+
+
+
+  
+
+  // If it's not sectioned, just split into lines.
+  if (!s.isSectioned) {
+    return splitIntoLines(s.plain).slice(0, 4)
+  }
+
+  // Sectioned: turn into compact single-line bullets.
+  const lines: string[] = []
+
+  if (s.idea) {
+    // Idea can be multi-line; keep first 1–2 lines max for mini.
+    const ideaLines = splitIntoLines(s.idea)
+    const ideaShort = ideaLines.slice(0, 2).join(' / ')
+    lines.push(`IDEA: ${ideaShort}`)
+  }
+  if (s.format) lines.push(`FORMAT: ${s.format}`)
+  if (s.angle) lines.push(`ANGLE: ${s.angle}`)
+  if (s.cta) lines.push(`CTA: ${s.cta}`)
+  if (s.pillar) lines.push(`PILLAR: ${s.pillar}`)
+
+  return lines.slice(0, 4)
+}
   if (!hasAnyKey) {
     return {
       isSectioned: false as const,
@@ -115,6 +145,29 @@ type Props = {
 
   // ✅ click behavior (kept for backward compatibility)
   onClick?: () => void
+}
+
+function buildMiniPreviewLines(caption: string): string[] {
+  const s = parseCaptionSections(caption)
+
+  // If it's not sectioned, just split into lines.
+  if (!s.isSectioned) {
+    return splitIntoLines(s.plain).slice(0, 4)
+  }
+
+  const lines: string[] = []
+
+  if (s.idea) {
+    const ideaLines = splitIntoLines(s.idea)
+    const ideaShort = ideaLines.slice(0, 2).join(' / ')
+    lines.push(`IDEA: ${ideaShort}`)
+  }
+  if (s.format) lines.push(`FORMAT: ${s.format}`)
+  if (s.angle) lines.push(`ANGLE: ${s.angle}`)
+  if (s.cta) lines.push(`CTA: ${s.cta}`)
+  if (s.pillar) lines.push(`PILLAR: ${s.pillar}`)
+
+  return lines.slice(0, 4)
 }
 
 function platformLabel(p: string | null | undefined) {
@@ -301,10 +354,29 @@ export default function ContentCard({
       ) : null}
 
       {/* Preview */}
-{!isMini && finalPreview ? (() => {
+{finalPreview ? (() => {
+  // ✅ MINI: show clean 1-line-per-bullet preview (max 4)
+  if (isMini) {
+    const lines = buildMiniPreviewLines(finalPreview)
+
+    if (!lines.length) return null
+
+    return (
+      <div className="mt-1.5 space-y-1 text-[0.62rem] text-white/60 leading-tight">
+        {lines.map((line, i) => (
+          <div key={i} className="truncate">
+            {/* bullet */}
+            <span className="text-white/35 mr-1">•</span>
+            <span>{line}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // ✅ POOL/FULL: keep your existing rich rendering
   const s = parseCaptionSections(finalPreview)
 
-  // Old behaviour for non-sectioned captions
   if (!s.isSectioned) {
     return (
       <p
@@ -318,48 +390,46 @@ export default function ContentCard({
     )
   }
 
-  // New behaviour for sectioned content (IDEA / FORMAT / ANGLE / CTA / PILLAR)
   return (
-  <div className="mt-2 space-y-2 text-[0.75rem] text-white/70 leading-snug">
-    {s.idea ? (
-      <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
-        <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">Idea</div>
-        <div className={['whitespace-pre-line', isPool ? 'line-clamp-5' : 'line-clamp-4'].join(' ')}>
-          {s.idea}
+    <div className="mt-2 space-y-2 text-[0.75rem] text-white/70 leading-snug">
+      {s.idea ? (
+        <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
+          <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">Idea</div>
+          <div className={['whitespace-pre-line', isPool ? 'line-clamp-5' : 'line-clamp-4'].join(' ')}>
+            {s.idea}
+          </div>
         </div>
-      </div>
-    ) : null}
+      ) : null}
 
-    {s.format ? (
-      <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
-        <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">Format</div>
-        <div className="line-clamp-2">{s.format}</div>
-      </div>
-    ) : null}
+      {s.format ? (
+        <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
+          <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">Format</div>
+          <div className="line-clamp-2">{s.format}</div>
+        </div>
+      ) : null}
 
-    {s.angle ? (
-      <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
-        <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">Angle</div>
-        <div className="line-clamp-2">{s.angle}</div>
-      </div>
-    ) : null}
+      {s.angle ? (
+        <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
+          <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">Angle</div>
+          <div className="line-clamp-2">{s.angle}</div>
+        </div>
+      ) : null}
 
-    {s.cta ? (
-      <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
-        <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">CTA</div>
-        <div className="line-clamp-2">{s.cta}</div>
-      </div>
-    ) : null}
+      {s.cta ? (
+        <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
+          <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">CTA</div>
+          <div className="line-clamp-2">{s.cta}</div>
+        </div>
+      ) : null}
 
-    {s.pillar ? (
-      <div className="flex items-center justify-between gap-2 px-1">
-        <span className="text-[0.62rem] uppercase tracking-wide text-white/45">Pillar</span>
-        <span className="text-[0.7rem] text-white/70 truncate">{s.pillar}</span>
-      </div>
-    ) : null}
-  </div>
-)
-
+      {s.pillar ? (
+        <div className="flex items-center justify-between gap-2 px-1">
+          <span className="text-[0.62rem] uppercase tracking-wide text-white/45">Pillar</span>
+          <span className="text-[0.7rem] text-white/70 truncate">{s.pillar}</span>
+        </div>
+      ) : null}
+    </div>
+  )
 })() : null}
 
 

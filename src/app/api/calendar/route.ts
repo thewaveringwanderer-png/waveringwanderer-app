@@ -14,6 +14,15 @@ type CalendarRequest = {
   weeks?: number // e.g. 4
   postsPerWeek?: number // e.g. 4
   platforms?: string[] // e.g. ["instagram", "tiktok"]
+  lyrics?: string // optional: pasted lyrics or excerpt
+  lyricsFocus?: string // optional: e.g. "chorus", "verse 2", "theme summary"
+  avoidTitles?: string[]
+  focusMode?: string
+  releaseContext?: string
+  tone?: string
+  mix?: { promo: number; brand: number; community: number; bts: number; lifestyle: number }
+  energyPattern?: Array<'low' | 'medium' | 'high'>
+  noveltySeed?: string
 }
 
 export type CalendarItem = {
@@ -76,15 +85,24 @@ export async function POST(req: Request) {
   } catch {}
 
   const {
-    artistName = 'the artist',
-    genre = '',
-    audience = '',
-    goal = '',
-    startDate,
-    weeks = 4,
-    postsPerWeek = 4,
-    platforms = ['instagram', 'tiktok', 'youtube'],
-  } = body
+  artistName = 'the artist',
+  genre = '',
+  audience = '',
+  goal = '',
+  tone = 'brand-consistent, concise, human, engaging',
+  focusMode = 'general',
+  releaseContext = '',
+  mix,
+  energyPattern,
+  noveltySeed,
+  lyrics = '',
+  lyricsFocus = '',
+  startDate,
+  weeks = 4,
+  postsPerWeek = 4,
+  platforms = ['instagram', 'tiktok', 'youtube'],
+  avoidTitles = [],
+} = body
 
   if (!startDate) {
     return NextResponse.json({ error: 'Missing startDate (ISO string)' }, { status: 400 })
@@ -112,10 +130,12 @@ export async function POST(req: Request) {
   if (goal) contextLines.push(`Primary goal: ${goal}`)
 
   const contextBlock = contextLines.length
+  
     ? contextLines.join('\n')
     : 'No extra context was given. Infer a reasonable plan for an independent artist.'
 
   const systemPrompt = `
+  
 You are an expert music marketing strategist and content calendar architect.
 You design practical, shootable content plans that respect an artist's reality
 (time, energy, budget) while still pushing growth.
@@ -124,6 +144,7 @@ Rules:
 - Mix content pillars: performance, storytelling, behind-the-scenes, education, community.
 - Vary FORMATS: e.g. performance clip, talking-to-camera, lyric graphic, duet, stitch, carousel.
 - Avoid near-duplicates. Each slot should feel distinct but on-brand.
+- If an "Avoid list" is provided, do NOT reuse or closely paraphrase those titles/hooks/ideas.
 - Make sure posts align with the stated GOAL:
   - "Grow" → more discovery formats, hooks, collabs, trends, duets.
   - "Convert" → more direct CTAs, pre-saves, merch, ticket pushes.
@@ -141,6 +162,11 @@ Hard requirements for EACH item:
 - "title" must be specific (avoid "Content slot", "Quick win").
 - "suggested_caption" must sound human and specific to the idea (no generic motivational filler).
 - Avoid near-duplicates: do not reuse the same hook style more than once per week.
+- If "Content mix targets" are provided, roughly match pillar distribution across the plan.
+- If an "Energy pattern" is provided (Mon..Sun), match effort level:
+  - low → low-lift (talking head, VO, lyric text, simple clips)
+  - medium → balanced (hook → context → payoff)
+  - high → higher energy (performance, fast cuts, bold hooks)
 
 Output STRICTLY valid JSON with this shape:
 
@@ -168,12 +194,42 @@ Return ONLY JSON, no commentary.
   const userPrompt = `
 Artist: ${artistName}
 ${contextBlock}
+Tone: ${tone}
+Focus mode: ${focusMode}
+Release/gig context: ${releaseContext || 'None'}
+
+Content mix targets (approx %):
+${mix ? `promo:${mix.promo} brand:${mix.brand} community:${mix.community} bts:${mix.bts} lifestyle:${mix.lifestyle}` : 'Not provided'}
+
+Energy pattern (Mon..Sun):
+${Array.isArray(energyPattern) && energyPattern.length ? energyPattern.join(', ') : 'Not provided'}
+Session novelty key: ${noveltySeed || 'default'}
+
+Lyrics context (optional):
+${lyrics ? `Focus: ${lyricsFocus || 'general'}\nLyrics:\n${lyrics.slice(0, 4000)}` : 'No lyrics provided.'}
+
+Strict requirements when lyrics are provided:
+- At least 70% of items MUST be directly inspired by the lyrics' themes, imagery, emotions, or key phrases.
+- Each item MUST include a "LYRICS ANCHOR:" line inside the "idea" field that states (without quoting long text):
+  - the specific theme / image / emotion it came from (e.g. "LYRICS ANCHOR: 'storms clearing' → resilience")
+- Do NOT output generic music-marketing staples unless they are reframed through the lyrics.
+- Avoid repeating the same creative device more than once per week:
+  - (e.g. "rate this hook", "studio BTS", "lyric breakdown", "walk + VO", etc.)
+- For variety: include at least one of each across the plan:
+  1) performance-based,
+  2) storytelling talking-head,
+  3) visual metaphor / cinematic,
+  4) audience prompt / community,
+  5) educational / breakdown.
+- Do NOT reproduce long lyric excerpts. If you quote, max 6–8 words.
 
 Plan parameters:
 - Start date: ${startDate}
 - Number of weeks: ${weeks}
 - Approx posts per week: ${postsPerWeek}
 - Allowed platforms: ${platforms.join(', ')}
+- Avoid list (do not repeat or closely paraphrase):
+${(avoidTitles || []).slice(0, 40).map(t => `- ${t}`).join('\n') || 'None'}
 
 Design a content calendar that:
 - Spreads posts across the weeks (not all on the same days).
@@ -195,7 +251,9 @@ You MUST:
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 0.9,
+      temperature: 1.2,
+      presence_penalty: 0.8,
+      frequency_penalty: 0.4,
     })
 
     const raw = completion.choices[0]?.message?.content?.trim()
