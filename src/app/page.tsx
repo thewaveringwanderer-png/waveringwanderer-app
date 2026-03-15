@@ -75,6 +75,7 @@ export default function HomePage() {
               Wavering Wanderers turns one song into weeks of content with{" "}
               <span className="text-white/90 font-semibold">clarity, consistency &amp; momentum</span>
               {" "}— so you spend less time “marketing” and more time making music.
+              Turn one song into weeks of content, press assets, and strategy — without a manager.
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
@@ -144,78 +145,68 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Tools */}
-        <section id="tools" className="py-16 border-t border-white/10">
-          <div className="flex justify-center text-center">
-            <div className="max-w-3xl mx-auto">
-              <h2 className="text-2xl md:text-3xl font-bold">
-                Everything you need to operate independently.
-              </h2>
-              <p className="mt-3 text-white/70">
-                Identity, content, strategy and momentum — built so artists don’t need managers to move professionally
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-10 grid gap-4 md:grid-cols-2 text-center">
-
-            {[
-              [
-                "🎤 Artist Identity",
-                "Get crystal clear on your sound, story, and direction — so every post and release makes sense.",
-              ],
-              [
-                "📰 Press Kit Builder",
-                "Generate professional bios and press assets in minutes, not days.",
-              ],
-              [
-                "📅 Content Calendar",
-                "Turn one song into weeks of content — with ready-to-post ideas and angles.",
-              ],
-              [
-                "🔥 Trend Finder",
-                "See what’s working right now and translate it into content that fits your brand.",
-              ],
-            ].map(([title, desc]) => (
-              <div
-  key={title}
-  className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center hover:bg-white/10 transition"
->
-  <div className="text-base font-semibold flex items-center justify-center gap-2">
-  {title}
-</div>
-
-  <div className="mt-2 text-sm text-white/70">{desc}</div>
-</div>
-
-            ))}
-          </div>
-
-          <div className="mt-10 flex flex-col items-center gap-4">
-  {/* CTA pill */}
-  <div className="w-full max-w-3xl rounded-2xl border border-white/10 bg-black/60 px-6 py-6 text-center">
-    <div className="text-sm font-semibold">
-      Less overwhelm. More output. Same voice.
+        <section className="border-t border-white/10 px-6 py-20 md:px-10">
+  <div className="mx-auto max-w-6xl">
+    <div className="text-center max-w-3xl mx-auto">
+      <h2 className="text-3xl md:text-5xl font-semibold tracking-tight text-white">
+        A clearer way to move as an independent artist.
+      </h2>
+      <p className="mt-4 text-white/65 text-lg leading-relaxed">
+        Define your identity, generate better ideas, then organise everything in one place.
+      </p>
     </div>
-    <div className="mt-1 text-sm text-white/70">
-      Build professional assets faster so you can spend more time creating.
+
+    <div className="mt-14 grid gap-6 lg:grid-cols-3">
+      <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7 transition hover:border-white/20 hover:bg-white/[0.05]">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black text-sm font-semibold text-white/80">
+            01
+          </div>
+          <p className="text-sm uppercase tracking-[0.2em] text-white/40">Start here</p>
+        </div>
+
+        <h3 className="mt-5 text-2xl font-semibold text-white">🎨 Identity Kit</h3>
+        <p className="mt-3 text-white/65 leading-relaxed">
+          Get clear on your sound, story, and direction so your content, visuals, and messaging all come from the same place.
+        </p>
+      </div>
+
+      <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7 transition hover:border-white/20 hover:bg-white/[0.05]">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black text-sm font-semibold text-white/80">
+            02
+          </div>
+          <p className="text-sm uppercase tracking-[0.2em] text-white/40">Create momentum</p>
+        </div>
+
+        <h3 className="mt-5 text-2xl font-semibold text-white">🧠 Idea Factory + 🔥 Trend Finder</h3>
+        <p className="mt-3 text-white/65 leading-relaxed">
+          Turn your music into content people actually want to watch with creative ideas, strong angles, and trend-led concepts that still fit your brand.
+        </p>
+      </div>
+
+      <div className="rounded-3xl border border-ww-violet/30 bg-ww-violet/[0.08] p-6 md:p-7 shadow-[0_0_30px_rgba(186,85,211,0.14)] transition hover:border-ww-violet/50 hover:bg-ww-violet/[0.1]">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-ww-violet/30 bg-black text-sm font-semibold text-white">
+            03
+          </div>
+          <p className="text-sm uppercase tracking-[0.2em] text-white/45">Command centre</p>
+        </div>
+
+        <h3 className="mt-5 text-2xl font-semibold text-white">🧭 Momentum Board</h3>
+        <p className="mt-3 text-white/70 leading-relaxed">
+          Pull it all together in one place. Save your best ideas, organise your rollout, and keep track of what’s actually moving.
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-8 text-center">
+      <p className="text-sm text-white/45">
+        Plus press kit tools, captions, campaign support, and more inside.
+      </p>
     </div>
   </div>
-
-  {/* Button underneath */}
-  <Link
-    href="/login"
-    className="inline-flex items-center justify-center rounded-full px-7 h-11 text-sm font-semibold text-white
-    bg-ww-violet border border-white/20
-    shadow-[0_0_16px_rgba(186,85,211,0.55)]
-    hover:shadow-[0_0_22px_rgba(186,85,211,0.9)]
-    transition active:scale-[0.99]"
-  >
-    Start free
-  </Link>
-</div>
-
-        </section>
+</section>
 
         {/* How it works */}
         <section id="how" className="py-16 border-t border-white/10 text-center">

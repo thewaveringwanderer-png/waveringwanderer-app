@@ -928,10 +928,10 @@ async function handleDeleteCard(id: string) {
               <CalendarDays className="w-7 h-7 text-ww-violet" />
               Momentum Board
             </h1>
-            <p className="text-white/70 max-w-xl mt-1">
-              Click an idea in the pool, then tap a date to send it there. Drag cards already on the
-              calendar to tweak schedule.
-            </p>
+            <p className="text-white/70 max-w-2xl mt-1">
+  Your central planning space. Pull ideas in, place them when they feel right, and build momentum without pressure.
+</p>
+
             {armedItemId && (
   <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-ww-violet/40 bg-ww-violet/10 px-3 py-1 text-xs text-ww-violet shadow-[0_0_18px_rgba(186,85,211,0.35)]">
     <span>Idea selected — click a date to schedule</span>
@@ -947,97 +947,64 @@ async function handleDeleteCard(id: string) {
 )}
 
             <p className="text-xs text-white/45 mt-2">
-              Only items you’ve sent to the Momentum Board appear here — this keeps your hub intentional.
-            </p>
+  Only your chosen cards live here, so the board stays focused and manageable.
+</p>
           </div>
         </div>
 
+<div className="grid gap-3 sm:grid-cols-3">
+    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+      <p className="text-[0.7rem] uppercase tracking-wide text-white/45">In pool</p>
+      <p className="text-xl font-semibold text-white mt-1">{filteredPoolItems.length}</p>
+    </div>
+
+    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+      <p className="text-[0.7rem] uppercase tracking-wide text-white/45">Scheduled this month</p>
+      <p className="text-xl font-semibold text-white mt-1">
+        {
+          calendarItems.filter(it => {
+            if (!it.scheduled_at) return false
+            const d = new Date(it.scheduled_at)
+            return d.getMonth() === currentMonth.getMonth() && d.getFullYear() === currentMonth.getFullYear()
+          }).length
+        }
+      </p>
+    </div>
+
+    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+      <p className="text-[0.7rem] uppercase tracking-wide text-white/45">Focus</p>
+      <p className="text-sm font-medium text-white mt-1">
+        {armedItemId ? 'Choose a date for your selected idea' : 'Drag, place, and shape your month'}
+      </p>
+    </div>
+  </div>
+
         <DragDropContext
-  onDragStart={() => {
-    setShowTrash(true)
-    setTrashActive(false)
-  }}
-  onDragUpdate={update => {
-    handleDragUpdate(update)
-    setTrashActive(!!update.destination && update.destination.droppableId === 'trash-bin')
-  }}
+  onDragUpdate={handleDragUpdate}
   onDragEnd={result => {
-  setTrashActive(false)
-  setShowTrash(false)
-
-  if (result.destination?.droppableId === 'trash-bin') {
-    void handleDeleteCard(result.draggableId)
-    return
-  }
-
-  void handleBoardDragEnd(result)
-}}
+    void handleBoardDragEnd(result)
+  }}
 >
 
 
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)]">
+          <div className="grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[400px_minmax(0,1fr)]">
             {/* IDEA POOL */}
-            <section className="rounded-3xl border border-white/10 bg-black/80 p-4 md:p-5 flex flex-col">
+            <section className="rounded-3xl border border-white/10 bg-black/70 p-4 md:p-5 flex flex-col shadow-[0_0_30px_rgba(186,85,211,0.08)]">
               <div className="flex items-center justify-between gap-3 mb-3 flex-wrap sm:flex-nowrap">
 
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-white/50">Idea pool</p>
-                  <h2 className="text-lg font-semibold">Unscheduled concepts</h2>
-                </div>
+                <div className="space-y-1">
+  <p className="text-lg uppercase tracking-wide font-semibold text-white">Idea pool</p>
+  <p className="text-xs text-white/50">Pick a card, then click a date on the board.</p>
+</div>
                 <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
-
-                  <button
-                    type="button"
-                    onClick={handleExportPoolCsv}
-                    className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/15 text-[0.7rem] text-white/80 hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.7)] transition"
-                  >
-                    <Download className="w-3 h-3" />
-                    <span className="hidden sm:inline">Pool CSV</span>
-                  </button>
-                  <button
-  type="button"
-  onClick={handleClearIdeaPool}
-  className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/15 text-[0.7rem] text-white/80 hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.7)] transition"
->
-  <X className="w-3 h-3" />
-  <span className="hidden sm:inline">Clear pool</span>
-</button>
 
               
 
                 </div>
-              {/* TRASH BIN (always mounted; only visually toggled) */}
-<div
-  className={[
-    'fixed inset-x-0 bottom-4 z-40 flex justify-center pointer-events-none transition-all duration-150',
-    showTrash ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2',
-  ].join(' ')}
->
-  <Droppable droppableId="trash-bin">
-    {(provided, snapshot) => (
-      <div
-        ref={provided.innerRef}
-        {...provided.droppableProps}
-        className={[
-          'pointer-events-auto w-[240px] rounded-2xl border px-4 py-3 text-center text-sm',
-          snapshot.isDraggingOver || trashActive
-            ? 'border-rose-400/70 bg-rose-500/15 text-rose-200 shadow-[0_0_18px_rgba(244,63,94,0.45)]'
-            : 'border-white/15 bg-black/70 text-white/70',
-        ].join(' ')}
-      >
-        Drop here to delete
-        {provided.placeholder}
-      </div>
-    )}
-  </Droppable>
-</div>
-
-
-
               </div>
 
               {/* Filters */}
-              <div className="space-y-2 mb-3">
+              <div className="space-y-2 mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
                 <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-white/60">
                   <span className="inline-flex items-center gap-1">
                     <Filter className="w-3 h-3" />
@@ -1083,9 +1050,21 @@ async function handleDeleteCard(id: string) {
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Search by title or caption…"
-                  className="w-full px-3 py-1.5 rounded-full bg-black border border-white/15 text-xs text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
+                  className="w-full px-3 py-2 rounded-xl bg-black/70 border border-white/15 text-xs text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
                 />
+
+                <button
+  type="button"
+  onClick={handleClearIdeaPool}
+  className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/45 text-[0.7rem] text-white/80 hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.7)] transition"
+>
+  <X className="w-3 h-3" />
+  <span className="hidden sm:inline">Clear pool</span>
+</button>
+
               </div>
+
+              
 
               {/* Pool list */}
               <Droppable droppableId="idea-pool">
@@ -1122,7 +1101,7 @@ async function handleDeleteCard(id: string) {
                               {poolDropIndex === idx && (
                                 <div className="h-2 rounded-xl bg-ww-violet/30 transition-all" />
                               )}
-                              provided.placeholder
+                              {provided.placeholder}
 
                               <div
   ref={el => {
@@ -1146,23 +1125,25 @@ async function handleDeleteCard(id: string) {
   <X className="w-3.5 h-3.5" />
 </button>
 
+<div
+  className={`absolute bottom-3 left-3 z-10 inline-flex items-center px-2 py-1 rounded-full border text-[10px] font-medium ${featureBadgeClass(item.feature)}`}
+>
+  {featureLabel(item.feature)}
+</div>
 
                                 <ContentCard
-                                  variant="pool"
-                                  title={item.title || 'Untitled idea'}
-                                  subtitle={platformLabel(item.platform)}
-                                  statusDotClass={statusDotColor(item.status)}
-                                  badge={{
-                                    text: featureLabel(item.feature),
-                                    className: featureBadgeClass(item.feature),
-                                  }}
-                                  previewText={item.caption || ''}
-                                  hashtagsPreview={hashtagsPreview}
-                                  highlighted={isRecentlyDropped}
-                                  armed={isArmed}
-                                  onOpen={() => setExpandedItem(toSharedCard(item))}
-                                  actions={
-                                    <div className="flex items-center justify-end gap-2 pt-1 flex-wrap">
+  variant="pool"
+  title={item.title || 'Untitled idea'}
+  subtitle={platformLabel(item.platform)}
+  statusDotClass={statusDotColor(item.status)}
+  previewText={item.caption || ''}
+  hashtagsPreview={hashtagsPreview}
+  highlighted={isRecentlyDropped}
+  armed={isArmed}
+  onOpen={() => setExpandedItem(toSharedCard(item))}
+  actions={
+                                   
+                                    <div className="flex items-center justify-end gap-2 pt-1 flex-wrap">             
                                       <button
                                         type="button"
                                         onClick={e => {
@@ -1191,49 +1172,7 @@ async function handleDeleteCard(id: string) {
                                         Expand
                                       </button>
 
-                                      <button
-                                        type="button"
-                                        onClick={e => {
-                                          e.stopPropagation()
-                                          handleExportPressKit(item)
-                                        }}
-                                        disabled={exportingPressId === item.id}
-                                        className="inline-flex items-center gap-1.5 px-3 h-7 rounded-full border border-white/20 text-[0.7rem] text-white/80 hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.7)] transition disabled:opacity-60"
-                                      >
-                                        {exportingPressId === item.id ? (
-                                          <>
-                                            <Loader2 className="w-3 h-3 animate-spin" />
-                                            Copying…
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Clipboard className="w-3 h-3" />
-                                            Press-kit
-                                          </>
-                                        )}
-                                      </button>
-
-                                      <button
-                                        type="button"
-                                        onClick={e => {
-                                          e.stopPropagation()
-                                          handleExportPdf(item)
-                                        }}
-                                        disabled={exportingPdfId === item.id}
-                                        className="inline-flex items-center gap-1.5 px-3 h-7 rounded-full border border-white/20 text-[0.7rem] text-white/80 hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.7)] transition disabled:opacity-60"
-                                      >
-                                        {exportingPdfId === item.id ? (
-                                          <>
-                                            <Loader2 className="w-3 h-3 animate-spin" />
-                                            Exporting…
-                                          </>
-                                        ) : (
-                                          <>
-                                            <FileText className="w-3 h-3" />
-                                            PDF
-                                          </>
-                                        )}
-                                      </button>
+                                      
                                     </div>
                                   }
                                 />
@@ -1270,17 +1209,17 @@ async function handleDeleteCard(id: string) {
             {/* CALENDAR */}
             <section
   className={
-    'rounded-3xl border bg-black/80 p-4 md:p-5 space-y-4 transition ' +
+    'rounded-3xl border bg-black/75 p-5 md:p-6 space-y-5 transition ' +
     (armedItemId
-      ? 'border-ww-violet/60 shadow-[0_0_22px_rgba(186,85,211,0.35)]'
-      : 'border-white/10')
+      ? 'border-ww-violet/60 shadow-[0_0_26px_rgba(186,85,211,0.32)]'
+      : 'border-white/10 shadow-[0_0_30px_rgba(186,85,211,0.06)]')
   }
 >
 
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-white/50">Calendar view</p>
-                  <h2 className="text-lg font-semibold">
+                  <p className="text-lg uppercase tracking-wide text-white">Board</p>
+                  <h2 className="text-lg font-semibold text-white/45">
                     {currentMonth.toLocaleString(undefined, { month: 'long', year: 'numeric' })}
                   </h2>
                 </div>
@@ -1340,7 +1279,7 @@ async function handleDeleteCard(id: string) {
                         <div
                           ref={provided.innerRef}
                           {...provided.droppableProps}
-                          className={`min-h-[90px] bg-black/80 p-1.5 flex flex-col gap-1 border border-transparent cursor-pointer transition-colors ${
+                          className={`min-h-[118px] bg-black/70 p-2 flex flex-col gap-1.5 border border-transparent cursor-pointer transition-all ${
   inCurrentMonth ? '' : 'opacity-40'
 } ${
   armedItemId
@@ -1361,35 +1300,49 @@ async function handleDeleteCard(id: string) {
                           </div>
 
                           <div className="flex flex-col gap-1 mt-1">
-                            {dayItems.slice(0, 3).map((item, index) => (
-                              <Draggable key={item.id} draggableId={item.id} index={index}>
-                                {draggableProvided => (
-                                  <div
-                                    ref={draggableProvided.innerRef}
-                                    {...draggableProvided.draggableProps}
-                                    {...draggableProvided.dragHandleProps}
-                                    className="cursor-grab"
-                                    onClick={e => {
-                                      e.stopPropagation()
-                                      setExpandedItem(toSharedCard(item))
-                                    }}
-                                  >
-                                    
-                                    <ContentCard
-                                      variant="mini"
-                                      title={item.title || 'Untitled'}
-                                      subtitle={platformLabel(item.platform)}
-                                      statusDotClass={statusDotColor(item.status)}
-                                    />
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))}
-                            {dayItems.length > 3 && (
-                              <span className="text-[0.6rem] text-white/40">
-                                +{dayItems.length - 3} more
-                              </span>
-                            )}
+                            {dayItems.slice(0, 2).map((item, index) => (
+  <Draggable key={item.id} draggableId={item.id} index={index}>
+    {draggableProvided => (
+      <div
+        ref={draggableProvided.innerRef}
+        {...draggableProvided.draggableProps}
+        {...draggableProvided.dragHandleProps}
+        className="relative cursor-grab group"
+        onClick={e => {
+          e.stopPropagation()
+          setExpandedItem(toSharedCard(item))
+        }}
+      >
+        <div className="relative rounded-xl border border-white/10 bg-black/70 px-2 py-2 min-h-[48px] flex items-end">
+          <div
+            className={`w-full inline-flex items-center justify-center px-2.5 py-1 rounded-lg border text-[10px] font-medium leading-none whitespace-nowrap overflow-hidden ${featureBadgeClass(item.feature)}`}
+          >
+            <span className="truncate">{featureLabel(item.feature)}</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={e => {
+              e.stopPropagation()
+              void handleDeleteCard(item.id)
+            }}
+            className="absolute top-1.5 right-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full border border-white/15 bg-black/85 text-white/60 opacity-0 group-hover:opacity-100 hover:border-red-400 hover:bg-red-500/10 hover:text-red-200 transition"
+            aria-label="Delete scheduled card"
+            title="Delete"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+    )}
+  </Draggable>
+))}
+
+                            {dayItems.length > 2 && (
+  <span className="text-[0.6rem] text-white/40">
+    +{dayItems.length - 2} more
+  </span>
+)}
                           </div>
 
                           {provided.placeholder}
@@ -1408,33 +1361,7 @@ async function handleDeleteCard(id: string) {
               )}
             </section>
           </div>
-          {/* ✅ Trash drop zone (ALWAYS mounted; only visually toggled) */}
-<div
-  className={[
-    'fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none transition-all duration-150',
-    showTrash ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2',
-  ].join(' ')}
->
-  <Droppable droppableId="trash-bin">
-    {(provided, snapshot) => (
-      <div ref={provided.innerRef} {...provided.droppableProps}>
-        <div
-          className={[
-            'pointer-events-auto inline-flex items-center gap-2 px-5 py-3 rounded-full border text-xs transition',
-            snapshot.isDraggingOver
-              ? 'border-ww-violet/80 bg-ww-violet/20 text-white shadow-[0_0_22px_rgba(186,85,211,0.65)]'
-              : 'border-white/20 bg-black/80 text-white/80 shadow-[0_0_18px_rgba(186,85,211,0.35)]',
-          ].join(' ')}
-        >
-          <Trash className="w-4 h-4" />
-          Drop here to delete
-        </div>
-
-        {provided.placeholder}
-      </div>
-    )}
-  </Droppable>
-</div>
+          
 
 
         </DragDropContext>
@@ -1510,25 +1437,41 @@ async function handleDeleteCard(id: string) {
                         {item.title || 'Untitled'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
   <span className="text-[0.7rem] text-white/50">{platformLabel(item.platform)}</span>
-  <span className="text-[0.6rem] px-2 py-0.5 rounded-full border border-ww-violet/30 bg-ww-violet/10 text-ww-violet">
-    Scheduled
+
+  <span
+    className={`text-[0.6rem] px-2 py-0.5 rounded-full border ${featureBadgeClass(item.feature)}`}
+  >
+    {featureLabel(item.feature)}
+  </span>
+
+  <span className="text-[0.6rem] px-2 py-0.5 rounded-full border border-white/15 bg-white/5 text-white/60">
+    {statusLabel(item.status)}
   </span>
 </div>
 
                   </div>
                   {item.caption && <p className="text-xs text-white/75 line-clamp-3">{item.caption}</p>}
                   <div className="flex items-center justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setExpandedItem(toSharedCard(item))}
-                      className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/20 text-[0.7rem] text-white/80 hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.7)] transition"
-                    >
-                      <Maximize2 className="w-3 h-3" />
-                      Expand
-                    </button>
-                  </div>
+  <button
+    type="button"
+    onClick={() => setExpandedItem(toSharedCard(item))}
+    className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/20 text-[0.7rem] text-white/80 hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.7)] transition"
+  >
+    <Maximize2 className="w-3 h-3" />
+    Expand
+  </button>
+
+  <button
+    type="button"
+    onClick={() => void handleDeleteCard(item.id)}
+    className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-red-500/30 text-[0.7rem] text-red-300 hover:border-red-400 hover:bg-red-500/10 hover:text-red-200 transition"
+  >
+    <X className="w-3 h-3" />
+    Delete
+  </button>
+</div>
                 </div>
               ))}
 

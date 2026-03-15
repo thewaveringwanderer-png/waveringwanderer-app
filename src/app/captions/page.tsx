@@ -310,7 +310,6 @@ const isCaptionLocked = freeCaptionLimitReached
   const [imageHint, setImageHint] = useState('')
   const [includeHashtags, setIncludeHashtags] = useState(true)
   const [variantCount, setVariantCount] = useState(4)
-const [captionsFreeLimitReached, setCaptionsFreeLimitReached] = useState(false)
 
   const [genResult, setGenResult] = useState<GenerateResult | null>(null)
   const [loadingGenerate, setLoadingGenerate] = useState(false)
@@ -747,6 +746,7 @@ async function handleSendVariantToMomentum(idx: number) {
       <Toaster position="top-center" richColors />
 
       {/* Hero + Tabs */}
+      <div className="mx-auto w-full max-w-3xl"></div>
       <section className="mx-auto max-w-5xl px-4 py-8 space-y-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Captions & Hashtags</h1>
@@ -770,375 +770,534 @@ async function handleSendVariantToMomentum(idx: number) {
           </div>
         )}
 
-        {/* Tabs */}
-        <div className="inline-flex p-1 rounded-full bg-white/5 border border-white/10">
-          <button
-            type="button"
-            onClick={() => setActiveTab('generate')}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition ${
-              activeTab === 'generate'
-                ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)]'
-                : 'text-white/70 hover:bg-white/10'
-            }`}
-          >
-            <Sparkles className="w-4 h-4" />
-            Generate
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('polish')}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition ${
-              activeTab === 'polish'
-                ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)]'
-                : 'text-white/70 hover:bg-white/10'
-            }`}
-          >
-            <Wand2 className="w-4 h-4" />
-            Polish
-          </button>
-        </div>
+        
       </section>
+
+{/* Tabs */}
+<section className="mx-auto max-w-[52rem] px-4 pb-4">
+  <div className="inline-flex p-1 rounded-full bg-white/5 border border-white/10">
+    <button
+      type="button"
+      onClick={() => setActiveTab('generate')}
+      className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition ${
+        activeTab === 'generate'
+          ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)]'
+          : 'text-white/70 hover:bg-white/10'
+      }`}
+    >
+      <Sparkles className="w-4 h-4" />
+      Generate
+    </button>
+
+    <button
+      type="button"
+      onClick={() => setActiveTab('polish')}
+      className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition ${
+        activeTab === 'polish'
+          ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)]'
+          : 'text-white/70 hover:bg-white/10'
+      }`}
+    >
+      <Wand2 className="w-4 h-4" />
+      Polish
+    </button>
+  </div>
+</section>
 
       {/* ----------- Generate TAB ----------- */}
       {mounted && activeTab === 'generate' && (
+        <section className="mx-auto max-w-[52rem] px-4 pb-10 space-y-6">
+          
+ 
 
-        <section className="mx-auto max-w-5xl px-4 pb-10 space-y-8">
+
           {/* Generator Card */}
           <section className="rounded-3xl border border-white/10 bg-black/70 p-5 md:p-7 space-y-5">
-            {/* Source kind + tone */}
-            <div className="flex items-center justify-between gap-4">
-              <div className="inline-flex p-1 rounded-full bg-white/5 border border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setSourceKind('text')}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition ${
-                    sourceKind === 'text'
-                      ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)]'
-                      : 'text-white/70 hover:bg-white/10'
-                  }`}
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Text
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSourceKind('image')}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition ${
-                    sourceKind === 'image'
-                      ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)]'
-                      : 'text-white/70 hover:bg-white/10'
-                  }`}
-                >
-                  <ImageIcon className="w-4 h-4" />
-                  Image
-                </button>
-              </div>
 
-              <input
-                value={tone}
-                onChange={e => setTone(e.target.value)}
-                className="hidden md:block w-72 px-3 py-2 rounded-full bg-black border border-white/15 text-xs text-white/80 placeholder-white/40 focus:border-ww-violet focus:outline-none"
-                placeholder="Tone e.g. introspective, hype, conversational"
-              />
-            </div>
+          <div className="rounded-2xl border border-ww-violet/20 bg-ww-violet/5 p-4">
+  <p className="text-sm text-white font-medium">
+    Describe the post you want captions for
+  </p>
+  <p className="text-xs text-white/60 mt-1">
+    Generate multiple caption styles plus optional hashtag sets tailored to your platform.
+  </p>
+</div>
 
-            {/* Artist & tone (mobile) */}
-            <div className="grid gap-3 md:grid-cols-[2fr,1fr]">
-              <div>
-                <input
-                  value={artistName}
-                  onChange={e => setArtistName(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
-                  placeholder="Artist name"
-                />
-                {profile?.artistName && !artistName && (
-                  <button
-                    type="button"
-                    onClick={() => setArtistName(profile.artistName!)}
-                    className="mt-1 text-[0.7rem] text-ww-violet hover:underline"
-                  >
-                    Use “{profile?.artistName}” from profile
-                  </button>
-                )}
-              </div>
-              <div>
-                <input
-                  value={tone}
-                  onChange={e => setTone(e.target.value)}
-                  className="md:hidden w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
-                  placeholder="Tone (e.g. cinematic, raw, playful)"
-                />
-                {profile.tone && tone === 'brand-consistent, concise, human, engaging' && (
-                  <button
-                    type="button"
-                    onClick={() => setTone(profile.tone!)}
-                    className="mt-1 text-[0.7rem] text-ww-violet hover:underline"
-                  >
-                    Use “{profile.tone}”
-                  </button>
-                )}
-              </div>
-            </div>
+{/* SECTION 1: What is this for? */}
+<div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
+  <div>
+    <p className="text-xs uppercase tracking-wide text-white/40">1. What are you posting?</p>
+    <p className="text-sm text-white/70 mt-1">
+      Choose the source type, platform, and what the post is actually about.
+    </p>
+  </div>
 
-            {/* Platform */}
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wide text-white/40">Platform</p>
-              <div className="flex flex-wrap gap-2">
-                {(['instagram', 'tiktok', 'youtube', 'facebook', 'x'] as const).map(p => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setPlatform(p)}
-                    className={`inline-flex items-center gap-2 px-3.5 h-9 rounded-full text-xs font-medium transition ${
-                      platform === p
-                        ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)]'
-                        : 'bg-white/5 text-white/70 hover:bg-white/10'
-                    }`}
-                  >
-                    {platformIcon[p]}
-                    {platformLabel[p]}
-                  </button>
-                ))}
-              </div>
-            </div>
+  <div className="space-y-2">
+    <p className="text-xs uppercase tracking-wide text-white/40">Input type</p>
+    <div className="inline-flex p-1 rounded-full bg-black/50 border border-white/10">
+      <button
+        type="button"
+        onClick={() => setSourceKind('text')}
+        className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition ${
+          sourceKind === 'text'
+            ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)]'
+            : 'text-white/70 hover:bg-white/10'
+        }`}
+      >
+        <Sparkles className="w-4 h-4" />
+        Text
+      </button>
 
-            {/* Topic / keywords / image hint */}
-            <div className="grid gap-3 md:grid-cols-2">
-              {sourceKind === 'text' ? (
-                <>
-                  <input
-                    value={topic}
-                    onChange={e => setTopic(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
-                    placeholder="Topic (what’s this post about?)"
-                  />
-                  <input
-                    value={keywords}
-                    onChange={e => setKeywords(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
-                    placeholder="Keywords (comma-separated)"
-                  />
-                </>
-              ) : (
-                <textarea
-                  value={imageHint}
-                  onChange={e => setImageHint(e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/40 focus:border-ww-violet focus:outline-none md:col-span-2"
-                  placeholder="Describe the image or visual (setting, mood, subject, colours…) "
-                />
-              )}
-            </div>
+      <button
+        type="button"
+        onClick={() => setSourceKind('image')}
+        className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition ${
+          sourceKind === 'image'
+            ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)]'
+            : 'text-white/70 hover:bg-white/10'
+        }`}
+      >
+        <ImageIcon className="w-4 h-4" />
+        Image
+      </button>
+    </div>
+  </div>
 
-            {/* Hashtags / count */}
-            <div className="flex flex-wrap gap-3 items-center justify-between text-xs text-white/70">
-              <label className="inline-flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="accent-ww-violet"
-                  checked={includeHashtags}
-                  onChange={e => setIncludeHashtags(e.target.checked)}
-                />
-                Include smart hashtag sets
-              </label>
-              <div className="flex items-center gap-2">
-                <span>Variants:</span>
-                <select
-                  value={variantCount}
-                  onChange={e => setVariantCount(parseInt(e.target.value, 10))}
-                  className="bg-black border border-white/15 rounded-full px-2 py-1 text-xs focus:border-ww-violet focus:outline-none"
-                >
-                  {[2, 3, 4, 5].map(n => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+  <div className="space-y-2">
+    <p className="text-xs uppercase tracking-wide text-white/40">Platform</p>
+    <div className="flex flex-wrap gap-2">
+      {(['instagram', 'tiktok', 'youtube', 'facebook', 'x'] as const).map(p => (
+        <button
+          key={p}
+          type="button"
+          onClick={() => setPlatform(p)}
+          className={`inline-flex items-center gap-2 px-3.5 h-9 rounded-full text-xs font-medium transition ${
+            platform === p
+              ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)]'
+              : 'bg-black/50 border border-white/10 text-white/70 hover:bg-white/10'
+          }`}
+        >
+          {platformIcon[p]}
+          {platformLabel[p]}
+        </button>
+      ))}
+    </div>
+  </div>
 
-            {/* Generate row */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handleGenerate}
-                disabled={loadingGenerate || freeCaptionLimitReached}
+  <div className="grid gap-3 md:grid-cols-2">
+    <div>
+      <p className="text-xs uppercase tracking-wide text-white/40 mb-2">Artist name</p>
+      <input
+        value={artistName}
+        onChange={e => setArtistName(e.target.value)}
+        className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
+        placeholder="Artist name"
+      />
+      {profile?.artistName && !artistName && (
+        <button
+          type="button"
+          onClick={() => setArtistName(profile.artistName!)}
+          className="mt-1 text-[0.7rem] text-ww-violet hover:underline"
+        >
+          Use “{profile?.artistName}” from profile
+        </button>
+      )}
+    </div>
 
-                className="inline-flex items-center gap-2 px-5 h-10 rounded-full bg-ww-violet text-sm font-semibold shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)] active:scale-95 transition disabled:opacity-60"
-              >
-                {loadingGenerate ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Generating…
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    Generate
-                  </>
-                )}
-              </button>
-              {isCaptionLocked ? (
-  <LimitReachedPill
-    message="You've used your 1 free caption generation."
-    onUpgrade={() => router.push('/pricing')}
-  />
-) : null}
+    <div>
+      <p className="text-xs uppercase tracking-wide text-white/40 mb-2">
+        {sourceKind === 'text' ? 'Keywords' : 'Visual details'}
+      </p>
 
-            
-            </div>
+      {sourceKind === 'text' ? (
+        <input
+          value={keywords}
+          onChange={e => setKeywords(e.target.value)}
+          className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
+          placeholder="Keywords (comma-separated)"
+        />
+      ) : (
+        <input
+          value={imageHint}
+          onChange={e => setImageHint(e.target.value)}
+          className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
+          placeholder="Mood, colours, setting, subject..."
+        />
+      )}
+    </div>
+  </div>
 
-            {/* Platform tip */}
-            <p className="text-xs text-white/50 pt-1">{currentPlatformTip()}</p>
-          </section>
+  <div className="space-y-2">
+    <p className="text-xs uppercase tracking-wide text-white/40">
+      {sourceKind === 'text' ? 'Topic' : 'Image description'}
+    </p>
 
-          {/* Generate Results */}
-          {Array.isArray(genResult?.variants) && genResult!.variants.length > 0 && (
-            <section className="space-y-4">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-  <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-    <Sparkles className="w-4 h-4 text-ww-violet" />
-    Generated variants
-  </h2>
+    {sourceKind === 'text' ? (
+      <textarea
+        value={topic}
+        onChange={e => setTopic(e.target.value)}
+        rows={3}
+        className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
+        placeholder="What is this post about? e.g. teaser for a new song, performance clip, personal reflection..."
+      />
+    ) : (
+      <textarea
+        value={imageHint}
+        onChange={e => setImageHint(e.target.value)}
+        rows={3}
+        className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
+        placeholder="Describe the image or visual in a bit more detail..."
+      />
+    )}
+  </div>
 
-  <div className="flex flex-wrap gap-2 items-center">
-   <button
-  type="button"
-  onClick={handleSendAllToMomentum}
-  disabled={!genResult || loadingGenerate || sendingAll}
+  <div className="space-y-2">
+    <p className="text-xs uppercase tracking-wide text-white/40">Quick directions</p>
+    <div className="flex flex-wrap gap-2">
+      <button
+        type="button"
+        onClick={() => {
+          setTopic('new song teaser')
+          setTone('mysterious, cinematic')
+        }}
+        className="px-3 h-8 rounded-full border border-white/10 text-xs text-white/70 hover:border-ww-violet hover:text-white transition"
+      >
+        New song teaser
+      </button>
 
+      <button
+        type="button"
+        onClick={() => {
+          setTopic('studio session moment')
+          setTone('raw, behind the scenes')
+        }}
+        className="px-3 h-8 rounded-full border border-white/10 text-xs text-white/70 hover:border-ww-violet hover:text-white transition"
+      >
+        Studio moment
+      </button>
 
-  className="inline-flex items-center gap-2 px-4 h-10 rounded-full border border-white/15 text-sm text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-40"
->
-  <Send className="w-4 h-4" />
-  Send All
-</button>
-<button
-                type="button"
-                onClick={handleCopyAll}
-                disabled={!genResult}
-                className="inline-flex items-center gap-2 px-4 h-10 rounded-full border border-white/15 text-sm text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-40"
-              >
-                <Clipboard className="w-4 h-4" />
-                Copy All
-              </button>
-              <button
-                type="button"
-                onClick={handleDownloadAllPdf}
-                disabled={!genResult || downloadingAllPdf}
-                className="inline-flex items-center gap-2 px-4 h-10 rounded-full border border-white/15 text-sm text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-40"
-              >
-                {downloadingAllPdf ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    PDF…
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4" />
-                    PDF All
-                  </>
-                )}
-              </button>
-              
+      <button
+        type="button"
+        onClick={() => {
+          setTopic('live performance clip')
+          setTone('confident, energetic')
+        }}
+        className="px-3 h-8 rounded-full border border-white/10 text-xs text-white/70 hover:border-ww-violet hover:text-white transition"
+      >
+        Performance clip
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          setTopic('personal reflection')
+          setTone('introspective, honest')
+        }}
+        className="px-3 h-8 rounded-full border border-white/10 text-xs text-white/70 hover:border-ww-violet hover:text-white transition"
+      >
+        Personal reflection
+      </button>
+    </div>
   </div>
 </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                {genResult!.variants.map((v, idx) => (
-                  <div key={idx} className="rounded-2xl border border-white/10 bg-black/70 p-4 flex flex-col gap-3">
-                    <p className="text-sm leading-relaxed text-white/90">{v.text || '— (no text returned by model)'}</p>
+{/* SECTION 2: Tone */}
+<div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
+  <div>
+    <p className="text-xs uppercase tracking-wide text-white/40">2. How should it sound?</p>
+    <p className="text-sm text-white/70 mt-1">
+      Set the tone so the captions feel more like you and less generic.
+    </p>
+  </div>
 
-                    {v.hashtags && (
-                      <div className="space-y-1 text-xs text-white/70">
-                        {Array.isArray(v.hashtags.core) && v.hashtags.core.length > 0 && (
-                          <p>
-                            <span className="text-white/60">Core: </span>
-                            {v.hashtags.core.map(tag => `#${tag}`).join(' ')}
-                          </p>
-                        )}
-                        {Array.isArray(v.hashtags.niche) && v.hashtags.niche.length > 0 && (
-                          <p>
-                            <span className="text-white/60">Niche: </span>
-                            {v.hashtags.niche.map(tag => `#${tag}`).join(' ')}
-                          </p>
-                        )}
-                      </div>
-                    )}
+  <div className="space-y-2">
+    <p className="text-xs uppercase tracking-wide text-white/40">Tone</p>
+    <input
+      value={tone}
+      onChange={e => setTone(e.target.value)}
+      className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/40 focus:border-ww-violet focus:outline-none"
+      placeholder="e.g. introspective, hype, cinematic, raw, playful"
+    />
+    {profile.tone && tone === 'brand-consistent, concise, human, engaging' && (
+      <button
+        type="button"
+        onClick={() => setTone(profile.tone!)}
+        className="text-[0.7rem] text-ww-violet hover:underline"
+      >
+        Use “{profile.tone}”
+      </button>
+    )}
+  </div>
 
-                    <div className="flex gap-2 pt-1 flex-wrap">
-                      <button
-                        type="button"
-                        onClick={() => handleCopySingle(v.text, idx)}
-                        className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/15 text-xs text-white/80 hover:border-ww-violet hover:text-white transition"
-                      >
-                        {copyIndex === idx ? (
-                          <>
-                            <Check className="w-3 h-3" />
-                            Copied
-                          </>
-                        ) : (
-                          <>
-                            <Clipboard className="w-3 h-3" />
-                            Copy
-                          </>
-                        )}
-                      </button>
-                      
+  <div className="flex flex-wrap gap-2">
+    {[
+      'introspective',
+      'cinematic',
+      'raw',
+      'playful',
+      'confident',
+      'mysterious',
+      'emotional',
+      'conversational',
+    ].map(preset => (
+      <button
+        key={preset}
+        type="button"
+        onClick={() => setTone(preset)}
+        className="px-3 h-8 rounded-full border border-white/10 text-xs text-white/70 hover:border-ww-violet hover:text-white transition"
+      >
+        {preset}
+      </button>
+    ))}
+  </div>
+</div>
 
+{/* SECTION 3: Output */}
+<div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
+  <div>
+    <p className="text-xs uppercase tracking-wide text-white/40">3. Output settings</p>
+    <p className="text-sm text-white/70 mt-1">
+      Choose how many versions you want and whether hashtags should be included.
+    </p>
+  </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleSaveVariant(idx)}
-                        className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/15 text-xs text-white/80 hover:border-ww-violet hover:text-white transition"
-                      >
-                        <Save className="w-3 h-3" />
-                        Save
-                      </button>
+  <div className="flex flex-wrap gap-3 items-center justify-between text-xs text-white/70">
+    <label className="inline-flex items-center gap-2 cursor-pointer">
+      <input
+        type="checkbox"
+        className="accent-ww-violet"
+        checked={includeHashtags}
+        onChange={e => setIncludeHashtags(e.target.checked)}
+      />
+      Include smart hashtag sets
+    </label>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDownloadVariantPdf(idx)}
-                        disabled={downloadingPdfIdx === idx}
-                        className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/15 text-xs text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-60"
-                      >
-                        {downloadingPdfIdx === idx ? (
-                          <>
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                            PDF…
-                          </>
-                        ) : (
-                          <>
-                            <Download className="w-3 h-3" />
-                            PDF
-                          </>
-                        )}
-                      </button>
-                      <button
-  type="button"
-  onClick={() => handleSendVariantToMomentum(idx)}
-  disabled={sendingOneIndex === idx}
-  className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full bg-ww-violet/20 border border-ww-violet/70 text-xs text-ww-violet hover:bg-ww-violet/30 transition disabled:opacity-60"
->
-  {sendingOneIndex === idx ? (
-    <>
-      <Loader2 className="w-3 h-3 animate-spin" />
-      Sending…
-    </>
-  ) : (
-    <>
-      <Send className="w-3 h-3" />
-      Send
-    </>
-  )}
-</button>
+    <div className="flex items-center gap-2">
+      <span>Variants:</span>
+      <select
+        value={variantCount}
+        onChange={e => setVariantCount(parseInt(e.target.value, 10))}
+        className="bg-black border border-white/15 rounded-full px-3 py-1.5 text-xs focus:border-ww-violet focus:outline-none"
+      >
+        {[2, 3, 4, 5].map(n => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
 
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+  <div className="flex flex-wrap items-center gap-3 pt-2">
+    <button
+      type="button"
+      onClick={handleGenerate}
+      disabled={loadingGenerate || freeCaptionLimitReached}
+      className="inline-flex items-center gap-2 px-5 h-10 rounded-full bg-ww-violet text-sm font-semibold shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)] active:scale-95 transition disabled:opacity-60"
+    >
+      {loadingGenerate ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Generating…
+        </>
+      ) : (
+        <>
+          <Sparkles className="w-4 h-4" />
+          Generate
+        </>
+      )}
+    </button>
+
+    {isCaptionLocked ? (
+      <LimitReachedPill
+        message="You've used your 1 free caption generation."
+        onUpgrade={() => router.push('/pricing')}
+      />
+    ) : null}
+  </div>
+
+  <p className="text-xs text-white/50">{currentPlatformTip()}</p>
+</div>
+
+          </section>
+
+          {/* Generate Results */}
+{Array.isArray(genResult?.variants) && genResult!.variants.length > 0 && (
+  <section className="space-y-4">
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+        <Sparkles className="w-4 h-4 text-ww-violet" />
+        Generated variants
+      </h2>
+
+      <div className="flex flex-wrap gap-2 items-center">
+        <button
+          type="button"
+          onClick={handleSendAllToMomentum}
+          disabled={!genResult || loadingGenerate || sendingAll}
+          className="inline-flex items-center gap-2 px-4 h-10 rounded-full border border-white/15 text-sm text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-40"
+        >
+          <Send className="w-4 h-4" />
+          Send All
+        </button>
+
+        <button
+          type="button"
+          onClick={handleCopyAll}
+          disabled={!genResult}
+          className="inline-flex items-center gap-2 px-4 h-10 rounded-full border border-white/15 text-sm text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-40"
+        >
+          <Clipboard className="w-4 h-4" />
+          Copy All
+        </button>
+
+        <button
+          type="button"
+          onClick={handleDownloadAllPdf}
+          disabled={!genResult || downloadingAllPdf}
+          className="inline-flex items-center gap-2 px-4 h-10 rounded-full border border-white/15 text-sm text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-40"
+        >
+          {downloadingAllPdf ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              PDF…
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4" />
+              PDF All
+            </>
           )}
+        </button>
+      </div>
+    </div>
+
+    <div className="grid gap-4 md:grid-cols-2">
+      {genResult!.variants.map((v, idx) => (
+        <div
+          key={idx}
+          className="rounded-3xl border border-white/10 bg-black/70 p-5 space-y-4"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-white/40">
+                Variant {idx + 1}
+              </p>
+              <p className="text-sm text-white/70">
+                {platformLabel[platform]} • {tone || 'Default tone'}
+              </p>
+            </div>
+
+            <span className="px-2 py-1 rounded-full border border-white/10 bg-white/5 text-[10px] uppercase tracking-wide text-white/55">
+              Ready to use
+            </span>
+          </div>
+
+          {/* Caption */}
+          <div className="rounded-2xl border border-white/10 bg-black/50 p-4">
+            <p className="text-sm leading-relaxed text-white/90 whitespace-pre-wrap">
+              {v.text || '— (no text returned by model)'}
+            </p>
+          </div>
+
+          {/* Hashtags */}
+          {v.hashtags && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 space-y-2">
+              <p className="text-[10px] uppercase tracking-wide text-white/40">
+                Hashtags
+              </p>
+
+              {Array.isArray(v.hashtags.core) && v.hashtags.core.length > 0 && (
+                <p className="text-xs text-white/70 leading-relaxed">
+                  <span className="text-white/50">Core: </span>
+                  {v.hashtags.core.map(tag => `#${tag}`).join(' ')}
+                </p>
+              )}
+
+              {Array.isArray(v.hashtags.niche) && v.hashtags.niche.length > 0 && (
+                <p className="text-xs text-white/70 leading-relaxed">
+                  <span className="text-white/50">Niche: </span>
+                  {v.hashtags.niche.map(tag => `#${tag}`).join(' ')}
+                </p>
+              )}
+            </div>
+          )}
+
+          <div className="h-px bg-white/10" />
+
+          {/* Actions */}
+          <div className="flex gap-2 pt-1 flex-wrap">
+            <button
+              type="button"
+              onClick={() => handleCopySingle(v.text, idx)}
+              className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/15 text-xs text-white/80 hover:border-ww-violet hover:text-white transition"
+            >
+              {copyIndex === idx ? (
+                <>
+                  <Check className="w-3 h-3" />
+                  Copied
+                </>
+              ) : (
+                <>
+                  <Clipboard className="w-3 h-3" />
+                  Copy
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSaveVariant(idx)}
+              className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/15 text-xs text-white/80 hover:border-ww-violet hover:text-white transition"
+            >
+              <Save className="w-3 h-3" />
+              Save
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleDownloadVariantPdf(idx)}
+              disabled={downloadingPdfIdx === idx}
+              className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/15 text-xs text-white/80 hover:border-ww-violet hover:text-white transition disabled:opacity-60"
+            >
+              {downloadingPdfIdx === idx ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  PDF…
+                </>
+              ) : (
+                <>
+                  <Download className="w-3 h-3" />
+                  PDF
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSendVariantToMomentum(idx)}
+              disabled={sendingOneIndex === idx}
+              className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full bg-ww-violet/20 border border-ww-violet/70 text-xs text-ww-violet hover:bg-ww-violet/30 transition disabled:opacity-60"
+            >
+              {sendingOneIndex === idx ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Sending…
+                </>
+              ) : (
+                <>
+                  <Send className="w-3 h-3" />
+                  Send
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+   )}
         </section>
       )}
 

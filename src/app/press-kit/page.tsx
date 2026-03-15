@@ -454,7 +454,7 @@ export default function PressKitPage() {
       <section className="mx-auto max-w-6xl px-4 py-8 space-y-6">
         <div className="space-y-2">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Electronic Press Kit
+            Press Kit Studio
           </h1>
           <p className="text-white/70 max-w-2xl">
             Fill it manually or use AI helpers — export a clean, consistent PDF.

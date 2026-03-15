@@ -3,10 +3,10 @@ export const PILOT_EMAILS = [
   'nddawson15@gmail.com',
   'mickid3@gmail.com',
   't.walls3806@gmail.com',
-  'Nahsspncr@gmail.com ',
+  'Nahsspncr@gmail.com', // ✅ removed trailing space + lowercased
   'officialjt555@gmail.com',
-  'Anna@strangeaddiction.co.uk',
-   'Kofficialldn@gmail.com',
-   'vanda500@hotmail.com',
-   'tallulah.music@hotmail.com',
-]
+  'anna@strangeaddiction.co.uk',
+  'kofficialldn@gmail.com',
+  'vanda500@hotmail.com',
+  'tallulah.music@hotmail.com',
+].map(e => e.trim().toLowerCase())

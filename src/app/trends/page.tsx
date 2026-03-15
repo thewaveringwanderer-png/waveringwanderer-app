@@ -1015,8 +1015,11 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
               structure, not the soul.
             </p>
           </div>
-        </header>
+        </header>     
+</div>
 
+
+<div className="max-w-3xl mx-auto space-y-4">
         {/* Tabs */}
         <div className="inline-flex items-center rounded-full border border-white/10 bg-black/60 p-1">
           <button
@@ -1141,75 +1144,99 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
                 <span>Trend Finder</span>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-white/50 mb-2">Energy of content</p>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { id: 'low' as const, label: 'Low-key', desc: 'Soft, intimate, reflective' },
-                      { id: 'medium' as const, label: 'Balanced', desc: 'Mix of calm & hype' },
-                      { id: 'high' as const, label: 'High-energy', desc: 'Hype, performance, big moments' },
-                    ].map(opt => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setEnergy(opt.id)}
-                        className={`flex-1 min-w-[120px] text-left px-3 py-2 rounded-xl border text-xs transition-all ${
-                          energy === opt.id
-                            ? 'border-ww-violet bg-ww-violet/15 text-white shadow-[0_0_12px_rgba(186,85,211,0.4)]'
-                            : 'border-white/10 text-white/70 hover:border-ww-violet/70 hover:text-white'
-                        }`}
-                      >
-                        <div className="font-semibold">{opt.label}</div>
-                        <div className="text-[0.7rem] text-white/60">{opt.desc}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              <div className="rounded-2xl border border-ww-violet/20 bg-ww-violet/5 p-4">
+  <p className="text-sm font-medium text-white">
+    Discover content angles that fit your lane
+  </p>
+  <p className="text-xs text-white/60 mt-1">
+    Pick your vibe, add context if needed, then generate trend-led ideas that still feel like you.
+  </p>
+</div>
 
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-white/50 mb-2">Release context (optional)</p>
-                  <textarea
-                    rows={4}
-                    placeholder="Upcoming single, recent drop, tour announcement, milestone, etc. The more specific the better."
-                    className="w-full p-3 rounded-xl bg-black border border-white/10 text-white placeholder-white/35 focus:border-ww-violet focus:outline-none transition"
-                    value={releaseContext}
-                    onChange={e => setReleaseContext(e.target.value)}
-                  />
-                </div>
-              </div>
 
-              <div className="pt-2 flex flex-wrap gap-3 items-center">
-                <button
-                  type="button"
-                  onClick={handleGenerateTrends}
-                  disabled={trendLoading || isProLocked}
 
-                  className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-ww-violet text-white font-semibold text-sm transition-all hover:shadow-[0_0_20px_rgba(186,85,211,0.7)] active:scale-95 disabled:opacity-60"
-                >
-                  {trendLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Finding trends…
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      Find trends for {platformLabel}
-                    </>
-                  )}
-                </button>
-                {isProLocked ? (
-  <LimitReachedPill
-    message="Trends is available on Pro."
-    onUpgrade={() => router.push('/pricing')}
-  />
-) : null}
+              <div className="space-y-4">
+  <div className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3">
+    <p className="text-xs uppercase tracking-wide text-white/50">Quick picks</p>
 
-                <p className="text-xs text-white/50">
-                  The model will return 3–4 concrete, shootable ideas tailored to your lane.
-                </p>
-              </div>
+    <div>
+      <p className="text-xs uppercase tracking-wide text-white/50 mb-2">Energy of content</p>
+      <div className="flex flex-wrap gap-2">
+        {[
+          { id: 'low' as const, label: 'Low-key', desc: 'Soft, intimate, reflective' },
+          { id: 'medium' as const, label: 'Balanced', desc: 'Mix of calm & hype' },
+          { id: 'high' as const, label: 'High-energy', desc: 'Hype, performance, big moments' },
+        ].map(opt => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => setEnergy(opt.id)}
+            className={`flex-1 min-w-[120px] text-left px-3 py-2 rounded-xl border text-xs transition-all ${
+              energy === opt.id
+                ? 'border-ww-violet bg-ww-violet/15 text-white shadow-[0_0_12px_rgba(186,85,211,0.4)]'
+                : 'border-white/10 text-white/70 hover:border-ww-violet/70 hover:text-white'
+            }`}
+          >
+            <div className="font-semibold">{opt.label}</div>
+            <div className="text-[0.7rem] text-white/60">{opt.desc}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3">
+    <p className="text-xs uppercase tracking-wide text-white/50">Optional context</p>
+
+    <div>
+      <p className="text-xs uppercase tracking-wide text-white/50 mb-2">Release context</p>
+      <textarea
+        rows={4}
+        placeholder="Upcoming single, recent drop, tour announcement, milestone, theme, rollout angle..."
+        className="w-full p-3 rounded-xl bg-black border border-white/10 text-white placeholder-white/35 focus:border-ww-violet focus:outline-none transition"
+        value={releaseContext}
+        onChange={e => setReleaseContext(e.target.value)}
+      />
+    </div>
+  </div>
+</div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-wrap gap-3 items-center justify-between">
+  <div>
+    <p className="text-sm font-medium text-white">Ready to scan for ideas?</p>
+    <p className="text-xs text-white/50 mt-1">
+      You’ll get 3–4 concrete trend-led ideas tailored to your lane.
+    </p>
+  </div>
+
+  <div className="flex flex-wrap gap-2 items-center">
+    <button
+      type="button"
+      onClick={handleGenerateTrends}
+      disabled={trendLoading || isProLocked}
+      className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-ww-violet text-white font-semibold text-sm transition-all hover:shadow-[0_0_20px_rgba(186,85,211,0.7)] active:scale-95 disabled:opacity-60"
+    >
+      {trendLoading ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Finding trends…
+        </>
+      ) : (
+        <>
+          <Sparkles className="w-4 h-4" />
+          Find trends
+        </>
+      )}
+    </button>
+
+    {isProLocked ? (
+      <LimitReachedPill
+        message="Trends is available on Pro."
+        onUpgrade={() => router.push('/pricing')}
+      />
+    ) : null}
+  </div>
+</div>
             </section>
 
             {/* Trend Finder results */}

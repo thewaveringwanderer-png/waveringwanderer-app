@@ -1,6 +1,7 @@
 // src/app/api/identity/route.ts
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { PILOT_EMAILS } from '@/lib/pilotAllowlist'
 
 type Inputs = {
   artistName?: string
@@ -10,6 +11,7 @@ type Inputs = {
   audience?: string
   goal?: string
 }
+
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -66,43 +68,47 @@ export async function POST(req: Request) {
   }
 
   const supabaseAuth = createClient(supabaseUrl, supabaseAnon)
-  const { data: userData } = await supabaseAuth.auth.getUser(token)
-  const uid = userData?.user?.id
+const { data: userData } = await supabaseAuth.auth.getUser(token)
 
-  if (!uid) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+const uid = userData?.user?.id
+if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  if (!serviceKey) {
-    return NextResponse.json({ error: 'Missing service role key' }, { status: 500 })
-  }
+const email = (userData?.user?.email || '').trim().toLowerCase()
+const pilotByEmail = PILOT_EMAILS.includes(email)
 
-    const supabaseAdmin = createClient(supabaseUrl, serviceKey)
+if (!serviceKey) {
+  return NextResponse.json({ error: 'Missing service role key' }, { status: 500 })
+}
 
-  // --- Load profile row (if missing, treat as free with 0 usage) ---
-  const { data: profileRow, error: profileErr } = await supabaseAdmin
-    .from('ww_profiles')
-    .select('tier, usage')
-    .eq('user_id', uid)
-    .maybeSingle()
+const supabaseAdmin = createClient(supabaseUrl, serviceKey)
 
-  if (profileErr) {
-    console.error('[identity] ww_profiles read error', profileErr)
-    return NextResponse.json({ error: 'Server error' }, { status: 500 })
-  }
+const { data: profileRow, error: profileErr } = await supabaseAdmin
+  .from('ww_profiles')
+  .select('tier, usage, is_pilot')
+  .eq('user_id', uid)
+  .maybeSingle()
 
-  const tier = ((profileRow?.tier as any) || 'free') as 'free' | 'creator' | 'pro'
-  const usage: Record<string, any> = (profileRow?.usage as any) || {}
+if (profileErr) {
+  console.error('[identity] ww_profiles read error', profileErr)
+  return NextResponse.json({ error: 'Server error' }, { status: 500 })
+}
 
-  const used = Number(usage.identity_generate_uses || 0)
+const pilotByFlag = !!profileRow?.is_pilot
+const isPilot = pilotByEmail || pilotByFlag
 
-  // ✅ Block free users after 1 use
-  if (tier === 'free' && used >= 1) {
-    return NextResponse.json(
-      { error: 'FREE_LIMIT', message: 'Free plan includes 1 Identity Kit generation.' },
-      { status: 429 }
-    )
-  }
+const dbTier = ((profileRow?.tier as any) || 'free') as 'free' | 'creator' | 'pro'
+const tier = (isPilot ? 'pro' : dbTier)
+
+const usage: Record<string, any> = (profileRow?.usage as any) || {}
+const used = Number(usage.identity_generate_uses || 0)
+
+// ✅ Block free users after 1 use (but never block pilots)
+if (!isPilot && tier === 'free' && used >= 1) {
+  return NextResponse.json(
+    { error: 'FREE_LIMIT', message: 'Free plan includes 1 Identity Kit generation.' },
+    { status: 429 }
+  )
+}
 
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
@@ -198,8 +204,7 @@ const nextUsage = { ...usage, identity_generate_uses: used + 1 }
 
 const { error: upsertErr } = await supabaseAdmin
   .from('ww_profiles')
-  .upsert([{ user_id: uid, tier, usage: nextUsage }], { onConflict: 'user_id' })
-
+.upsert([{ user_id: uid, tier: dbTier, usage: nextUsage }], { onConflict: 'user_id' })
 if (upsertErr) {
   console.error('[identity] ww_profiles usage upsert error', upsertErr)
   return NextResponse.json(

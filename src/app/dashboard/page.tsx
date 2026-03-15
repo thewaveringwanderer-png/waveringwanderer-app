@@ -16,7 +16,7 @@ import { TowerControl } from 'lucide-react'
 import {
   Compass,
   Palette,
-  CalendarDays,
+  Brain,
   Type,
   TrendingUp,
   ArrowRight,
@@ -102,9 +102,9 @@ const newsletterLocked = !hasTier(tier, 'pro')
     },
     {
       href: '/calendar',
-      title: 'Content Calendar',
+      title: 'Idea Factory',
       desc: 'Plan monthly/weekly posts, auto-generate ideas from your kit or an upcoming release.',
-      icon: <CalendarDays className="w-5 h-5" />,
+      icon: <Brain className="w-5 h-5" />,
       badge: 'Beta',
     },
     {
@@ -132,7 +132,7 @@ const newsletterLocked = !hasTier(tier, 'pro')
     },
     {
       href: pressKitLocked ? '/pricing' : '/press-kit',
-      title: 'Press Kit Generator',
+      title: 'Press Kit Studio',
       desc: 'Draft a clean EPK and release one-sheet with smart-fill from your WW profile or web-style info.',
       icon: <FileText className="w-5 h-5" />,
       badge: 'Beta',
@@ -146,7 +146,7 @@ const newsletterLocked = !hasTier(tier, 'pro')
     },
     {
       href: '/newsletter',
-      title: 'Newsletter Generator',
+      title: 'Newsletter Studio',
       desc: 'Map out a fan newsletter, subject lines, and email story arcs in your voice.',
       icon: <Mail className="w-5 h-5" />,
       badge: 'Beta',

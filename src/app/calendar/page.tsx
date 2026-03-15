@@ -1,52 +1,36 @@
-// src/app/calendar/page.tsx
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import LimitReachedPill from '@/components/ww/LimitReachedPill'
-
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
-import { useWwProfile } from '@/hooks/useWwProfile'
-import { effectiveTier, getUsage, bumpUsage, readLocalWwProfile } from '@/lib/wwProfile'
-
-
-import ContentCardModal, { type ContentCard as SharedContentCard } from '@/components/ww/ContentCardModal'
-import { buildStandardHeader, renderWwPdf, type PdfLine } from '@/lib/wwPdf'
-import ContentCard from '@/components/ww/ContentCard'
-
 import {
-
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   Sparkles,
   Loader2,
   Target,
-  SlidersHorizontal,
-  Download,
   Send,
   CheckCircle2,
-  Flame,
-  Moon,
-  Zap,
-  ChevronDown,
-  ChevronRight as ChevronRightIcon,
   X,
-  
+  Trash2,
 } from 'lucide-react'
-import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 
-
-
+import LimitReachedPill from '@/components/ww/LimitReachedPill'
+import ContentCardModal, { type ContentCard as SharedContentCard } from '@/components/ww/ContentCardModal'
+import ContentCard from '@/components/ww/ContentCard'
+import { useWwProfile } from '@/hooks/useWwProfile'
+import { effectiveTier, getUsage, bumpUsage } from '@/lib/wwProfile'
 
 // ---------- Supabase ----------
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 // ---------- Types ----------
 export type CalendarStatus = 'planned' | 'draft' | 'scheduled' | 'posted' | 'idea' | string
 type CalendarFocus = 'release' | 'gig' | 'general' | 'growth'
-type Energy = 'low' | 'medium' | 'high'
+type IdeaCount = 3 | 5 | 7 | 10
+type LyricsFocus = 'general' | 'hook' | 'verse' | 'chorus'
 
 type CalendarItem = {
   id: string
@@ -64,9 +48,49 @@ type CalendarItem = {
   updated_at?: string
 }
 
+type ApiCalendarItem = {
+  date?: string
+  platform?: string
+  title?: string
+  short_label?: string
+  pillar?: string
+  format?: string
+  idea?: string
+  suggested_caption?: string
+  angle?: string
+  cta?: string
+}
+
+const ALL_PLATFORMS: Array<{ key: string; label: string }> = [
+  { key: 'instagram', label: 'Instagram' },
+  { key: 'tiktok', label: 'TikTok' },
+  { key: 'youtube', label: 'YouTube Shorts' },
+  { key: 'facebook', label: 'Facebook' },
+  { key: 'x', label: 'X / Twitter' },
+]
+
+const ALL_CONTENT_TYPES: Array<{ key: string; label: string }> = [
+  { key: 'performance', label: 'Performance' },
+  { key: 'story', label: 'Story' },
+  { key: 'bts', label: 'BTS' },
+  { key: 'community', label: 'Community' },
+  { key: 'education', label: 'Education' },
+  { key: 'visual', label: 'Visual' },
+  { key: 'humour', label: 'Humour' },
+]
+
 // ---------- Helpers ----------
-function startOfDay(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate())
+function dateKey(d: Date) {
+  if (!(d instanceof Date) || Number.isNaN(d.getTime())) {
+    return new Date().toISOString().slice(0, 10)
+  }
+  return d.toISOString().slice(0, 10)
+}
+
+function addDays(date: Date, n: number) {
+  const d = new Date(date)
+  d.setDate(d.getDate() + n)
+  return d
 }
 
 function toIsoAtDayWithMinutes(day: Date, minutesFromMidday: number) {
@@ -76,72 +100,14 @@ function toIsoAtDayWithMinutes(day: Date, minutesFromMidday: number) {
   return x.toISOString()
 }
 
-function dateFromKey(key: string) {
-  // key: YYYY-MM-DD
-  return new Date(key + 'T12:00:00')
+function randomSalt(len = 8) {
+  const bytes = new Uint8Array(len)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
 }
 
-function dateKey(d: Date) {
-  // Prevent RangeError if d is Invalid Date
-  if (!(d instanceof Date) || Number.isNaN(d.getTime())) {
-    return new Date().toISOString().slice(0, 10) // fallback to today
-  }
-  return d.toISOString().slice(0, 10)
-}
-
-
-function startOfWeekMonday(date: Date) {
-  const d = startOfDay(date)
-  const day = d.getDay() // 0 Sun
-  const mondayIndex = (day + 6) % 7 // 0 Mon
-  d.setDate(d.getDate() - mondayIndex)
-  return d
-}
-
-function addDays(date: Date, n: number) {
-  const d = new Date(date)
-  d.setDate(d.getDate() + n)
-  return d
-}
-
-function formatWeekRange(startMonday: Date) {
-  const end = addDays(startMonday, 6)
-  const a = startMonday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-  const b = end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-  return `${a} – ${b}`
-}
-
-function startOfMonth(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), 1)
-}
-
-function getMonthGrid(currentMonth: Date): Date[] {
-  const first = startOfMonth(currentMonth)
-  const startDay = first.getDay() // 0 Sun
-  const mondayIndex = (startDay + 6) % 7
-  const start = new Date(first)
-  start.setDate(first.getDate() - mondayIndex)
-
-  const days: Date[] = []
-  for (let i = 0; i < 42; i++) {
-    const x = new Date(start)
-    x.setDate(start.getDate() + i)
-    days.push(x)
-  }
-  return days
-}
-
-function focusLabel(f: CalendarFocus) {
-  switch (f) {
-    case 'release':
-      return 'Upcoming release'
-    case 'gig':
-      return 'Upcoming gig'
-    case 'growth':
-      return 'Growth sprint'
-    default:
-      return 'General content'
-  }
+function safeString(x: any) {
+  return typeof x === 'string' ? x : x == null ? '' : String(x)
 }
 
 function platformLabel(p: string | null | undefined) {
@@ -179,21 +145,6 @@ function statusDotColor(status: CalendarStatus | null | undefined) {
   }
 }
 
-function csvEscape(field: string | null | undefined): string {
-  const value = (field ?? '').toString()
-  const escaped = value.replace(/"/g, '""')
-  return `"${escaped}"`
-}
-
-const ALL_PLATFORMS: Array<{ key: string; label: string }> = [
-  { key: 'instagram', label: 'Instagram' },
-  { key: 'tiktok', label: 'TikTok' },
-  { key: 'youtube', label: 'YouTube Shorts' },
-  { key: 'facebook', label: 'Facebook' },
-  { key: 'x', label: 'X / Twitter' },
-]
-
-// ✅ Explicit mapping to shared modal type
 function toSharedCard(it: CalendarItem): SharedContentCard {
   return {
     id: it.id,
@@ -206,119 +157,94 @@ function toSharedCard(it: CalendarItem): SharedContentCard {
     status: it.status,
     scheduled_at: it.scheduled_at,
     hashtags: it.hashtags,
-   
     metadata: it.metadata,
     in_momentum: it.in_momentum ?? false,
   } as SharedContentCard
 }
 
-function energyIcon(e: Energy) {
-  if (e === 'low') return <Moon className="w-3.5 h-3.5" />
-  if (e === 'high') return <Zap className="w-3.5 h-3.5" />
-  return <Flame className="w-3.5 h-3.5" />
+function buildIdeaCaptionBlock(it: ApiCalendarItem) {
+  const idea = safeString(it.idea)
+  const format = safeString(it.format)
+  const angle = safeString(it.angle)
+  const cta = safeString(it.cta)
+  const pillar = safeString(it.pillar)
+  const caption = safeString(it.suggested_caption)
+
+  const lines = [
+    pillar ? `PILLAR: ${pillar}` : null,
+    format ? `FORMAT: ${format}` : null,
+    idea ? `IDEA: ${idea}` : null,
+    angle ? `ANGLE: ${angle}` : null,
+    cta ? `CTA: ${cta}` : null,
+    '',
+    caption || 'No caption generated yet.',
+  ].filter(Boolean) as string[]
+
+  return lines.join('\n')
 }
 
-function energyLabel(e: Energy) {
-  if (e === 'low') return 'Low'
-  if (e === 'high') return 'High'
-  return 'Medium'
+function pickTitle(it: ApiCalendarItem) {
+  const title = safeString(it.title).trim()
+  if (title && title.toLowerCase() !== 'content slot') return title
+
+  const shortLabel = safeString(it.short_label).trim()
+  if (shortLabel) return shortLabel
+
+  const pillar = safeString(it.pillar).trim()
+  const format = safeString(it.format).trim()
+
+  if (pillar && format) return `${pillar} • ${format}`
+  if (pillar) return pillar
+  if (format) return format
+
+  return 'Content idea'
 }
 
-function clamp01(n: number) {
-  return Math.max(0, Math.min(100, n))
+function toggleInArray(arr: string[], value: string) {
+  return arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value]
 }
-function hashSeed(str: string) {
-  let h = 2166136261
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i)
-    h = Math.imul(h, 16777619)
-  }
-  return Math.abs(h)
-}
-
-function pick<T>(arr: T[], seed: number) {
-  if (!arr.length) throw new Error('pick() called with empty array')
-  return arr[seed % arr.length]
-}
-
-function randomSalt(len = 8) {
-  // Client-only: uses Web Crypto
-  const bytes = new Uint8Array(len)
-  crypto.getRandomValues(bytes)
-  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
-}
-
-type MixState = {
-  promo: number
-  brand: number
-  community: number
-  bts: number
-  lifestyle: number
-}
-
-function reorder<T>(list: T[], startIndex: number, endIndex: number) {
-  const result = Array.from(list)
-  const [removed] = result.splice(startIndex, 1)
-  result.splice(endIndex, 0, removed)
-  return result
-}
-
-function weeksFromScheduleLength(len: '7' | '14' | '30') {
-  if (len === '7') return 1
-  if (len === '14') return 2
-  return 4 // 30-ish
-}
-
-
-function safeString(x: any) {
-  return typeof x === 'string' ? x : x == null ? '' : String(x)
-}
-function isGenericCaption(s: string) {
-  const t = (s || '').trim().toLowerCase()
-  if (!t) return true
-
-  // Your old repeated template lines
-  if (t.includes('turn today into a shareable moment')) return true
-  if (t.includes('balanced format')) return true
-  if (t.includes('angle: highlight your music')) return true
-
-  // Other “non-caption” placeholders
-  if (t.includes('(use quick caption in the card modal')) return true
-  if (t === 'content slot') return true
-
-  // Too short to be useful
-  if (t.length < 40) return true
-
-  return false
-}
-
 
 // ---------- Component ----------
+
+function InputSection({
+  title,
+  hint,
+  children,
+}: {
+  title: string
+  hint?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+      <div>
+        <p className="text-xs uppercase tracking-wide text-white/50">{title}</p>
+        {hint ? <p className="text-[0.75rem] text-white/45 mt-1">{hint}</p> : null}
+      </div>
+      {children}
+    </div>
+  )
+}
+
 export default function CalendarPage() {
   const router = useRouter()
 
-  const [usageTick, setUsageTick] = useState(0)
-
   const {
-  profile,
-  hasProfile: hasAnyProfile,
-  setLocalOnly: applyTo,
-  updateProfile: save,
-} = useWwProfile()
+    profile,
+    hasProfile: hasAnyProfile,
+    setLocalOnly: applyTo,
+    updateProfile: save,
+  } = useWwProfile()
+
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
+
   const tier = effectiveTier(profile)
   const usage = useMemo(() => (mounted ? getUsage(profile) : {}), [mounted, profile])
-const usedCalendarGenerations = Number((usage as any).calendar_generate_uses || 0)
+  const usedCalendarGenerations = Number((usage as any).calendar_generate_uses || 0)
 
-const safeTier = mounted ? tier : 'free'
-const isCalendarLocked = mounted && safeTier === 'free' && usedCalendarGenerations >= 1
-
-const freeLimitReached = tier === 'free' && usedCalendarGenerations >= 1
-
-
-  
-
+  const freeLimitReached = mounted && tier === 'free' && usedCalendarGenerations >= 1
+  const isCalendarLocked = freeLimitReached
 
   // ---------- Shared styles ----------
   const primaryBtn =
@@ -332,10 +258,9 @@ const freeLimitReached = tier === 'free' && usedCalendarGenerations >= 1
     'active:scale-95 transition disabled:opacity-60'
 
   const miniOutlineBtn =
-  'inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/15 text-[0.75rem] text-white/80 ' +
-  'hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_14px_rgba(186,85,211,0.55)] ' +
-  'active:scale-95 transition disabled:opacity-60'
-
+    'inline-flex items-center gap-1.5 px-3 h-8 rounded-full border border-white/15 text-[0.75rem] text-white/80 ' +
+    'hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_14px_rgba(186,85,211,0.55)] ' +
+    'active:scale-95 transition disabled:opacity-60'
 
   const inputClass =
     'w-full px-3 py-2.5 rounded-xl bg-black border border-white/15 text-sm text-white placeholder-white/35 ' +
@@ -343,67 +268,33 @@ const freeLimitReached = tier === 'free' && usedCalendarGenerations >= 1
 
   const labelClass = 'text-xs text-white/55 flex items-center gap-1'
 
-  // ---------- WW profile fields ----------
+  // ---------- Generator fields ----------
   const [artistName, setArtistName] = useState('')
   const [genre, setGenre] = useState('')
   const [audience, setAudience] = useState('')
   const [goal, setGoal] = useState('')
   const [tone, setTone] = useState('brand-consistent, concise, human, engaging')
   const [lyrics, setLyrics] = useState('')
-  const [lyricsFocus, setLyricsFocus] = useState<'general' | 'hook' | 'verse' | 'chorus'>('general')
-
-  // ---------- View mode ----------
-  const [viewMode, setViewMode] = useState<'week' | 'month'>('week')
-
-  // ---------- Calendar V2 controls ----------
+  const [lyricsFocus, setLyricsFocus] = useState<LyricsFocus>('general')
   const [focusMode, setFocusMode] = useState<CalendarFocus>('general')
-  const [weekStart, setWeekStart] = useState(() => startOfWeekMonday(new Date()))
-  const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
-  // Quality-first: lock volume (prevents repetitive outputs)
-  const POSTS_PER_DAY = 1
-
-  // ✅ Week plan span (local generator)
-
-
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['tiktok', 'instagram', 'youtube'])
   const [releaseContext, setReleaseContext] = useState('')
-  const [showAdvanced, setShowAdvanced] = useState(false)
-
-  // ✅ Schedule length for API generator
-  const [scheduleLength, setScheduleLength] = useState<'7' | '14' | '30'>('30')
-
-
-
-  // Energy pattern (Mon..Sun)
-  const [energyPattern, setEnergyPattern] = useState<Energy[]>(['medium', 'low', 'medium', 'high', 'medium', 'high', 'low'])
-
-  // ✅ Cleaner energy UI (compact + collapsible)
-  const [energyPreset, setEnergyPreset] = useState<'balanced' | 'weekday-grind' | 'weekend-warrior' | 'custom'>('balanced')
-  const [showEnergyControls, setShowEnergyControls] = useState(false)
-
-  // Content mix
-  const [mix, setMix] = useState<MixState>({
-    promo: 40,
-    brand: 35,
-    community: 15,
-    bts: 25,
-    lifestyle: 10,
-  })
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['tiktok', 'instagram', 'youtube'])
+  const [contentTypes, setContentTypes] = useState<string[]>(['performance', 'story', 'bts'])
+  const [ideaCount, setIdeaCount] = useState<IdeaCount>(5)
 
   // ---------- Data state ----------
   const [loadingItems, setLoadingItems] = useState(true)
   const [items, setItems] = useState<CalendarItem[]>([])
   const [generating, setGenerating] = useState(false)
-  // ✅ Batch controls (safety net)
-  const [_lastBatchId, _setLastBatchId] = useState<string>('')
-  const [_lastBatchLabel, _setLastBatchLabel] = useState<string>('')
-  const [_clearing, _setClearing] = useState(false)
-  const [_deletingBatch, _setDeletingBatch] = useState(false)
-
-  // ---------- Modals ----------
   const [expandedItem, setExpandedItem] = useState<SharedContentCard | null>(null)
+  const [viewMode, setViewMode] = useState<'latest' | 'all'>('latest')
+  const [lastBatchId, setLastBatchId] = useState('')
+  const [lastBatchLabel, setLastBatchLabel] = useState('')
+  const [deletingBatch, setDeletingBatch] = useState(false)
+  const [clearingAll, setClearingAll] = useState(false)
+  const [sendingVisible, setSendingVisible] = useState(false)
 
-  // ---------- Hydrate profile fields (non-destructive) ----------
+  // ---------- Hydrate profile fields ----------
   useEffect(() => {
     if (profile.artistName && !artistName) setArtistName(profile.artistName)
     if (profile.genre && !genre) setGenre(profile.genre)
@@ -418,16 +309,19 @@ const freeLimitReached = tier === 'free' && usedCalendarGenerations >= 1
     toast.success('Profile applied ✅')
   }
 
-  // ---------- Load: ONLY calendar feature items ----------
+  // ---------- Load saved idea cards ----------
   useEffect(() => {
     let cancelled = false
+
     ;(async () => {
       setLoadingItems(true)
       try {
         const { data: userData, error: userError } = await supabase.auth.getUser()
         if (userError || !userData?.user) {
-          setItems([])
-          setLoadingItems(false)
+          if (!cancelled) {
+            setItems([])
+            setLoadingItems(false)
+          }
           return
         }
 
@@ -436,20 +330,35 @@ const freeLimitReached = tier === 'free' && usedCalendarGenerations >= 1
           .select('*')
           .eq('user_id', userData.user.id)
           .eq('feature', 'calendar')
-          .order('scheduled_at', { ascending: true })
+          .order('created_at', { ascending: false })
 
         if (error) {
-          console.error('[calendar-v2] load error', error)
-          toast.error(error.message || 'Could not load Content Calendar')
-          setItems([])
-          setLoadingItems(false)
+          console.error('[idea-factory] load error', error)
+          toast.error(error.message || 'Could not load ideas')
+          if (!cancelled) {
+            setItems([])
+            setLoadingItems(false)
+          }
           return
         }
 
-        if (!cancelled) setItems((data as CalendarItem[]) || [])
+        const nextItems = (data as CalendarItem[]) || []
+        const newestBatchId =
+          nextItems
+            .map(it => safeString(it.metadata?.batchId))
+            .find(Boolean) || ''
+
+        const newestBatchLabel =
+          nextItems.find(it => safeString(it.metadata?.batchId) === newestBatchId)?.metadata?.batchLabel || ''
+
+        if (!cancelled) {
+          setItems(nextItems)
+          setLastBatchId(newestBatchId)
+          setLastBatchLabel(newestBatchLabel)
+        }
       } catch (e: any) {
-        console.error('[calendar-v2] load exception', e)
-        toast.error(e?.message || 'Could not load Content Calendar')
+        console.error('[idea-factory] load exception', e)
+        toast.error(e?.message || 'Could not load ideas')
       } finally {
         if (!cancelled) setLoadingItems(false)
       }
@@ -460,90 +369,22 @@ const freeLimitReached = tier === 'free' && usedCalendarGenerations >= 1
     }
   }, [])
 
-  // ---------- Week derived ----------
-  const weekDays = useMemo(() => Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i)), [weekStart])
+  // ---------- Derived ----------
+  const visibleItems = useMemo(() => {
+    if (viewMode === 'all' || !lastBatchId) return items
+    return items.filter(it => safeString(it.metadata?.batchId) === lastBatchId)
+  }, [items, lastBatchId, viewMode])
 
-  const weekStartKey = dateKey(weekStart)
-  const weekEndKey = dateKey(addDays(weekStart, 6))
+  const visibleCount = visibleItems.length
 
-  const weekItems = useMemo(() => {
-    return items.filter(it => {
-      if (!it.scheduled_at) return false
-      const k = it.scheduled_at.slice(0, 10)
-      return k >= weekStartKey && k <= weekEndKey
-    })
-  }, [items, weekStartKey, weekEndKey])
-
-  const weekItemsByDay = useMemo(() => {
-    const map: Record<string, CalendarItem[]> = {}
-    for (const d of weekDays) map[dateKey(d)] = []
-    for (const it of weekItems) {
-      if (!it.scheduled_at) continue
-      const k = it.scheduled_at.slice(0, 10)
-      if (!map[k]) map[k] = []
-      map[k].push(it)
-    }
-    for (const k of Object.keys(map)) {
-      map[k].sort((a, b) => {
-        const ta = a.scheduled_at ? new Date(a.scheduled_at).getTime() : 0
-        const tb = b.scheduled_at ? new Date(b.scheduled_at).getTime() : 0
-        return ta - tb
-      })
-    }
-    return map
-  }, [weekDays, weekItems])
-
-  // ---------- Month derived ----------
-  const monthDays = useMemo(() => getMonthGrid(currentMonth), [currentMonth])
-
-  const monthItemsByDay = useMemo(() => {
-    const map: Record<string, CalendarItem[]> = {}
-    for (const it of items) {
-      if (!it.scheduled_at) continue
-      const k = it.scheduled_at.slice(0, 10)
-      if (!map[k]) map[k] = []
-      map[k].push(it)
-    }
-    for (const k of Object.keys(map)) {
-      map[k].sort((a, b) => {
-        const ta = a.scheduled_at ? new Date(a.scheduled_at).getTime() : 0
-        const tb = b.scheduled_at ? new Date(b.scheduled_at).getTime() : 0
-        return ta - tb
-      })
-    }
-    return map
-  }, [items])
-
-  // ---------- Week nav ----------
-  function goPrevWeek() {
-    setWeekStart(prev => addDays(prev, -7))
-  }
-  function goNextWeek() {
-    setWeekStart(prev => addDays(prev, 7))
-  }
-  function goThisWeek() {
-    setWeekStart(startOfWeekMonday(new Date()))
-  }
-
-  // ---------- Month nav ----------
-  function goPrevMonth() {
-    const d = new Date(currentMonth)
-    d.setMonth(d.getMonth() - 1)
-    setCurrentMonth(startOfMonth(d))
-  }
-  function goNextMonth() {
-    const d = new Date(currentMonth)
-    d.setMonth(d.getMonth() + 1)
-    setCurrentMonth(startOfMonth(d))
-  }
-  function goThisMonth() {
-    setCurrentMonth(startOfMonth(new Date()))
-  }
+  const visiblePlatforms = useMemo(() => {
+    return Array.from(new Set(visibleItems.map(it => safeString(it.platform)).filter(Boolean)))
+  }, [visibleItems])
 
   // ---------- DB helpers ----------
   async function insertCalendarRows(rows: Array<Partial<CalendarItem>>) {
     const { data, error } = await supabase.from('content_calendar').insert(rows).select('*')
-    if (error) throw new Error(error.message || 'Could not save calendar plan')
+    if (error) throw new Error(error.message || 'Could not save idea cards')
     return (data as CalendarItem[]) || []
   }
 
@@ -551,316 +392,51 @@ const freeLimitReached = tier === 'free' && usedCalendarGenerations >= 1
     if (!ids.length) return
     const { error } = await supabase.from('content_calendar').update({ in_momentum: inMomentum }).in('id', ids)
     if (error) throw new Error(error.message || 'Could not update momentum status')
+
     setItems(prev => prev.map(it => (ids.includes(it.id) ? { ...it, in_momentum: inMomentum } : it)))
   }
 
-  async function updateManyScheduledAt(patches: Array<{ id: string; scheduled_at: string }>) {
-    if (!patches.length) return
-    const results = await Promise.all(
-      patches.map(p => supabase.from('content_calendar').update({ scheduled_at: p.scheduled_at }).eq('id', p.id))
-    )
-    const firstError = results.find(r => r.error)?.error
-    if (firstError) throw new Error(firstError.message || 'Could not reorder calendar items')
-  }
-  async function _deleteBatch(batchId: string) {
-    if (!batchId) return
-    _setDeletingBatch(true)
-    try {
-      const { data: userData, error: userError } = await supabase.auth.getUser()
-      if (userError || !userData?.user) {
-        toast.error('You must be logged in')
-        return
-      }
-
-      const uid = userData.user.id
-
-      // delete only calendar feature rows where metadata.batchId matches
-      const { error } = await supabase
-        .from('content_calendar')
-        .delete()
-        .eq('user_id', uid)
-        .eq('feature', 'calendar')
-        .eq('metadata->>batchId', batchId)
-
-      if (error) throw new Error(error.message || 'Could not delete batch')
-
-      // local remove
-      setItems(prev => prev.filter(it => (it.metadata?.batchId || '') !== batchId))
-
-      toast.success('Deleted last generated batch ✅')
-      _setLastBatchId('')
-      _setLastBatchLabel('')
-    } catch (e: any) {
-      console.error('[calendar-v2] delete batch error', e)
-      toast.error(e?.message || 'Could not delete batch')
-    } finally {
-      _setDeletingBatch(false)
-    }
+  function patchLocalItem(id: string, patch: Partial<CalendarItem>) {
+    setItems(prev => prev.map(it => (it.id === id ? { ...it, ...patch } : it)))
+    setExpandedItem(prev => (prev && prev.id === id ? ({ ...prev, ...patch } as any) : prev))
   }
 
-  async function _clearAllCalendarItems() {
-    const ok = window.confirm('Clear ALL calendar items? This cannot be undone.')
-    if (!ok) return
-
-    _setClearing(true)
-    try {
-      const { data: userData, error: userError } = await supabase.auth.getUser()
-      if (userError || !userData?.user) {
-        toast.error('You must be logged in')
-        return
-      }
-
-      const uid = userData.user.id
-
-      const { error } = await supabase
-        .from('content_calendar')
-        .delete()
-        .eq('user_id', uid)
-        .eq('feature', 'calendar')
-
-      if (error) throw new Error(error.message || 'Could not clear calendar')
-
-      setItems([])
-      toast.success('Calendar cleared ✅')
-      _setLastBatchId('')
-      _setLastBatchLabel('')
-    } catch (e: any) {
-      console.error('[calendar-v2] clear all error', e)
-      toast.error(e?.message || 'Could not clear calendar')
-    } finally {
-      _setClearing(false)
-    }
+  // ---------- UI helpers ----------
+  function togglePlatform(key: string) {
+    setSelectedPlatforms(prev => toggleInArray(prev, key))
   }
 
-
- 
-
-  function pickContentTypeFromMix(seed: number) {
-    const buckets: Array<{ key: keyof MixState; w: number }> = [
-      { key: 'promo', w: mix.promo },
-      { key: 'brand', w: mix.brand },
-      { key: 'community', w: mix.community },
-      { key: 'bts', w: mix.bts },
-      { key: 'lifestyle', w: mix.lifestyle },
-    ]
-    const total = buckets.reduce((a, b) => a + (b.w || 0), 0) || 1
-    let r = (seed % 1000) / 1000
-    r *= total
-    for (const b of buckets) {
-      r -= b.w
-      if (r <= 0) return b.key
-    }
-    return 'promo'
+  function toggleContentType(key: string) {
+    setContentTypes(prev => toggleInArray(prev, key))
   }
 
-  function titleTemplate(opts: { focus: CalendarFocus; energy: Energy; contentType: keyof MixState; platform: string; dayName: string }) {
-    const { focus, energy, contentType, platform, dayName } = opts
-    const focusBit =
-      focus === 'release' ? 'Release momentum' : focus === 'gig' ? 'Gig momentum' : focus === 'growth' ? 'Growth sprint' : 'Weekly momentum'
-
-    const typeBit =
-      contentType === 'promo'
-        ? 'Promo'
-        : contentType === 'brand'
-          ? 'Brand story'
-          : contentType === 'community'
-            ? 'Community'
-            : contentType === 'bts'
-              ? 'BTS'
-              : 'Human moment'
-
-    const energyBit = energy === 'low' ? 'Low lift' : energy === 'high' ? 'High energy' : 'Balanced'
-    const plat = platformLabel(platform)
-    return `${focusBit} • ${typeBit} • ${energyBit} (${plat}) — ${dayName}`
-  }
-
-  function captionTemplate(opts: {
-  focus: CalendarFocus
-  energy: Energy
-  contentType: keyof MixState
-  platform: string
-  dayName: string
-  seed: number
-}) {
-  const { focus, energy, contentType, platform, dayName, seed } = opts
-
-  const plat = platformLabel(platform)
-  const focusBit =
-    focus === 'release'
-      ? 'Drive momentum to the release'
-      : focus === 'gig'
-        ? 'Build hype for the gig'
-        : focus === 'growth'
-          ? 'Grow reach + connection'
-          : 'Stay visible + consistent'
-
-  // --- banks (short, punchy, varied) ---
-  const promoIdeas = [
-    'Use a 6–10s hook snippet and put the lyrics on-screen.',
-    'Tell the story behind one bar, then play the bar.',
-    'Show “before vs after” (rough demo → finished version).',
-    'Do a “rate this hook 1–10” and pin the best comment.',
-    'Explain what the song means in one sentence, then hit the hook.',
-  ]
-
-  const brandIdeas = [
-    'Share a lesson you learned this week (1 line → 1 story → 1 takeaway).',
-    'Answer a question your audience is scared to ask.',
-    'Talk about your “why” in a specific moment (not generic motivation).',
-    'Show your routine for staying consistent (tiny, real, repeatable).',
-    'Drop a “belief I changed my mind about” and why.',
-  ]
-
-  const communityIdeas = [
-    'Ask a forced-choice question (A or B) tied to your music.',
-    'Let them vote on a lyric / cover / snippet to post next.',
-    'Ask for a relatable story, then reply to the best one.',
-    'Do a “caption this” prompt with your clip.',
-    'Ask “what should I write about next?” with 3 options.',
-  ]
-
-  const btsIdeas = [
-    'Show the session: mic check → 1 take → playback reaction.',
-    'Break down a verse: highlight 3 words and why they matter.',
-    'Show your editing process in 3 quick cuts.',
-    'Show your notes/voice memos then the final delivery.',
-    'Show a tiny mistake and how you fixed it (human + real).',
-  ]
-
-  const lifestyleIdeas = [
-    'Film a simple walk/commute clip + a voiceover about today’s thought.',
-    'Show something ordinary that grounds you (then relate it back to music).',
-    'Share a small win you didn’t post about.',
-    'Talk about what you’re working on without over-explaining.',
-    'Drop a “one line journal entry” and let the comments respond.',
-  ]
-
-  const hooks = [
-    'If you’ve been feeling stuck, this is for you…',
-    'Quick one — tell me if this bar hits…',
-    'I wasn’t going to post this, but…',
-    'This took me way too long to get right…',
-    'POV: you’re rebuilding your life quietly…',
-    'The moment I realised I had to level up was…',
-  ]
-
-  const ctas = [
-    'If this resonates, hit save.',
-    'Comment “ME” if you relate.',
-    'Which line hit you most?',
-    'Want the full version? I’ll drop it next.',
-    'Rate the hook 1–10 honestly.',
-    'Share this with someone who needs it.',
-  ]
-
-  const formatsByEnergy: Record<Energy, string[]> = {
-    low: [
-      'Low lift: talking-head + text overlay.',
-      'Low lift: voiceover over a simple clip.',
-      'Low lift: lyric-on-screen + static visual.',
-    ],
-    medium: [
-      'Balanced: hook → context → payoff.',
-      'Balanced: quick cuts + clear caption.',
-      'Balanced: performance moment + 1 line story.',
-    ],
-    high: [
-      'High energy: performance first, explanation later.',
-      'High energy: fast cuts + big hook.',
-      'High energy: bold statement → hook → CTA.',
-    ],
-  }
-
-  const bank =
-    contentType === 'promo'
-      ? promoIdeas
-      : contentType === 'brand'
-        ? brandIdeas
-        : contentType === 'community'
-          ? communityIdeas
-          : contentType === 'bts'
-            ? btsIdeas
-            : lifestyleIdeas
-
-  const idea = pick(bank, seed + 3)
-  const hook = pick(hooks, seed + 7)
-  const format = pick(formatsByEnergy[energy], seed + 11)
-  const cta = pick(ctas, seed + 19)
-
-  const contextBits: string[] = []
-  if (artistName) contextBits.push(artistName)
-  if (genre) contextBits.push(genre)
-  if (releaseContext.trim()) contextBits.push(releaseContext.trim())
-
-  const contextLine = contextBits.length ? `Context: ${contextBits.join(' • ')}` : ''
-
-  // Output = something the user can actually post
-  const lines: string[] = []
-  lines.push(`${dayName} • ${plat}`)
-  if (contextLine) lines.push(contextLine)
-  if (goal) lines.push(`Goal: ${goal}`)
-  if (audience) lines.push(`Audience: ${audience}`)
-  lines.push('')
-  lines.push(`Focus: ${focusLabel(focus)} (${focusBit})`)
-  lines.push(`Format: ${format}`)
-  lines.push('')
-  lines.push(`Idea: ${idea}`)
-  lines.push(`Hook: ${hook}`)
-  lines.push(`CTA: ${cta}`)
-  lines.push('')
-  lines.push('Caption draft:')
-  lines.push(`${hook} ${idea} ${cta}`)
-
-  return lines.join('\n')
-}
-
-     
-
-  
-
-  // ---------- Generation (API: 30/60/90 schedule) ----------
-  async function handleGenerateScheduleFromApi() {
+  // ---------- Actions ----------
+  async function handleGenerateIdeas() {
     void save({ artistName, genre, audience, goal, tone })
     setGenerating(true)
 
     try {
       const { data: userData, error: userError } = await supabase.auth.getUser()
       if (userError || !userData?.user) {
-        toast.error('You must be logged in to generate a schedule')
+        toast.error('You must be logged in to generate ideas')
         return
       }
 
       const uid = userData.user.id
-      const weeks = weeksFromScheduleLength(scheduleLength)
-      const batchId = `cal_${Date.now()}`
-      const startDate = dateKey(weekStart)
-const batchLabel = `${scheduleLength} schedule (${startDate})`
-const noveltySeed = randomSalt()
-      
+      const batchId = `idea_${Date.now()}`
+      const batchLabel = `${ideaCount} ideas • ${new Date().toLocaleDateString('en-GB')}`
+      const noveltySeed = randomSalt()
+      const startDate = dateKey(new Date())
 
-            // UI is posts/day -> API expects posts/week
-      // Cap to avoid huge plans that become repetitive (e.g. 21/week)
-      
-// Aim: ~1 post/day across selected duration
-// 7 days => 7 slots, 14 => 14, 30 => ~30
-const targetTotal =
-  scheduleLength === '7' ? 7 :
-  scheduleLength === '14' ? 14 :
-  30
-
-const postsPerWeek = Math.max(1, Math.round(targetTotal / weeks))
-
-const avoidTitles = items
-  .slice(-60)
-  .flatMap(it => {
-    const t = (it.title || '').toString().trim()
-    const lastLine = (it.caption || '').toString().trim().split('\n').slice(-1)[0] || ''
-    return [t, lastLine]
-  })
-  .map(s => s.trim())
-  .filter(Boolean)
-  .slice(-60)
-      
+      const avoidTitles = items
+        .slice(0, 60)
+        .flatMap(it => {
+          const t = safeString(it.title).trim()
+          const c = safeString(it.caption).split('\n').slice(-1)[0]?.trim() || ''
+          return [t, c]
+        })
+        .filter(Boolean)
+        .slice(0, 60)
 
       const res = await fetch('/api/calendar', {
         method: 'POST',
@@ -870,133 +446,60 @@ const avoidTitles = items
           genre,
           audience,
           goal,
-          focusMode,
-          mix,
-          energyPattern,
-          releaseContext,
           tone,
+          focusMode,
+          releaseContext,
           lyrics: lyrics.trim(),
           lyricsFocus,
-          avoidTitles,
-          startDate,
-          weeks,
-          postsPerWeek,
           platforms: selectedPlatforms.length ? selectedPlatforms : ['instagram'],
+          contentTypes: contentTypes.length ? contentTypes : ['performance', 'story'],
+          ideaCount,
+          avoidTitles,
           noveltySeed,
-          
+          // compatibility with your current route
+          startDate,
+          weeks: 1,
+          postsPerWeek: ideaCount,
         }),
       })
 
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        toast.error(data?.error || 'Failed to generate schedule')
+        toast.error(data?.error || 'Failed to generate ideas')
         return
       }
-if (data?._fallback) {
-  toast.warning('Calendar used fallback (check OPENAI_API_KEY / API parse).')
-}
 
-      const apiItems: any[] = Array.isArray(data?.items) ? data.items : []
+      if (data?._fallback) {
+        toast.warning('Idea Factory used fallback output.')
+      }
+
+      const apiItems: ApiCalendarItem[] = Array.isArray(data?.items) ? data.items : []
       if (!apiItems.length) {
-        toast.error('No items returned from calendar API')
+        toast.error('No ideas were returned')
         return
       }
 
-      const perDayIndex: Record<string, number> = {}
-      const rows: Array<Partial<CalendarItem>> = apiItems
-  .map((it: any) => {
-
-        const dayKey = safeString(it.date).slice(0, 10)
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(dayKey)) {
-  // skip broken rows instead of crashing the page
-  return null as any
-}
-
-        const idx = perDayIndex[dayKey] ?? 0
-        perDayIndex[dayKey] = idx + 1
-
-        const dayDate = dateFromKey(dayKey)
-        const scheduled_at = toIsoAtDayWithMinutes(dayDate, idx)
+      const baseDate = new Date()
+      const rows: Array<Partial<CalendarItem>> = apiItems.map((it, index) => {
+        const dayDate = addDays(baseDate, index)
+        const scheduled_at = toIsoAtDayWithMinutes(dayDate, index)
 
         return {
           user_id: uid,
           feature: 'calendar',
           in_momentum: false,
           status: 'planned',
-          platform: safeString(it.platform) || 'instagram',
+          platform: safeString(it.platform) || selectedPlatforms[0] || 'instagram',
           scheduled_at,
-          title: (() => {
-  const apiTitle = safeString(it.title).trim()
-  if (apiTitle && apiTitle.toLowerCase() !== 'content slot') return apiTitle
-
-  const pillar = safeString(it.pillar) || 'promo'
-  const format = safeString(it.format)
-  const angle = safeString(it.angle)
-  const plat = platformLabel(safeString(it.platform) || 'instagram')
-
-  const bits = [
-    pillar ? pillar.toUpperCase() : null,
-    format ? format : null,
-    angle ? angle : null,
-  ].filter(Boolean)
-
-  return bits.length ? `${bits.join(' • ')} (${plat})` : `Content idea (${plat})`
-})(),
-
-
-          caption: (() => {
-  const apiCaption = safeString(it.suggested_caption) || ''
-  const idea = safeString(it.idea)
-  const format = safeString(it.format)
-  const angle = safeString(it.angle)
-  const cta = safeString(it.cta)
-  const pillar = safeString(it.pillar)
-
-  const ideaBlockLines = [
-    `IDEA: ${idea || '—'}`,
-    `FORMAT: ${format || '—'}`,
-    `ANGLE: ${angle || '—'}`,
-    `CTA: ${cta || '—'}`,
-    pillar ? `PILLAR: ${pillar}` : null,
-    '',
-  ].filter(Boolean) as string[]
-
-  // If API caption is good, keep it, but prepend the idea block
-  if (apiCaption && !isGenericCaption(apiCaption)) {
-    return [...ideaBlockLines, apiCaption].join('\n')
-  }
-
-  // Otherwise fall back to your richer local captionTemplate
-  const seed = hashSeed(
-  `${noveltySeed}|${dayKey}|${safeString(it.platform)}|${idx}|${focusMode}|${artistName}|${genre}|${audience}|${goal}`
-)
-  const dayName = dayDate.toLocaleDateString('en-GB', { weekday: 'long' })
-  const energy =
-    energyPattern[
-      Math.min(6, Math.max(0, new Date(dayDate).getDay() === 0 ? 6 : new Date(dayDate).getDay() - 1))
-    ] || 'medium'
-
-  const contentType = (safeString(it.pillar) as keyof MixState) || 'promo'
-
-  const local = captionTemplate({
-    focus: focusMode,
-    energy,
-    contentType: (['promo', 'brand', 'community', 'bts', 'lifestyle'].includes(contentType) ? contentType : 'promo') as keyof MixState,
-    platform: safeString(it.platform) || 'instagram',
-    dayName,
-    seed,
-  })
-
-  return [...ideaBlockLines, local].join('\n')
-})(),
-
-
+          title: pickTitle(it),
+          caption: buildIdeaCaptionBlock(it),
           hashtags: null,
           metadata: {
             batchId,
             batchLabel,
-            source: 'calendar_api_v1',
-            scheduleLength,
+            source: 'idea_factory_v1',
+            ideaCount,
+            contentTypes,
             focusMode,
             artistName,
             genre,
@@ -1015,407 +518,163 @@ if (data?._fallback) {
           },
         }
       })
-        .filter(Boolean) as any
-
 
       const saved = await insertCalendarRows(rows)
-            _setLastBatchId(batchId)
-      _setLastBatchLabel(batchLabel)
 
-      setItems(prev => [...prev, ...saved])
-      toast.success(`${scheduleLength}-day schedule generated and saved ✅`)
+      setItems(prev => [...saved, ...prev])
+      setLastBatchId(batchId)
+      setLastBatchLabel(batchLabel)
+      setViewMode('latest')
+
+      toast.success(`${ideaCount} ideas generated ✅`)
+
       if (tier === 'free') {
-  await bumpUsage('calendar_generate_uses' as any)
-  setUsageTick(t => t + 1)
-}
-
+        await bumpUsage('calendar_generate_uses' as any)
+      }
     } catch (e: any) {
-      console.error('[calendar-v2] generate schedule api error', e)
-      toast.error(e?.message || 'Could not generate schedule')
+      console.error('[idea-factory] generate error', e)
+      toast.error(e?.message || 'Could not generate ideas')
     } finally {
       setGenerating(false)
     }
   }
 
-  // ---------- Export week CSV ----------
-  function handleExportWeekCsv() {
-    if (!weekItems.length) return toast.info('No items in this week to export')
-
-    const header = ['Date', 'Day', 'Platform', 'Status', 'Title', 'Caption', 'Hashtags', 'In Momentum']
-    const rows = weekItems.map(it => {
-      const d = it.scheduled_at ? new Date(it.scheduled_at) : null
-      const dateStr = d ? d.toISOString().slice(0, 10) : ''
-      const dayStr = d ? d.toLocaleDateString('en-GB', { weekday: 'short' }) : ''
-      const tags = (it.hashtags || []).map(h => (h.startsWith('#') ? h : `#${h}`)).join(' ')
-      return [
-        csvEscape(dateStr),
-        csvEscape(dayStr),
-        csvEscape(platformLabel(it.platform)),
-        csvEscape((it.status || 'planned').toString()),
-        csvEscape(it.title),
-        csvEscape(it.caption),
-        csvEscape(tags),
-        csvEscape(it.in_momentum ? 'yes' : 'no'),
-      ].join(',')
-    })
-
-    const csv = [header.join(','), ...rows].join('\r\n')
-    try {
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `ww-calendar-week-${weekStartKey}-to-${weekEndKey}.csv`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      toast.success('Week exported as CSV ✅')
-    } catch (e: any) {
-      console.error('[calendar-v2] export week csv error', e)
-      toast.error(e?.message || 'Could not export week CSV')
-    }
-  }
-
-  function handleExportWeekPdf() {
-  if (!weekItems.length) return toast.info('No items in this week to export')
-
-  const title = artistName ? `${artistName} — Content Calendar (Week)` : 'Content Calendar (Week)'
-  const subtitle = `${weekTitle} • ${selectedPlatforms.length ? selectedPlatforms.map(platformLabel).join(', ') : 'All platforms'}`
-
-  const lines: PdfLine[] = [
-    ...buildStandardHeader({
-      title,
-      subtitle,
-      meta: [
-        genre ? { label: 'Genre', value: genre } : null,
-        audience ? { label: 'Audience', value: audience } : null,
-        goal ? { label: 'Goal', value: goal } : null,
-        focusMode ? { label: 'Focus', value: focusLabel(focusMode) } : null,
-      ].filter(Boolean) as any,
-    }),
-  ]
-
-  for (let i = 0; i < weekDays.length; i++) {
-    const d = weekDays[i]
-    const key = dateKey(d)
-    const list = weekItemsByDay[key] || []
-    const dayLabel = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })
-
-    lines.push({ kind: 'sectionTitle', text: dayLabel })
-
-    if (!list.length) {
-      lines.push({ kind: 'body', text: '—' })
-      lines.push({ kind: 'spacer', height: 10 } as any)
-      continue
-    }
-
-    for (const it of list) {
-      const plat = platformLabel(it.platform)
-      const status = (it.status || 'planned').toString()
-      const t = (it.title || 'Untitled').toString()
-      lines.push({ kind: 'body', text: `• [${plat}] ${t} (${status})` })
-    }
-
-    lines.push({ kind: 'spacer', height: 12 } as any)
-  }
+  async function handleDeleteIdeaCard(id: string) {
+  const ok = window.confirm('Delete this idea card?')
+  if (!ok) return
 
   try {
-    const base = artistName ? `${artistName} calendar week` : 'calendar week'
-    renderWwPdf(lines, base)
-    toast.success('Week exported as PDF ✅')
+    const { error } = await supabase.from('content_calendar').delete().eq('id', id)
+    if (error) throw new Error(error.message || 'Could not delete idea card')
+
+    setItems(prev => prev.filter(item => item.id !== id))
+
+    if (expandedItem?.id === id) {
+      setExpandedItem(null)
+    }
+
+    toast.success('Idea card deleted ✅')
   } catch (e: any) {
-    console.error('[calendar-v2] export week pdf error', e)
-    toast.error(e?.message || 'Could not export week PDF')
+    console.error('[idea-factory] delete card error', e)
+    toast.error(e?.message || 'Could not delete idea card')
   }
 }
 
+  async function handleSendVisibleToMomentum() {
+    const ids = visibleItems.filter(it => !it.in_momentum).map(it => it.id)
+    if (!ids.length) {
+      toast.info('These ideas are already in Momentum Board')
+      return
+    }
 
-  // ---------- Export month CSV ----------
-  function handleExportMonthCsv() {
-    const year = currentMonth.getFullYear()
-    const month = currentMonth.getMonth()
-    const monthItems = items.filter(it => {
-      if (!it.scheduled_at) return false
-      const d = new Date(it.scheduled_at)
-      return d.getFullYear() === year && d.getMonth() === month
-    })
-
-    if (!monthItems.length) return toast.info('No items in this month to export')
-
-    const header = ['Date', 'Platform', 'Status', 'Title', 'Caption', 'Hashtags', 'In Momentum']
-    const rows = monthItems.map(it => {
-      const d = it.scheduled_at ? new Date(it.scheduled_at).toISOString().slice(0, 10) : ''
-      const tags = (it.hashtags || []).map(h => (h.startsWith('#') ? h : `#${h}`)).join(' ')
-      return [
-        csvEscape(d),
-        csvEscape(platformLabel(it.platform)),
-        csvEscape((it.status || 'planned').toString()),
-        csvEscape(it.title),
-        csvEscape(it.caption),
-        csvEscape(tags),
-        csvEscape(it.in_momentum ? 'yes' : 'no'),
-      ].join(',')
-    })
-
-    const csv = [header.join(','), ...rows].join('\r\n')
+    setSendingVisible(true)
     try {
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      const mm = String(month + 1).padStart(2, '0')
-      a.href = url
-      a.download = `ww-calendar-month-${year}-${mm}.csv`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      toast.success('Month exported as CSV ✅')
+      await markItemsInMomentum(ids, true)
+      toast.success('Ideas sent to Momentum Board ✅')
     } catch (e: any) {
-      console.error('[calendar-v2] export month csv error', e)
-      toast.error(e?.message || 'Could not export month CSV')
+      console.error('[idea-factory] send visible error', e)
+      toast.error(e?.message || 'Could not send ideas to Momentum Board')
+    } finally {
+      setSendingVisible(false)
     }
   }
 
-  // ---------- Send week to Momentum ----------
-  async function handleSendWeekToMomentum() {
-    const toSend = weekItems.filter(it => !it.in_momentum).map(it => it.id)
-    if (!toSend.length) return toast.info('All items in this week are already in Momentum Board')
+  async function handleDeleteLastBatch() {
+    if (!lastBatchId) {
+      toast.info('No recent batch found')
+      return
+    }
+
+    const ok = window.confirm('Delete the latest generated idea batch?')
+    if (!ok) return
+
+    setDeletingBatch(true)
     try {
-      await markItemsInMomentum(toSend, true)
-      toast.success('Week sent to Momentum Board ✅')
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError || !userData?.user) {
+        toast.error('You must be logged in')
+        return
+      }
+
+      const uid = userData.user.id
+
+      const { error } = await supabase
+        .from('content_calendar')
+        .delete()
+        .eq('user_id', uid)
+        .eq('feature', 'calendar')
+        .eq('metadata->>batchId', lastBatchId)
+
+      if (error) throw new Error(error.message || 'Could not delete latest batch')
+
+      const remaining = items.filter(it => safeString(it.metadata?.batchId) !== lastBatchId)
+      const nextBatchId = remaining.map(it => safeString(it.metadata?.batchId)).find(Boolean) || ''
+      const nextBatchLabel =
+        remaining.find(it => safeString(it.metadata?.batchId) === nextBatchId)?.metadata?.batchLabel || ''
+
+      setItems(remaining)
+      setLastBatchId(nextBatchId)
+      setLastBatchLabel(nextBatchLabel)
+
+      toast.success('Latest batch deleted ✅')
     } catch (e: any) {
-      console.error('[calendar-v2] send week error', e)
-      toast.error(e?.message || 'Could not send week to Momentum Board')
+      console.error('[idea-factory] delete batch error', e)
+      toast.error(e?.message || 'Could not delete latest batch')
+    } finally {
+      setDeletingBatch(false)
     }
   }
-  async function handleClearCurrentMonth() {
-  try {
-    const { data: userData, error: userError } = await supabase.auth.getUser()
-    if (userError || !userData?.user) return toast.error('You must be logged in')
 
-    const uid = userData.user.id
-    const year = currentMonth.getFullYear()
-    const month = currentMonth.getMonth()
+  async function handleClearAllIdeas() {
+    const ok = window.confirm('Clear all saved idea cards? This cannot be undone.')
+    if (!ok) return
 
-    const monthStart = new Date(year, month, 1, 12, 0, 0).toISOString()
-    const monthEnd = new Date(year, month + 1, 1, 12, 0, 0).toISOString()
-
-    const { data: toDelete, error: loadErr } = await supabase
-      .from('content_calendar')
-      .select('id')
-      .eq('user_id', uid)
-      .eq('feature', 'calendar')
-      .gte('scheduled_at', monthStart)
-      .lt('scheduled_at', monthEnd)
-
-    if (loadErr) throw loadErr
-
-    const ids = (toDelete || []).map((x: any) => x.id)
-    if (!ids.length) return toast.info('No items in this month to clear')
-
-    const { error: delErr } = await supabase.from('content_calendar').delete().in('id', ids)
-    if (delErr) throw delErr
-
-    // update UI
-    setItems(prev => prev.filter(it => !ids.includes(it.id)))
-    toast.success('Month cleared ✅')
-  } catch (e: any) {
-    console.error('[calendar-v2] clear month error', e)
-    toast.error(e?.message || 'Could not clear month')
-  }
-}
-
-async function _handleClearLastGeneratedBatch() {
-  try {
-    const lastBatchId = items
-      .map(it => it.metadata?.batchId)
-      .filter(Boolean)
-      .slice(-1)[0]
-
-    if (!lastBatchId) return toast.info('No generated schedule batch found')
-
-    const { error } = await supabase.from('content_calendar').delete().eq('user_id', items[0]?.user_id).eq('feature', 'calendar').contains('metadata', { batchId: lastBatchId })
-
-    if (error) throw new Error(error.message || 'Could not delete schedule batch')
-
-    setItems(prev => prev.filter(it => it.metadata?.batchId !== lastBatchId))
-    toast.success('Deleted generated schedule ✅')
-  } catch (e: any) {
-    console.error('[calendar-v2] clear batch error', e)
-    toast.error(e?.message || 'Could not clear schedule')
-  }
-}
-// ---------- Send current month to Momentum ----------
-async function handleSendMonthToMomentum() {
-  const month = currentMonth.getMonth()
-  const year = currentMonth.getFullYear()
-
-  const monthItems = items.filter(it => {
-    if (!it.scheduled_at) return false
-    const d = new Date(it.scheduled_at)
-    return d.getFullYear() === year && d.getMonth() === month
-  })
-
-  const toSend = monthItems.filter(it => !it.in_momentum).map(it => it.id)
-  if (!toSend.length) return toast.info('All items in this month are already in Momentum Board')
-
-  try {
-    await markItemsInMomentum(toSend, true)
-    toast.success('Month sent to Momentum Board ✅')
-  } catch (e: any) {
-    console.error('[calendar-v2] send month error', e)
-    toast.error(e?.message || 'Could not send month to Momentum Board')
-  }
-}
-
-  // ---------- Drag & drop (MONTH) ----------
-  async function handleDragEnd(result: DropResult) {
-    const { destination, source, draggableId } = result
-    if (!destination) return
-
-    const fromDayKey = source.droppableId
-    const toDayKey = destination.droppableId
-    if (!fromDayKey.startsWith('day:') || !toDayKey.startsWith('day:')) return
-
-    const fromKey = fromDayKey.replace('day:', '')
-    const toKey = toDayKey.replace('day:', '')
-
-    const dragged = items.find(it => it.id === draggableId)
-    if (!dragged) return
-
-    // Build per-day lists from current items
-    const grouped: Record<string, CalendarItem[]> = {}
-    for (const it of items) {
-      if (!it.scheduled_at) continue
-      const k = it.scheduled_at.slice(0, 10)
-      if (!grouped[k]) grouped[k] = []
-      grouped[k].push(it)
-    }
-    for (const k of Object.keys(grouped)) {
-      grouped[k].sort((a, b) => {
-        const ta = a.scheduled_at ? new Date(a.scheduled_at).getTime() : 0
-        const tb = b.scheduled_at ? new Date(b.scheduled_at).getTime() : 0
-        return ta - tb
-      })
-    }
-
-    const fromList = grouped[fromKey] ? [...grouped[fromKey]] : []
-    const toList = grouped[toKey] ? [...grouped[toKey]] : []
-
-    // Remove dragged from source list
-    const fromIndex = fromList.findIndex(x => x.id === draggableId)
-    if (fromIndex === -1) return
-    const [removed] = fromList.splice(fromIndex, 1)
-
-    // Insert into destination list
-    toList.splice(destination.index, 0, removed)
-
-    // Create patches (scheduled_at encodes order via minutes)
-    const patches: Array<{ id: string; scheduled_at: string }> = []
-
-    if (fromKey === toKey) {
-      const dayDate = dateFromKey(toKey)
-      const finalList = reorder(grouped[toKey] || [], source.index, destination.index)
-      finalList.forEach((it, idx) => {
-        patches.push({ id: it.id, scheduled_at: toIsoAtDayWithMinutes(dayDate, idx) })
-      })
-    } else {
-      const fromDate = dateFromKey(fromKey)
-      const toDate = dateFromKey(toKey)
-
-      fromList.forEach((it, idx) => {
-        patches.push({ id: it.id, scheduled_at: toIsoAtDayWithMinutes(fromDate, idx) })
-      })
-      toList.forEach((it, idx) => {
-        patches.push({ id: it.id, scheduled_at: toIsoAtDayWithMinutes(toDate, idx) })
-      })
-    }
-
-    // Optimistic update
-    setItems(prev =>
-      prev.map(it => {
-        const p = patches.find(x => x.id === it.id)
-        return p ? { ...it, scheduled_at: p.scheduled_at } : it
-      })
-    )
-
+    setClearingAll(true)
     try {
-      await updateManyScheduledAt(patches)
-      toast.success('Updated schedule ✅')
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError || !userData?.user) {
+        toast.error('You must be logged in')
+        return
+      }
+
+      const uid = userData.user.id
+
+      const { error } = await supabase
+        .from('content_calendar')
+        .delete()
+        .eq('user_id', uid)
+        .eq('feature', 'calendar')
+
+      if (error) throw new Error(error.message || 'Could not clear ideas')
+
+      setItems([])
+      setLastBatchId('')
+      setLastBatchLabel('')
+      toast.success('All ideas cleared ✅')
     } catch (e: any) {
-      console.error('[calendar-v2] dnd error', e)
-      toast.error(e?.message || 'Could not update schedule')
+      console.error('[idea-factory] clear all error', e)
+      toast.error(e?.message || 'Could not clear ideas')
+    } finally {
+      setClearingAll(false)
     }
   }
-
-  // ---------- Patch local item (modal sync) ----------
-  function patchLocalItem(id: string, patch: Partial<CalendarItem>) {
-    setItems(prev => prev.map(it => (it.id === id ? { ...it, ...patch } : it)))
-    setExpandedItem(prev => (prev && prev.id === id ? ({ ...prev, ...patch } as any) : prev))
-  }
-
-  // ---------- UI helpers ----------
-  function togglePlatform(key: string) {
-    setSelectedPlatforms(prev => (prev.includes(key) ? prev.filter(p => p !== key) : [...prev, key]))
-  }
-
-  function setDayEnergy(i: number, e: Energy) {
-    setEnergyPattern(prev => {
-      const next = [...prev]
-      next[i] = e
-      return next
-    })
-  }
-
-  function applyEnergyPreset(p: 'balanced' | 'weekday-grind' | 'weekend-warrior' | 'custom') {
-    setEnergyPreset(p)
-    if (p === 'balanced') setEnergyPattern(['medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium'])
-    if (p === 'weekday-grind') setEnergyPattern(['medium', 'low', 'medium', 'medium', 'low', 'high', 'low'])
-    if (p === 'weekend-warrior') setEnergyPattern(['low', 'low', 'medium', 'medium', 'medium', 'high', 'high'])
-    // custom: don't overwrite
-  }
-
-  function MixSlider({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
-    return (
-      <div className="space-y-1">
-        <div className="flex items-center justify-between text-[0.72rem] text-white/60">
-          <span>{label}</span>
-          <span className="text-white/75">{value}%</span>
-        </div>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={value}
-          onChange={e => onChange(clamp01(parseInt(e.target.value || '0', 10)))}
-          className="w-full accent-[rgb(186,85,211)]"
-        />
-      </div>
-    )
-  }
-
-  const weekTitle = formatWeekRange(weekStart)
-  const monthTitle = currentMonth.toLocaleString(undefined, { month: 'long', year: 'numeric' })
 
   return (
     <main className="min-h-screen bg-black text-white">
       <Toaster position="top-center" richColors />
 
       <section className="mx-auto max-w-7xl px-4 py-8 space-y-6">
-        {/* Header */}
         <header className="flex items-start justify-between gap-3 flex-wrap">
           <div className="space-y-2">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight flex items-center gap-2">
-              <CalendarDays className="w-7 h-7 text-ww-violet" />
-              Content Calendar
+              <Sparkles className="w-7 h-7 text-ww-violet" />
+              Idea Factory
             </h1>
             <p className="text-white/70 max-w-3xl">
-              Calendar = <b className="text-white/85">generated ideas</b> • Momentum Board = <b className="text-white/85">master hub</b>
+              Generate strong content ideas here. Organise and track them later in the Momentum Board.
             </p>
           </div>
 
-          {/* Apply WW profile as a clean button (no banner) */}
           {mounted && hasAnyProfile && (
             <button type="button" onClick={applyProfileFromCentral} className={outlineBtn}>
               <Sparkles className="w-4 h-4" />
@@ -1424,9 +683,8 @@ async function handleSendMonthToMomentum() {
           )}
         </header>
 
-        {/* Layout (fixed left width, flexible right) */}
         <div className="grid gap-6 lg:grid-cols-[420px_minmax(0,1fr)] xl:grid-cols-[460px_minmax(0,1fr)]">
-          {/* LEFT: Inputs */}
+          {/* LEFT: Generator */}
           <section className="rounded-3xl border border-white/10 bg-black/80 p-5 md:p-6 space-y-5">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -1436,584 +694,344 @@ async function handleSendMonthToMomentum() {
                   Generator
                 </h2>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setShowAdvanced(v => !v)}
-                className={
-  "inline-flex items-center gap-1.5 px-3 h-8 rounded-full border text-[0.75rem] transition " +
-  (showAdvanced
-    ? "border-ww-violet bg-ww-violet/20 text-white shadow-[0_0_26px_rgba(186,85,211,0.95)]"
-    : "border-ww-violet/50 bg-ww-violet/10 text-white/90 shadow-[0_0_18px_rgba(186,85,211,0.55)] hover:shadow-[0_0_24px_rgba(186,85,211,0.85)] hover:border-ww-violet")
-}
-
-              >
-                <SlidersHorizontal className="w-3 h-3" />
-                {showAdvanced ? 'Hide' : 'Advanced'}
-              </button>
             </div>
 
-            {/* Core context */}
-            <div className="space-y-3">
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-1">
-                  <p className={labelClass}>Artist name</p>
-                  <input className={inputClass} placeholder="e.g. natestapes" value={artistName} onChange={e => setArtistName(e.target.value)} />
-                </div>
-                <div className="space-y-1">
-                  <p className={labelClass}>Genre / lane</p>
-                  <input className={inputClass} placeholder="e.g. introspective UK rap" value={genre} onChange={e => setGenre(e.target.value)} />
-                </div>
-              </div>
+            <InputSection title="Core brief" hint="Who this is for and what the content needs to do.">
+  <div className="grid gap-3 md:grid-cols-2">
+    <div className="space-y-1">
+      <p className={labelClass}>Artist name</p>
+      <input
+        className={inputClass}
+        placeholder="e.g. natestapes"
+        value={artistName}
+        onChange={e => setArtistName(e.target.value)}
+      />
+    </div>
 
-              <div className="space-y-1">
-                <p className={labelClass}>Audience</p>
-                <input className={inputClass} placeholder="Who are you talking to?" value={audience} onChange={e => setAudience(e.target.value)} />
-              </div>
+    <div className="space-y-1">
+      <p className={labelClass}>Genre / lane</p>
+      <input
+        className={inputClass}
+        placeholder="e.g. introspective UK rap"
+        value={genre}
+        onChange={e => setGenre(e.target.value)}
+      />
+    </div>
+  </div>
 
-              <div className="space-y-1">
-                <p className={labelClass}>Goal</p>
-                <input className={inputClass} placeholder="Grow, deepen, convert, test a concept…" value={goal} onChange={e => setGoal(e.target.value)} />
-              </div>
+  <div className="space-y-1">
+    <p className={labelClass}>Audience</p>
+    <input
+      className={inputClass}
+      placeholder="Who are you talking to?"
+      value={audience}
+      onChange={e => setAudience(e.target.value)}
+    />
+  </div>
 
-              {showAdvanced && (
-                <div className="space-y-1">
-                  <p className={labelClass}>Tone (used by Quick Caption in cards)</p>
-                  <input
-                    className={inputClass}
-                    placeholder="brand-consistent, concise, human, engaging"
-                    value={tone}
-                    onChange={e => setTone(e.target.value)}
-                  />
-                </div>
-              )}
-            </div>
+  <div className="space-y-1">
+    <p className={labelClass}>Goal</p>
+    <input
+      className={inputClass}
+      placeholder="Grow, deepen, convert, test a concept…"
+      value={goal}
+      onChange={e => setGoal(e.target.value)}
+    />
+  </div>
 
-            {/* Focus + week */}
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-1">
-                <p className={labelClass}>Focus mode</p>
-                <select className={inputClass} value={focusMode} onChange={e => setFocusMode(e.target.value as CalendarFocus)}>
-                  <option value="general">General content</option>
-                  <option value="release">Upcoming release</option>
-                  <option value="gig">Upcoming gig</option>
-                  <option value="growth">Growth sprint</option>
-                </select>
-              </div>
+  <div className="space-y-1">
+    <p className={labelClass}>Focus mode</p>
+    <select className={inputClass} value={focusMode} onChange={e => setFocusMode(e.target.value as CalendarFocus)}>
+      <option value="general">General content</option>
+      <option value="release">Upcoming release</option>
+      <option value="gig">Upcoming gig</option>
+      <option value="growth">Growth sprint</option>
+    </select>
+  </div>
+</InputSection>
 
-             
-            </div>
+<InputSection title="Generation settings" hint="Choose what kind of ideas to generate.">
+  <div className="space-y-2">
+    <p className="text-xs uppercase tracking-wide text-white/50">Platforms</p>
+    <div className="flex flex-wrap gap-2">
+      {ALL_PLATFORMS.map(p => {
+        const active = selectedPlatforms.includes(p.key)
+        return (
+          <button
+            key={p.key}
+            type="button"
+            onClick={() => togglePlatform(p.key)}
+            className={`px-3 h-9 rounded-full border text-xs transition ${
+              active
+                ? 'border-ww-violet bg-ww-violet/20 text-white shadow-[0_0_14px_rgba(186,85,211,0.5)]'
+                : 'border-white/15 text-white/70 hover:border-ww-violet/70 hover:text-white'
+            }`}
+          >
+            {p.label}
+          </button>
+        )
+      })}
+    </div>
+  </div>
 
-            {/* Platforms */}
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wide text-white/50">Platforms</p>
-              <div className="flex flex-wrap gap-2">
-                {ALL_PLATFORMS.map(p => {
-                  const active = selectedPlatforms.includes(p.key)
-                  return (
-                    <button
-                      key={p.key}
-                      type="button"
-                      onClick={() => togglePlatform(p.key)}
-                      className={`px-3 h-9 rounded-full border text-xs transition ${
-                        active
-                          ? 'border-ww-violet bg-ww-violet/20 text-white shadow-[0_0_14px_rgba(186,85,211,0.5)]'
-                          : 'border-white/15 text-white/70 hover:border-ww-violet/70 hover:text-white'
-                      }`}
-                    >
-                      {p.label}
-                    </button>
-                  )
-                })}
-              </div>
-              <p className="text-[0.7rem] text-white/45">Tip: pick 2–3 platforms for more consistent ideas.</p>
-            </div>
+  <div className="space-y-2">
+    <p className="text-xs uppercase tracking-wide text-white/50">Content types</p>
+    <div className="flex flex-wrap gap-2">
+      {ALL_CONTENT_TYPES.map(t => {
+        const active = contentTypes.includes(t.key)
+        return (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => toggleContentType(t.key)}
+            className={`px-3 h-9 rounded-full border text-xs transition ${
+              active
+                ? 'border-ww-violet bg-ww-violet/20 text-white shadow-[0_0_14px_rgba(186,85,211,0.5)]'
+                : 'border-white/15 text-white/70 hover:border-ww-violet/70 hover:text-white'
+            }`}
+          >
+            {t.label}
+          </button>
+        )
+      })}
+    </div>
+  </div>
 
-            {/* Volume + context */}
-            <div className="grid gap-3 md:grid-cols-2">
+  <div className="space-y-2">
+    <p className="text-xs uppercase tracking-wide text-white/50">Idea count</p>
+    <div className="flex flex-wrap gap-2">
+      {[3, 5, 7, 10].map(n => {
+        const active = ideaCount === n
+        return (
+          <button
+            key={n}
+            type="button"
+            onClick={() => setIdeaCount(n as IdeaCount)}
+            className={`px-3 h-9 rounded-full border text-xs transition ${
+              active
+                ? 'border-ww-violet bg-ww-violet/20 text-white shadow-[0_0_14px_rgba(186,85,211,0.5)]'
+                : 'border-white/15 text-white/70 hover:border-ww-violet/70 hover:text-white'
+            }`}
+          >
+            {n} ideas
+          </button>
+        )
+      })}
+    </div>
+  </div>
+</InputSection>
 
-              
+<InputSection title="Optional context" hint="Extra detail to shape the ideas without cluttering the core brief.">
+  <div className="space-y-1">
+    <p className={labelClass}>Release / gig context</p>
+    <input
+      className={inputClass}
+      placeholder="Single name, date, gig, theme…"
+      value={releaseContext}
+      onChange={e => setReleaseContext(e.target.value)}
+    />
+  </div>
 
-              
+  <div className="space-y-1">
+    <p className={labelClass}>Lyrics focus</p>
+    <select
+      className={inputClass}
+      value={lyricsFocus}
+      onChange={e => setLyricsFocus(e.target.value as LyricsFocus)}
+    >
+      <option value="general">Use lyrics (general)</option>
+      <option value="hook">Focus on hook</option>
+      <option value="chorus">Focus on chorus</option>
+      <option value="verse">Focus on verse</option>
+    </select>
+  </div>
 
+  <div className="space-y-1">
+    <p className={labelClass}>Lyrics</p>
+    <textarea
+      className={inputClass + ' min-h-[120px]'}
+      placeholder="Paste lyrics or a short section."
+      value={lyrics}
+      onChange={e => setLyrics(e.target.value)}
+    />
+  </div>
 
-              <div className="space-y-1">
-                <p className={labelClass}>Release / gig context (optional)</p>
-                <input className={inputClass} placeholder="Single name, date, gig, theme…" value={releaseContext} onChange={e => setReleaseContext(e.target.value)} />
-              </div>
-              <div className="space-y-1">
-  <p className={labelClass}>Lyrics (optional)</p>
+</InputSection>
 
-  <select
-    className={inputClass}
-    value={lyricsFocus}
-    onChange={e => setLyricsFocus(e.target.value as any)}
+<div className="pt-1 space-y-2">
+  <button
+    type="button"
+    onClick={() => {
+      if (tier === 'free' && ideaCount > 3) {
+        toast.error('Free plan can generate up to 3 ideas. Upgrade for more.')
+        return
+      }
+
+      handleGenerateIdeas()
+    }}
+    disabled={generating || isCalendarLocked}
+    className={`${primaryBtn} w-full justify-center ${freeLimitReached ? 'opacity-70' : ''}`}
   >
-    <option value="general">Use lyrics (general)</option>
-    <option value="hook">Focus on hook</option>
-    <option value="chorus">Focus on chorus</option>
-    <option value="verse">Focus on verse</option>
-  </select>
+    {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+    {generating ? 'Generating…' : 'Generate ideas'}
+  </button>
 
-  <textarea
-    className={inputClass + ' min-h-[120px]'}
-    placeholder="Paste lyrics or a section (chorus/verse). Tip: keep it short for best results."
-    value={lyrics}
-    onChange={e => setLyrics(e.target.value)}
-  />
+  {freeLimitReached ? (
+    <LimitReachedPill
+      message="You've used your 1 free idea generation."
+      onUpgrade={() => router.push('/pricing')}
+    />
+  ) : null}
 
   <p className="text-[0.7rem] text-white/45">
-    Optional. Used to tailor themes + angles. Keep it to ~1 verse/chorus for cleaner outputs.
+    Generates <span className="text-white/75 font-semibold">{ideaCount}</span> idea cards.
   </p>
 </div>
-            </div>
 
-            {/* ✅ Schedule length (API generator) */}
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-1">
-                <p className={labelClass}>Schedule length</p>
-                <select className={inputClass} value={scheduleLength} onChange={e => setScheduleLength(e.target.value as any)}>
-                   <option value="7">1 week</option>
-  <option value="14">2 weeks</option>
-  <option value="30">1 month</option>
-
-
-                </select>
-              </div>
-              <div className="space-y-1">
-                <p className={labelClass}>Start date (from week)</p>
-                <input
-                  type="date"
-                  className={inputClass}
-                  value={dateKey(weekStart)}
-                  onChange={e => {
-  if (!e.target.value) return
-  setWeekStart(startOfWeekMonday(new Date(e.target.value + 'T12:00:00')))
-}}
-
-                />
-              </div>
-            </div>
-
-            {/* ✅ Clean energy controls (no squashed grid) */}
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-              <button
-                type="button"
-                onClick={() => setShowEnergyControls(v => !v)}
-                className="w-full flex items-center justify-between text-left"
-              >
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-white/50">Energy</p>
-                  <p className="text-[0.75rem] text-white/60 mt-0.5">Keep the UI clean — open only when needed.</p>
-                </div>
-                {showEnergyControls ? <ChevronDown className="w-5 h-5 text-white/70" /> : <ChevronRightIcon className="w-5 h-5 text-white/70" />}
-              </button>
-
-              {showEnergyControls && (
-                <div className="space-y-3">
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div className="space-y-1">
-                      <p className={labelClass}>Preset</p>
-                      <select
-                        className={inputClass}
-                        value={energyPreset}
-                        onChange={e => applyEnergyPreset(e.target.value as any)}
-                      >
-                        <option value="balanced">Balanced</option>
-                        <option value="weekday-grind">Weekday grind</option>
-                        <option value="weekend-warrior">Weekend warrior</option>
-                        <option value="custom">Custom</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <p className={labelClass}>Preview</p>
-                      <div className="rounded-xl border border-white/10 bg-black/60 px-3 py-2 text-xs text-white/70 flex flex-wrap gap-2">
-                        {(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const).map((d, i) => (
-                          <span key={d} className="inline-flex items-center gap-1.5">
-                            <span className="text-white/45">{d}</span>
-                            <span className="inline-flex items-center gap-1">
-                              {energyIcon(energyPattern[i] || 'medium')}
-                              {energyLabel(energyPattern[i] || 'medium')}
-                            </span>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {energyPreset === 'custom' && (
-                    <div className="space-y-2">
-                      <p className="text-xs uppercase tracking-wide text-white/50">Custom per-day</p>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const).map((d, i) => (
-                          <div key={d} className="space-y-1">
-                            <p className="text-[0.7rem] text-white/55">{d}</p>
-                            <select
-                              className={inputClass + ' h-9 py-0'}
-                              value={energyPattern[i] || 'medium'}
-                              onChange={e => setDayEnergy(i, e.target.value as Energy)}
-                            >
-                              <option value="low">Low</option>
-                              <option value="medium">Medium</option>
-                              <option value="high">High</option>
-                            </select>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Content mix (advanced) */}
-            {showAdvanced && (
-              <div className="space-y-3 pt-1">
-                <p className="text-xs uppercase tracking-wide text-white/50">Content mix</p>
-                <MixSlider label="Promo (music marketing)" value={mix.promo} onChange={n => setMix(v => ({ ...v, promo: n }))} />
-                <MixSlider label="Brand (story/values)" value={mix.brand} onChange={n => setMix(v => ({ ...v, brand: n }))} />
-                <MixSlider label="Community (questions)" value={mix.community} onChange={n => setMix(v => ({ ...v, community: n }))} />
-                <MixSlider label="BTS / Process" value={mix.bts} onChange={n => setMix(v => ({ ...v, bts: n }))} />
-                <MixSlider label="Lifestyle / Human" value={mix.lifestyle} onChange={n => setMix(v => ({ ...v, lifestyle: n }))} />
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <button
-  type="button"
-  onClick={() => {
-  // Keep your paywall logic if you want:
-  if (tier === 'free' && scheduleLength !== '7') {
-    toast.error('Free plan can generate 1 week only. Upgrade to generate more.')
-    return
-  }
-
-  handleGenerateScheduleFromApi()
-}}
-
-  disabled={!!(generating || isCalendarLocked)}
-
-  className={`${primaryBtn} ${freeLimitReached ? 'opacity-70' : ''}`}
->
-
-
-                {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                {generating ? 'Generating…' : 'Generate plan'}
-
-              </button>
-{freeLimitReached ? (
-  <LimitReachedPill
-    message="You've used your 1 free calendar generation."
-    onUpgrade={() => router.push('/pricing')}
-  />
-) : null}
-
-              <p className="text-[0.7rem] text-white/45">
-  Generates about{' '}
-  <span className="text-white/75 font-semibold">
-    {scheduleLength === '7' ? 7 : scheduleLength === '14' ? 14 : 30}
-  </span>{' '}
-  cards.
-</p>
-            </div>
           </section>
 
-          {/* RIGHT: Week / Month view */}
+          {/* RIGHT: Results */}
           <section className="rounded-3xl border border-white/10 bg-black/80 p-5 md:p-6 space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-wide text-white/50">{viewMode === 'week' ? 'Week view' : 'Month view'}</p>
-                <h2 className="text-lg font-semibold mt-1">{viewMode === 'week' ? weekTitle : monthTitle}</h2>
-                <p className="text-xs text-white/60 mt-1">Drag and drop works in Month view. Click a card to open it.</p>
-                <div className="h-px bg-white/10 my-2" />
-
+                <p className="text-xs uppercase tracking-wide text-white/50">Results</p>
+                <h2 className="text-lg font-semibold mt-1">Idea cards</h2>
+                <p className="text-xs text-white/60 mt-1">
+                  Generate, review, then send the best ones to Momentum Board.
+                </p>
               </div>
-              {/* Calendar actions */}
-<div className="flex flex-wrap items-center gap-2">
-  {viewMode === 'week' ? (
-    <>
-      <button type="button" onClick={handleExportWeekCsv} className={miniOutlineBtn}>
-        <Download className="w-3 h-3" />
-        CSV
-      </button>
-
-      <button type="button" onClick={handleExportWeekPdf} className={miniOutlineBtn}>
-        <Download className="w-3 h-3" />
-        PDF
-      </button>
-
-      <button type="button" onClick={handleSendWeekToMomentum} className={miniOutlineBtn}>
-        <Send className="w-3 h-3" />
-        Send week to Momentum
-      </button>
-    </>
-  ) : (
-    <>
-      <button type="button" onClick={handleExportMonthCsv} className={miniOutlineBtn}>
-        <Download className="w-3 h-3" />
-        CSV
-      </button>
-      <button type="button" onClick={handleSendMonthToMomentum} className={miniOutlineBtn}>
-  <Send className="w-3 h-3" />
-  Send month to Momentum
-</button>
-
-
-      <button type="button" onClick={handleClearCurrentMonth} className={miniOutlineBtn}>
-        <X className="w-3 h-3" />
-        Clear month
-      </button>
-    </>
-  )}
-</div>
-
-
 
               <div className="flex flex-wrap items-center gap-2">
-
-                <div className="inline-flex items-center rounded-full border border-ww-violet/40 bg-black/60 p-1 mr-1 shadow-[0_0_18px_rgba(186,85,211,0.35)] hover:shadow-[0_0_22px_rgba(186,85,211,0.55)] transition">
-
+                <div className="inline-flex items-center rounded-full border border-ww-violet/40 bg-black/60 p-1 shadow-[0_0_18px_rgba(186,85,211,0.35)]">
                   <button
                     type="button"
-                    onClick={() => setViewMode('week')}
+                    onClick={() => setViewMode('latest')}
                     className={`px-3 h-8 rounded-full text-xs font-medium transition-all ${
-                      viewMode === 'week'
+                      viewMode === 'latest'
                         ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.6)]'
                         : 'text-white/70 hover:text-white'
                     }`}
                   >
-                    Week
+                    Latest batch
                   </button>
                   <button
                     type="button"
-                    onClick={() => setViewMode('month')}
+                    onClick={() => setViewMode('all')}
                     className={`px-3 h-8 rounded-full text-xs font-medium transition-all ${
-                      viewMode === 'month'
+                      viewMode === 'all'
                         ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.6)]'
                         : 'text-white/70 hover:text-white'
                     }`}
                   >
-                    Month
+                    All ideas
                   </button>
                 </div>
 
-                {viewMode === 'week' ? (
-                  <>
-                    <button type="button" onClick={goThisWeek} className={miniOutlineBtn}>
-                      <CheckCircle2 className="w-3 h-3" />
-                      This week
-                    </button>
-                    <button
-                      type="button"
-                      onClick={goPrevWeek}
-                      className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/15 text-white/80 hover:border-ww-violet hover:text-white transition"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={goNextWeek}
-                      className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/15 text-white/80 hover:border-ww-violet hover:text-white transition"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    
+                <button
+                  type="button"
+                  onClick={handleSendVisibleToMomentum}
+                  disabled={!visibleItems.length || sendingVisible}
+                  className={miniOutlineBtn}
+                >
+                  {sendingVisible ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                  Send to Momentum
+                </button>
 
-                  
+                <button
+                  type="button"
+                  onClick={handleDeleteLastBatch}
+                  disabled={!lastBatchId || deletingBatch}
+                  className={miniOutlineBtn}
+                >
+                  {deletingBatch ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
+                  Delete latest batch
+                </button>
 
-                    <button type="button" onClick={goThisMonth} className={miniOutlineBtn}>
-                      <CheckCircle2 className="w-3 h-3" />
-                      This month
-                    </button>
-                    <button
-                      type="button"
-                      onClick={goPrevMonth}
-                      className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/15 text-white/80 hover:border-ww-violet hover:text-white transition"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={goNextMonth}
-                      className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/15 text-white/80 hover:border-ww-violet hover:text-white transition"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                    
-                  </>
-                )}
+                <button
+                  type="button"
+                  onClick={handleClearAllIdeas}
+                  disabled={!items.length || clearingAll}
+                  className={miniOutlineBtn}
+                >
+                  {clearingAll ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
+                  Clear all
+                </button>
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-wrap items-center gap-3 text-xs text-white/65">
+              <span className="inline-flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-ww-violet" />
+                Showing <span className="text-white/85 font-medium">{visibleCount}</span> cards
+              </span>
+
+              {lastBatchLabel ? (
+                <span className="px-2 py-1 rounded-full border border-white/10 bg-black/40 text-white/75">
+                  {lastBatchLabel}
+                </span>
+              ) : null}
+
+              {visiblePlatforms.length ? (
+                <span className="text-white/55">
+                  Platforms: {visiblePlatforms.map(platformLabel).join(', ')}
+                </span>
+              ) : null}
             </div>
 
             {loadingItems ? (
               <div className="text-xs text-white/55 flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Loading your calendar…
+                Loading your ideas…
+              </div>
+            ) : visibleItems.length ? (
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {visibleItems.map(item => (
+  <div key={item.id} className="relative group">
+    {item.in_momentum ? (
+      <div className="absolute top-2 left-2 z-10 text-[10px] px-2 py-1 rounded-full bg-ww-violet/15 text-ww-violet border border-ww-violet/30">
+        In Momentum
+      </div>
+    ) : null}
+
+    <button
+      type="button"
+      onClick={e => {
+        e.stopPropagation()
+        handleDeleteIdeaCard(item.id)
+      }}
+      className="absolute top-2 right-2 z-10 inline-flex items-center justify-center w-8 h-8 rounded-full border border-red-500/30 bg-black/70 text-red-300 opacity-0 group-hover:opacity-100 transition hover:bg-red-500/10 hover:border-red-400 hover:text-red-200"
+      title="Delete idea card"
+    >
+      <Trash2 className="w-4 h-4" />
+    </button>
+
+    <ContentCard
+      variant="pool"
+      title={item.title || item.metadata?.api?.short_label || 'Untitled'}
+      subtitle={platformLabel(item.platform)}
+      previewText={item.caption || ''}
+      statusDotClass={statusDotColor(item.status)}
+      onOpen={() => setExpandedItem(toSharedCard(item))}
+    />
+  </div>
+))}
               </div>
             ) : (
-              <DragDropContext onDragEnd={handleDragEnd}>
-                {viewMode === 'week' ? (
-                  <div className="overflow-x-auto pb-2">
-                    <div className="flex gap-3 min-w-full">
-                      {weekDays.map((d, i) => {
-                        const k = dateKey(d)
-                        const list = weekItemsByDay[k] || []
-                        const isToday = k === dateKey(new Date())
-                        const dayLabel = d.toLocaleDateString('en-GB', { weekday: 'short' })
-                        const dateLabel = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-                        const energy = energyPattern[i] || 'medium'
-
-                        return (
-                          <div
-                            key={k}
-                            className={`rounded-2xl border p-3 bg-black/70 space-y-2 shrink-0 w-[230px] sm:w-[260px] lg:w-[220px] xl:w-[240px] ${
-                              isToday ? 'border-ww-violet/60' : 'border-white/10'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="min-w-0">
-                                <div className="text-[0.72rem] text-white/55 flex items-center gap-2">
-                                  <span className="font-semibold text-white/80">{dayLabel}</span>
-                                  <span>{dateLabel}</span>
-                                </div>
-                                <div className="text-[0.65rem] text-white/50 flex items-center gap-1 mt-1">
-                                  {energyIcon(energy)}
-                                  Energy: {energyLabel(energy)}
-                                </div>
-                              </div>
-                              {isToday && (
-                                <span className="text-[0.6rem] px-2 py-1 rounded-full bg-ww-violet/15 text-ww-violet border border-ww-violet/30">
-                                  Today
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="space-y-2">
-                              {list.map(it => (
-  <ContentCard
-    key={it.id}
-    variant="pool"
-    title={it.title || 'Untitled'}
-    subtitle={platformLabel(it.platform)}
-    
-    previewText={it.caption || ''}
-    onOpen={() => setExpandedItem(toSharedCard(it))}
-  
-  />
-))}
-
-
-                              {!list.length && (
-                                <div className="text-[0.75rem] text-white/45 border border-dashed border-white/10 rounded-xl p-3">
-                                  No cards here yet.
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-7 text-[0.7rem] uppercase tracking-wide text-white/40">
-                      {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-                        <div key={d} className="px-1 pb-1 text-center">
-                          {d}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-px bg-white/10 rounded-2xl overflow-hidden text-xs">
-                      {monthDays.map((d, idx) => {
-                        const inCurrentMonth = d.getMonth() === currentMonth.getMonth()
-                        const k = dateKey(d)
-                        const dayItems = monthItemsByDay[k] || []
-                        const isToday = k === dateKey(new Date())
-
-                        return (
-                          <Droppable droppableId={`day:${k}`} key={`${k}-${idx}`}>
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                                className={[
-                                  'min-h-[120px] bg-black/70 p-2 flex flex-col gap-1 text-left border border-transparent transition'
-,
-                                  inCurrentMonth ? '' : 'opacity-40',
-                                  isToday ? 'border-ww-violet/70' : '',
-                                  snapshot.isDraggingOver ? 'bg-ww-violet/5' : '',
-                                ].join(' ')}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[0.7rem] text-white/60">{d.getDate()}</span>
-                                  {isToday && (
-                                    <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-ww-violet/20 text-ww-violet">Today</span>
-                                  )}
-                                </div>
-
-                                <div className="flex flex-col gap-2 mt-1 min-h-[10px] max-h-[140px] overflow-y-auto pr-1">
-
-                                  {dayItems.map((item, itemIdx) => (
-                                    <Draggable draggableId={item.id} index={itemIdx} key={item.id}>
-                                      {(dragProvided, dragSnapshot) => (
-                                        <div
-  ref={dragProvided.innerRef}
-  {...dragProvided.draggableProps}
-  {...dragProvided.dragHandleProps}
-  className={dragSnapshot.isDragging ? 'scale-[0.99]' : ''}
-  onClick={e => {
-    e.stopPropagation()
-    setExpandedItem(toSharedCard(item))
-  }}
->
-  <ContentCard
-    variant="mini"
-    title={item.title || item.metadata?.api?.short_label || 'Untitled'}
-previewText={item.caption || ''}
-    subtitle={platformLabel(item.platform)}
-    statusDotClass={statusDotColor(item.status)}
-    // optional: tiny preview line (only if you want it in month view)
-    // previewText={item.caption || ''}
-    onOpen={() => setExpandedItem(toSharedCard(item))}
-    
-  />
-</div>
-
-
-
-                                      )}
-                                    </Draggable>
-                                  ))}
-                                  {provided.placeholder}
-                                </div>
-                              </div>
-                            )}
-                          </Droppable>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-              </DragDropContext>
+              <div className="rounded-2xl border border-dashed border-white/10 bg-black/40 p-8 text-center space-y-2">
+                <p className="text-white/80 font-medium">No idea cards yet</p>
+                <p className="text-sm text-white/50">
+                  Generate a batch on the left and your ideas will appear here.
+                </p>
+              </div>
             )}
           </section>
         </div>
       </section>
 
-      {/* ✅ Shared ContentCardModal */}
       {expandedItem && (
         <div className="fixed inset-0 z-50" onClick={() => setExpandedItem(null)} onTouchStart={() => setExpandedItem(null)}>
           <div className="fixed inset-0 bg-black/70 backdrop-blur" aria-hidden />
-          <div
-  className="fixed inset-0 flex items-center justify-center px-4"
-  onClick={e => e.stopPropagation()}
->
-
+          <div className="fixed inset-0 flex items-center justify-center px-4" onClick={e => e.stopPropagation()}>
             <ContentCardModal
               open={!!expandedItem}
               onClose={() => setExpandedItem(null)}
