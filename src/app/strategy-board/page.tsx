@@ -137,13 +137,13 @@ function platformLabel(p: string | null | undefined) {
 function featureLabel(f: string | null | undefined) {
   switch (f) {
     case 'calendar':
-      return 'Calendar'
+      return 'Ideas'
     case 'trends':
-      return 'Trend Finder'
+      return 'Trend'
     case 'captions':
       return 'Captions'
     case 'identity':
-      return 'Identity Kit'
+      return 'Identity'
     default:
       return 'Other'
   }
@@ -1317,7 +1317,7 @@ async function handleDeleteCard(id: string) {
           <div
             className={`w-full inline-flex items-center justify-center px-2.5 py-1 rounded-lg border text-[10px] font-medium leading-none whitespace-nowrap overflow-hidden ${featureBadgeClass(item.feature)}`}
           >
-            <span className="truncate">{featureLabel(item.feature)}</span>
+            <span className="truncate">{featureLabelShort(item.feature)}</span>
           </div>
 
           <button
