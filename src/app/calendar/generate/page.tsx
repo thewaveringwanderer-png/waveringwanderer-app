@@ -14,6 +14,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
+
 /* ---------------- Types ---------------- */
 
 type ProjectType = 'single' | 'ep' | 'album' | 'tour' | 'other'
@@ -147,6 +148,8 @@ export default function CalendarGeneratorPage() {
   }
 
   async function handleGenerate() {
+ console.log('[calendar]', { safeTier, usedCalendarGenerations, freeLimitReached })
+   
   try {
     // 1) Free tier guard (BEFORE doing any work)
     if (freeLimitReached) {

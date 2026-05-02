@@ -6,7 +6,7 @@ import { Toaster, toast } from 'sonner'
 import { useWwProfile } from '@/hooks/useWwProfile'
 import { useRouter } from 'next/navigation'
 import LimitReachedPill from '@/components/ww/LimitReachedPill'
-
+import { type PdfLine, normalizeText } from '@/lib/wwPdf'
 import {
   Sparkles,
   Wand2,
@@ -23,8 +23,7 @@ import {
   Download,
 } from 'lucide-react'
 
-// ✅ Universal PDF engine (shared across WW)
-import { type PdfLine, normalizeText, renderPdfFromLines } from '@/lib/wwPdf'
+
 
 /* ---------- Types for Newsletter outline & full draft ---------- */
 
@@ -61,23 +60,31 @@ type FullEmailResult = {
 
 /* ---------- PDF mapping (Newsletter → PdfLine[]) ---------- */
 
+function normalizePdfText(s: string) {
+  return (s || '')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .trim()
+}
+
 function buildNewsletterPdfLines(
   email: FullEmailResult,
   selectedIdea?: NewsletterIdea | null
-): PdfLine[] {
+) {
   const lines: PdfLine[] = []
 
-  const subject = normalizeText(email.subject || 'Newsletter')
+  const subject = normalizePdfText(email.subject || 'Newsletter')
   lines.push({ kind: 'title', text: subject })
 
   const subtitleParts: string[] = []
   if (selectedIdea?.title) subtitleParts.push(selectedIdea.title)
-  if (email.preheader) subtitleParts.push(normalizeText(email.preheader))
+  if (email.preheader) subtitleParts.push(normalizePdfText(email.preheader))
 
   if (subtitleParts.length) {
     lines.push({
       kind: 'subtitle',
-      text: normalizeText(subtitleParts.join(' • ')),
+      text: normalizePdfText(subtitleParts.join(' • ')),
     })
   }
 
@@ -85,13 +92,13 @@ function buildNewsletterPdfLines(
 
   if (email.intro) {
     lines.push({ kind: 'sectionTitle', text: 'Intro' })
-    lines.push({ kind: 'body', text: normalizeText(email.intro) })
+    lines.push({ kind: 'body', text: normalizePdfText(email.intro) })
   }
 
   if (Array.isArray(email.sections) && email.sections.length) {
     for (const sec of email.sections) {
-      const heading = normalizeText(sec.heading || '')
-      const body = normalizeText(sec.body || '')
+      const heading = normalizePdfText(sec.heading || '')
+      const body = normalizePdfText(sec.body || '')
       if (!heading && !body) continue
 
       lines.push({ kind: 'divider' })
@@ -103,13 +110,13 @@ function buildNewsletterPdfLines(
   if (email.closing) {
     lines.push({ kind: 'divider' })
     lines.push({ kind: 'sectionTitle', text: 'Closing' })
-    lines.push({ kind: 'body', text: normalizeText(email.closing) })
+    lines.push({ kind: 'body', text: normalizePdfText(email.closing) })
   }
 
   if (email.ps) {
     lines.push({ kind: 'divider' })
     lines.push({ kind: 'sectionTitle', text: 'P.S.' })
-    lines.push({ kind: 'body', text: normalizeText(email.ps) })
+    lines.push({ kind: 'body', text: normalizePdfText(email.ps) })
   }
 
   return lines
@@ -428,31 +435,30 @@ const isProLocked = tier !== 'pro'
 
   // ✅ PDF export using wwPdf (same engine as Calendar + Strategy Board)
   async function handleDownloadEmailPdf() {
-    if (!fullEmail) return
-    setDownloadingPdf(true)
-    try {
-      const selectedIdea =
-        outlineResult?.ideas.find(i => i.id === selectedIdeaId) || null
+  if (!fullEmail) return
+  setDownloadingPdf(true)
 
-      const lines = buildNewsletterPdfLines(fullEmail, selectedIdea)
-      const base =
-        fullEmail.subject ||
-        selectedIdea?.title ||
-        `newsletter-${new Date().toISOString().slice(0, 10)}`
+  try {
+    const { renderWwPdf } = await import('@/lib/pdf.client')
 
-      renderPdfFromLines({
-        lines,
-        filenameBase: base,
-      })
+    const selectedIdea =
+      outlineResult?.ideas.find(i => i.id === selectedIdeaId) || null
 
-      toast.success('Newsletter exported as PDF ✅')
-    } catch (e: any) {
-      console.error('[newsletter-pdf]', e)
-      toast.error(e?.message || 'Could not generate PDF')
-    } finally {
-      setDownloadingPdf(false)
-    }
+    const lines = buildNewsletterPdfLines(fullEmail, selectedIdea)
+    const base =
+      fullEmail.subject ||
+      selectedIdea?.title ||
+      `newsletter-${new Date().toISOString().slice(0, 10)}`
+
+    await renderWwPdf(lines, base)
+    toast.success('Newsletter exported as PDF ✅')
+  } catch (e: any) {
+    console.error('[newsletter-pdf]', e)
+    toast.error(e?.message || 'Could not generate PDF')
+  } finally {
+    setDownloadingPdf(false)
   }
+}
 
   const selectedOutlineIdea: NewsletterIdea | null = useMemo(
     () => outlineResult?.ideas.find(i => i.id === selectedIdeaId) || null,
@@ -468,7 +474,7 @@ const isProLocked = tier !== 'pro'
       <section className="mx-auto max-w-6xl px-4 py-8 space-y-6">
         {/* Header */}
         <header className="space-y-2">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="inline-flex items-center gap-2 text-s tracking-[0.18em] text-ww-violet/80 mb-3 uppercase">
             <Mail className="w-7 h-7 text-ww-violet" />
             Newsletter Studio
           </h1>
@@ -700,6 +706,7 @@ const isProLocked = tier !== 'pro'
   type="button"
   onClick={handleGenerateOutline}
   disabled={isProLocked}
+  className={primaryButtonClass}
 >
 
                   {loadingOutline ? (

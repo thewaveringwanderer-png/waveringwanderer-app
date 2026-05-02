@@ -4,6 +4,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Toaster, toast } from 'sonner'
 import { useWwProfile } from '@/hooks/useWwProfile'
+import { type PdfLine } from '@/lib/wwPdf'
+import { useGeneratingMessages } from '@/hooks/useGeneratingMessages'
 import {
   Sparkles,
   Globe2,
@@ -17,13 +19,9 @@ import {
   Link2,
   Camera,
   Download,
+  FileText,
 } from 'lucide-react'
-import {
-  type PdfLine,
-  type PdfLayout,
-  normalizeText,
-  renderPdfFromLines,
-} from '@/lib/wwPdf'
+
 
 // ---------- Types ----------
 
@@ -51,8 +49,22 @@ type PressKitState = {
 
 type PressKitPatch = Partial<PressKitState>
 type PressKitFromAi = PressKitPatch
+const PRESS_KIT_GENERATING_MESSAGES = [
+  'Reading your press kit context...',
+  'Shaping your artist narrative...',
+  'Building press-ready copy...',
+  'Polishing your draft...',
+]
 
 // ---------- API helper ----------
+
+function normalizePdfText(s: string) {
+  return (s || '')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .trim()
+}
 
 async function callPressKitApi(
   mode: 'from_profile' | 'from_web' | 'bio_from_web',
@@ -76,44 +88,10 @@ async function callPressKitApi(
   return json as PressKitFromAi
 }
 
-// ---------- PDF Layout + Builder ----------
-
-const LAYOUT: PdfLayout = {
-  page: { unit: 'pt', format: 'a4' },
-  marginX: 64,
-  marginTop: 72,
-  marginBottom: 64,
-  maxWidthPadding: 0,
-
-  titleSize: 28,
-  subtitleSize: 12,
-  sectionTitleSize: 12,
-  bodySize: 11,
-
-  titleLeading: 32,
-  subtitleLeading: 18,
-  sectionTitleLeading: 18,
-  bodyLeading: 16,
-
-  // spacing
-  titleGapAfter: 6,
-  gapAfterSubtitle: 18,
-
-  dividerPadTop: 16,
-  dividerPadBottom: 14,
-  dividerExtraAfter: 6,
-
-  // ✅ hard guarantee after divider
-  dividerAfterLineGap: 18,
-
-  gapAfterSectionTitle: 8,
-  gapAfterParagraph: 10,
-}
-
 function buildPdfLines(pressKit: PressKitState): PdfLine[] {
   const lines: PdfLine[] = []
 
-  const title = normalizeText(
+  const title = normalizePdfText(
     pressKit.artistName || pressKit.releaseTitle || 'Electronic Press Kit'
   )
   lines.push({ kind: 'title', text: title.toUpperCase() })
@@ -127,9 +105,9 @@ function buildPdfLines(pressKit: PressKitState): PdfLine[] {
 
   // ARTIST
   const artistHeader: string[] = []
-  if (pressKit.artistName) artistHeader.push(normalizeText(pressKit.artistName))
-  if (pressKit.releaseTitle) artistHeader.push(normalizeText(pressKit.releaseTitle))
-  else if (pressKit.tagline) artistHeader.push(normalizeText(pressKit.tagline))
+  if (pressKit.artistName) artistHeader.push(normalizePdfText(pressKit.artistName))
+  if (pressKit.releaseTitle) artistHeader.push(normalizePdfText(pressKit.releaseTitle))
+  else if (pressKit.tagline) artistHeader.push(normalizePdfText(pressKit.tagline))
 
   lines.push({ kind: 'sectionTitle', text: 'ARTIST' })
   if (artistHeader.length) {
@@ -143,16 +121,16 @@ function buildPdfLines(pressKit: PressKitState): PdfLine[] {
   lines.push({ kind: 'sectionTitle', text: 'OVERVIEW & BIO' })
 
   const facts: string[] = []
-  if (pressKit.location) facts.push(`Location: ${normalizeText(pressKit.location)}`)
-  if (pressKit.genre) facts.push(`Genre: ${normalizeText(pressKit.genre)}`)
+  if (pressKit.location) facts.push(`Location: ${normalizePdfText(pressKit.location)}`)
+  if (pressKit.genre) facts.push(`Genre: ${normalizePdfText(pressKit.genre)}`)
   if (pressKit.forFansOf)
-    facts.push(`For fans of: ${normalizeText(pressKit.forFansOf)}`)
+    facts.push(`For fans of: ${normalizePdfText(pressKit.forFansOf)}`)
 
   for (const f of facts) lines.push({ kind: 'body', text: f })
 
-  if (pressKit.shortBio) lines.push({ kind: 'body', text: normalizeText(pressKit.shortBio) })
+  if (pressKit.shortBio) lines.push({ kind: 'body', text: normalizePdfText(pressKit.shortBio) })
   if (pressKit.extendedBio)
-    lines.push({ kind: 'body', text: normalizeText(pressKit.extendedBio) })
+    lines.push({ kind: 'body', text: normalizePdfText(pressKit.extendedBio) })
 
   if (!facts.length && !pressKit.shortBio && !pressKit.extendedBio) {
     lines.push({
@@ -165,57 +143,57 @@ function buildPdfLines(pressKit: PressKitState): PdfLine[] {
   if (pressKit.keyAchievements) {
     lines.push({ kind: 'divider' })
     lines.push({ kind: 'sectionTitle', text: 'KEY ACHIEVEMENTS' })
-    lines.push({ kind: 'body', text: normalizeText(pressKit.keyAchievements) })
+    lines.push({ kind: 'body', text: normalizePdfText(pressKit.keyAchievements) })
   }
 
   // NOTABLE PRESS
   if (pressKit.notablePress) {
     lines.push({ kind: 'divider' })
     lines.push({ kind: 'sectionTitle', text: 'NOTABLE PRESS' })
-    lines.push({ kind: 'body', text: normalizeText(pressKit.notablePress) })
+    lines.push({ kind: 'body', text: normalizePdfText(pressKit.notablePress) })
   }
 
   // LIVE HIGHLIGHTS
   if (pressKit.liveHighlights) {
     lines.push({ kind: 'divider' })
     lines.push({ kind: 'sectionTitle', text: 'LIVE HIGHLIGHTS' })
-    lines.push({ kind: 'body', text: normalizeText(pressKit.liveHighlights) })
+    lines.push({ kind: 'body', text: normalizePdfText(pressKit.liveHighlights) })
   }
 
   // PRESS ANGLE
   if (pressKit.pressAngle) {
     lines.push({ kind: 'divider' })
     lines.push({ kind: 'sectionTitle', text: 'PRESS ANGLE / STORY HOOK' })
-    lines.push({ kind: 'body', text: normalizeText(pressKit.pressAngle) })
+    lines.push({ kind: 'body', text: normalizePdfText(pressKit.pressAngle) })
   }
 
   // LINKS
   if (pressKit.streamingLinks) {
     lines.push({ kind: 'divider' })
     lines.push({ kind: 'sectionTitle', text: 'STREAMING LINKS' })
-    lines.push({ kind: 'body', text: normalizeText(pressKit.streamingLinks) })
+    lines.push({ kind: 'body', text: normalizePdfText(pressKit.streamingLinks) })
   }
 
   if (pressKit.socialLinks) {
     lines.push({ kind: 'divider' })
     lines.push({ kind: 'sectionTitle', text: 'SOCIALS' })
-    lines.push({ kind: 'body', text: normalizeText(pressKit.socialLinks) })
+    lines.push({ kind: 'body', text: normalizePdfText(pressKit.socialLinks) })
   }
 
   // CONTACT
   if (pressKit.contactName || pressKit.contactEmail || pressKit.contactPhone) {
     lines.push({ kind: 'divider' })
     lines.push({ kind: 'sectionTitle', text: 'CONTACT' })
-    if (pressKit.contactName) lines.push({ kind: 'body', text: normalizeText(pressKit.contactName) })
-    if (pressKit.contactEmail) lines.push({ kind: 'body', text: normalizeText(pressKit.contactEmail) })
-    if (pressKit.contactPhone) lines.push({ kind: 'body', text: normalizeText(pressKit.contactPhone) })
+    if (pressKit.contactName) lines.push({ kind: 'body', text: normalizePdfText(pressKit.contactName) })
+    if (pressKit.contactEmail) lines.push({ kind: 'body', text: normalizePdfText(pressKit.contactEmail) })
+    if (pressKit.contactPhone) lines.push({ kind: 'body', text: normalizePdfText(pressKit.contactPhone) })
   }
 
   // PRESS PHOTOS
   if (pressKit.photoNotes) {
     lines.push({ kind: 'divider' })
     lines.push({ kind: 'sectionTitle', text: 'PRESS PHOTOS' })
-    lines.push({ kind: 'body', text: normalizeText(pressKit.photoNotes) })
+    lines.push({ kind: 'body', text: normalizePdfText(pressKit.photoNotes) })
   }
 
   return lines
@@ -262,7 +240,14 @@ export default function PressKitPage() {
   const [downloadingPdf, setDownloadingPdf] = useState(false)
 
   const [heroPhotoFileUrl, setHeroPhotoFileUrl] = useState<string | null>(null)
+  
+  const anyAiLoading =
+  loadingProfileFill || loadingWebFill || loadingBioFromWeb
 
+const generatingMessage = useGeneratingMessages(
+  anyAiLoading,
+  PRESS_KIT_GENERATING_MESSAGES
+)
   // ✅ gentle hydration from shared profile (only if fields are empty)
   useEffect(() => {
     setPressKit(prev => ({
@@ -419,22 +404,20 @@ export default function PressKitPage() {
   }
 
   async function handleDownloadPdf() {
-    setDownloadingPdf(true)
-    try {
-      const filenameBase = pressKit.artistName || pressKit.releaseTitle || 'press-kit'
-      renderPdfFromLines({
-        lines: pdfLines,
-        filenameBase,
-        layout: LAYOUT,
-      })
-      toast.success('Press kit downloaded as PDF ✅')
-    } catch (e: any) {
-      console.error(e)
-      toast.error(e?.message || 'Could not generate PDF')
-    } finally {
-      setDownloadingPdf(false)
-    }
+  setDownloadingPdf(true)
+  try {
+    const { renderWwPdf } = await import('@/lib/pdf.client')
+
+    const filenameBase = pressKit.artistName || pressKit.releaseTitle || 'press-kit'
+    await renderWwPdf(pdfLines as any, filenameBase)
+    toast.success('Press kit downloaded as PDF ✅')
+  } catch (e: any) {
+    console.error(e)
+    toast.error(e?.message || 'Could not generate PDF')
+  } finally {
+    setDownloadingPdf(false)
   }
+}
 
   const primaryButtonClass =
     'inline-flex items-center gap-2 px-4 h-9 rounded-full bg-ww-violet text-xs md:text-sm font-semibold ' +
@@ -453,7 +436,8 @@ export default function PressKitPage() {
 
       <section className="mx-auto max-w-6xl px-4 py-8 space-y-6">
         <div className="space-y-2">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+          <h1 className="inline-flex items-center gap-2 text-s tracking-[0.18em] text-ww-violet/80 mb-3 uppercase">
+            <FileText className="w-7 h-7 text-ww-violet" />
             Press Kit Studio
           </h1>
           <p className="text-white/70 max-w-2xl">
@@ -468,7 +452,7 @@ export default function PressKitPage() {
             </span>
             <button type="button" onClick={applyProfileLocally} className={primaryButtonClass}>
               <Sparkles className="w-3 h-3" />
-              Apply WW profile
+              Use WW profile
             </button>
           </div>
         )}
@@ -546,9 +530,11 @@ export default function PressKitPage() {
                 </button>
               </div>
 
-              <p className="text-[0.7rem] text-white/50">
-                These helpers draft copy from your inputs/profile — you stay in control.
-              </p>
+              <p className="text-[0.7rem] text-white/50 min-h-[18px]">
+  {anyAiLoading
+    ? generatingMessage
+    : 'These helpers draft copy from your inputs/profile — you stay in control.'}
+</p>
             </div>
 
             {/* Core fields */}
@@ -840,11 +826,45 @@ export default function PressKitPage() {
               </div>
             </div>
 
-            <PdfPreview lines={pdfLines} />
+            {anyAiLoading ? <PressKitGeneratingPreview /> : <PdfPreview lines={pdfLines} />}
           </section>
         </div>
       </section>
     </main>
+  )
+}
+
+function PressKitGeneratingPreview() {
+  return (
+    <div className="bg-white text-black rounded-2xl p-6 md:p-8 max-h-[78vh] overflow-y-auto space-y-5">
+      <div className="space-y-2 blur-[2px]">
+        <div className="h-8 w-2/3 rounded bg-black/10" />
+        <div className="h-4 w-1/2 rounded bg-black/8" />
+      </div>
+
+      <hr className="my-5 border-black/10" />
+
+      {['ARTIST', 'OVERVIEW & BIO', 'KEY ACHIEVEMENTS', 'PRESS ANGLE / STORY HOOK'].map(section => (
+        <div key={section} className="space-y-3">
+          <div className="h-3 w-40 rounded bg-black/10 blur-[2px]" />
+          <div className="space-y-2 blur-[2px]">
+            <div className="h-4 w-full rounded bg-black/8" />
+            <div className="h-4 w-5/6 rounded bg-black/8" />
+            <div className="h-4 w-4/5 rounded bg-black/8" />
+          </div>
+        </div>
+      ))}
+
+      <hr className="my-5 border-black/10" />
+
+      <div className="space-y-3">
+        <div className="h-3 w-24 rounded bg-black/10 blur-[2px]" />
+        <div className="space-y-2 blur-[2px]">
+          <div className="h-4 w-2/3 rounded bg-black/8" />
+          <div className="h-4 w-1/2 rounded bg-black/8" />
+        </div>
+      </div>
+    </div>
   )
 }
 

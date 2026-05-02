@@ -9,7 +9,7 @@ export const WW_TIER_CARDS = [
     features: [
       'Identity Kit: 1 preview generation',
       'Captions: 1 generate + unlimited polish',
-      'Calendar: 1 week plan (7 days)',
+      'Idea Factory: 7 ideas',
       'See how WW turns one idea into momentum',
       'Upgrade anytime',
     ],
@@ -21,7 +21,7 @@ export const WW_TIER_CARDS = [
     subLabel: 'Consistency, clarity & momentum',
     cta: 'Upgrade to Creator',
     features: [
-      'Unlimited captions & content calendars',
+      'Unlimited Captions & Idea Factory generations',
       'Full Artist Identity Kit',
       'Momentum Board (plan & organise content)',
       'Release Strategy generator',

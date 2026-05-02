@@ -135,6 +135,7 @@ type Props = {
   previewText?: string
   hashtagsPreview?: string
   statusDotClass?: string
+  metadata?: any
   badge?: ContentCardBadge
   actions?: React.ReactNode
   onOpen?: () => void
@@ -230,6 +231,7 @@ export default function ContentCard({
   previewText,
   hashtagsPreview,
   statusDotClass,
+  metadata,
   badge,
   actions,
   onOpen,
@@ -243,6 +245,8 @@ export default function ContentCard({
   const isPool = variant === 'pool'
   const isFull = variant === 'full'
 
+  const isRefinedCaption = !!metadata?.caption_refined
+
   // Prefer Momentum-style props if provided; fall back to legacy ones.
   const finalSubtitle =
     subtitle ??
@@ -254,6 +258,8 @@ export default function ContentCard({
     hashtagsPreview ?? normalizeHashtags(hashtags)
 
   const dotClass = statusDotClass ?? statusDotColor(status)
+
+  
 
   const handleClick = () => {
     if (onOpen) onOpen()
@@ -329,6 +335,12 @@ export default function ContentCard({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+  {isRefinedCaption ? (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 text-[0.65rem] leading-none whitespace-nowrap text-emerald-300">
+      Refined
+    </span>
+  ) : null}
+
   {badge ? (
     <span
       className={[
@@ -416,11 +428,22 @@ export default function ContentCard({
       ) : null}
 
       {s.cta ? (
-        <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
-          <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">CTA</div>
-          <div className="line-clamp-2">{s.cta}</div>
-        </div>
+  <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
+    <div className="mb-1 flex items-center justify-between gap-2">
+      <div className="text-[0.62rem] uppercase tracking-wide text-white/45">CTA</div>
+
+      {isRefinedCaption ? (
+        <span className="inline-flex items-center rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[0.58rem] uppercase tracking-wide text-emerald-300 whitespace-nowrap">
+          Refined
+        </span>
       ) : null}
+    </div>
+
+    <div className="line-clamp-2">
+      {metadata?.refined_caption_text || s.cta}
+    </div>
+  </div>
+) : null}
 
       {s.pillar ? (
         <div className="flex items-center justify-between gap-2 px-1">

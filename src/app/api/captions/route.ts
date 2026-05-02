@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       const {
         sourceKind,
         artistName,
-        platform,
+        platform: activePlatform,
         topic,
         imageHint,
         keywords,
@@ -29,7 +29,7 @@ You are a social-media caption writer for a music artist.
 Generate ${variantCount} highly engaging, human captions.
 
 Artist: ${artistName || 'Unknown'}
-Platform: ${platform}
+Platform: ${activePlatform}
 Source kind: ${sourceKind || '—'}
 Tone: ${tone}
 Topic: ${topic}

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Space_Grotesk } from 'next/font/google'
-import { TopNav } from '@/components/TopNav'
+import Script from 'next/script'
+import { AppChrome } from '@/components/AppChrome'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -10,8 +11,9 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'Wavering Wanderers',
-  description: 'AI-crafted creativity for independent artists',
+  title: 'Wavering Wanderers | AI tools for independent artists',
+  description:
+    'AI-powered creative tools for independent artists to build clarity, consistency, and momentum.',
 }
 
 export default function RootLayout({
@@ -24,11 +26,13 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} font-sans bg-ww-bg text-ww-text`}
       >
-        {/* Global nav with conditional logout */}
-        <TopNav />
-
-        {/* Page content */}
+        <AppChrome />
         {children}
+
+        <Script
+          src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )

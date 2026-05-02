@@ -38,6 +38,7 @@ type Meta = {
   goal?: string
   influences?: string
   brandWords?: string
+  direction?: string
 }
 
 function asList(x: any): string[] {
@@ -78,7 +79,8 @@ export function buildCampaignPdfLines(
 ): PdfLine[] {
   const lines: PdfLine[] = []
 
-  const artistName = meta.artistName || 'Artist'
+  const artistName = normalizeText(meta.artistName || 'Artist')
+
 
   // ✅ Premium header (title + subtitle + meta box + divider)
   const subtitleParts: string[] = []

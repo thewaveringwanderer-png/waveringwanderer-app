@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo, Fragment, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
-import { hasFeature } from '@/lib/hasFeature'
+import { type PdfLine } from '@/lib/wwPdf'
 
 import {
   CalendarDays,
@@ -14,12 +14,10 @@ import {
   Download,
   Filter,
   Maximize2,
-  Clipboard,
-  FileText,
   X,
-  TrashIcon,
+  Compass, 
 } from 'lucide-react'
-import { Trash } from 'lucide-react'
+
 
 
 import { DragDropContext, Droppable, Draggable, type DropResult, type DragUpdate } from '@hello-pangea/dnd'
@@ -30,8 +28,7 @@ import ContentCard from '@/components/ww/ContentCard'
 // ✅ Shared modal (unified edit/caption/pdf)
 import ContentCardModal, { type ContentCard as SharedContentCard } from '@/components/ww/ContentCardModal'
 
-// ✅ Universal PDF engine
-import { type PdfLine, normalizeText, renderPdfFromLines } from '@/lib/wwPdf'
+
 
 // ✅ WW profile hook (fallback context – does NOT change your storage yet)
 import { useWwProfile } from '@/hooks/useWwProfile'
@@ -43,6 +40,15 @@ const supabase = createClient(
 )
 
 // ---------- Types ----------
+
+function normalizePdfText(s: string) {
+  return (s || '')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .trim()
+}
+
 type ContentCalendarItem = {
   id: string
   user_id: string
@@ -84,6 +90,21 @@ function getMonthGrid(currentMonth: Date): Date[] {
     days.push(d)
   }
   return days
+}
+
+function featureLabelShort(f: string | null | undefined) {
+  switch (f) {
+    case 'calendar':
+      return 'Idea'
+    case 'trends':
+      return 'Trend'
+    case 'captions':
+      return 'Caption'
+    case 'identity':
+      return 'Identity'
+    default:
+      return 'Other'
+  }
 }
 
 function dateKey(date: Date) {
@@ -198,7 +219,7 @@ function buildMomentumPdfLines(
   item: ContentCalendarItem,
   profileFallback?: { artistName?: string; audience?: string; goal?: string }
 ): PdfLine[] {
-  const title = normalizeText(item.title || 'Content card')
+  const title = normalizePdfText(item.title || 'Content card')
 
   const dateStr = item.scheduled_at
     ? new Date(item.scheduled_at).toLocaleDateString('en-GB', {
@@ -215,14 +236,14 @@ function buildMomentumPdfLines(
 
   const lines: PdfLine[] = [
     { kind: 'title', text: title },
-    { kind: 'subtitle', text: normalizeText(meta) },
+    { kind: 'subtitle', text: normalizePdfText(meta) },
     { kind: 'divider' },
   ]
 
   lines.push({ kind: 'sectionTitle', text: 'Caption / Notes' })
   lines.push({
     kind: 'body',
-    text: normalizeText(item.caption || 'No caption/notes yet.'),
+    text: normalizePdfText(item.caption || 'No caption/notes yet.'),
   })
 
   const tags =
@@ -233,7 +254,7 @@ function buildMomentumPdfLines(
   if (tags) {
     lines.push({ kind: 'divider' })
     lines.push({ kind: 'sectionTitle', text: 'Hashtags' })
-    lines.push({ kind: 'body', text: normalizeText(tags) })
+    lines.push({ kind: 'body', text: normalizePdfText(tags) })
   }
 
   // Context (metadata first, then WW profile fallback)
@@ -255,7 +276,7 @@ function buildMomentumPdfLines(
   if (metaLines.length) {
     lines.push({ kind: 'divider' })
     lines.push({ kind: 'sectionTitle', text: 'Context' })
-    for (const t of metaLines) lines.push({ kind: 'body', text: normalizeText(t) })
+    for (const t of metaLines) lines.push({ kind: 'body', text: normalizePdfText(t) })
   }
 
   return lines
@@ -269,7 +290,13 @@ export default function StrategyBoardPage() {
     }
   }, [])
 
-  const { profile } = useWwProfile() // ✅ fallback only; does not enforce storage changes
+  const { profile, updateProfile  } = useWwProfile() // ✅ fallback only; does not enforce storage changes
+
+useEffect(() => {
+  if (profile && !profile.onboarding_started) {
+    updateProfile({ onboarding_started: true })
+  }
+}, [profile])
 
   const [items, setItems] = useState<ContentCalendarItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -324,6 +351,7 @@ async function handleClearCurrentMonth() {
 
   // Modals & interactions
   const [expandedItem, setExpandedItem] = useState<SharedContentCard | null>(null)
+  const [highlightedCardId, setHighlightedCardId] = useState('')
   const [expandedDay, setExpandedDay] = useState<Date | null>(null)
   const [exportingPressId, setExportingPressId] = useState<string | null>(null)
   const [exportingPdfId, setExportingPdfId] = useState<string | null>(null)
@@ -412,6 +440,19 @@ const [recentlyScheduledDayKey, setRecentlyScheduledDayKey] = useState<string | 
   return () => clearTimeout(t)
 }, [recentlyScheduledDayKey])
 
+useEffect(() => {
+  if (typeof window === 'undefined') return
+
+  const saved = sessionStorage.getItem('ww_highlight_card_id') || ''
+  if (saved) {
+    setHighlightedCardId(saved)
+    sessionStorage.removeItem('ww_highlight_card_id')
+
+    setTimeout(() => {
+      setHighlightedCardId('')
+    }, 4000)
+  }
+}, [])
 
   // ---------- Derived data ----------
   const days = useMemo(() => getMonthGrid(currentMonth), [currentMonth])
@@ -887,28 +928,30 @@ async function handleDeleteCard(id: string) {
 
   // ---------- PDF export ----------
   async function handleExportPdf(item: ContentCalendarItem) {
-    setExportingPdfId(item.id)
-    try {
-      const lines = buildMomentumPdfLines(item, {
-        artistName: profile.artistName,
-        audience: profile.audience,
-        goal: profile.goal,
-      })
+  setExportingPdfId(item.id)
+  try {
+    const { renderWwPdf } = await import('@/lib/pdf.client')
 
-      const base =
-        (item.title && item.title.trim()) ||
-        (item.scheduled_at ? item.scheduled_at.slice(0, 10) : '') ||
-        `momentum-card-${item.id.slice(0, 8)}`
+    const lines = buildMomentumPdfLines(item, {
+      artistName: profile.artistName,
+      audience: profile.audience,
+      goal: profile.goal,
+    })
 
-      renderPdfFromLines({ lines, filenameBase: base })
-      toast.success('Card exported as PDF ✅')
-    } catch (e: any) {
-      console.error('[momentum-pdf] error', e)
-      toast.error(e?.message || 'Could not export card')
-    } finally {
-      setExportingPdfId(null)
-    }
+    const base =
+      (item.title && item.title.trim()) ||
+      (item.scheduled_at ? item.scheduled_at.slice(0, 10) : '') ||
+      `momentum-card-${item.id.slice(0, 8)}`
+
+    await renderWwPdf(lines, base)
+    toast.success('Card exported as PDF ✅')
+  } catch (e: any) {
+    console.error('[momentum-pdf] error', e)
+    toast.error(e?.message || 'Could not export card')
+  } finally {
+    setExportingPdfId(null)
   }
+}
 
   // ---------- Day click ----------
   function handleDayClick(day: Date) {
@@ -925,7 +968,7 @@ async function handleDeleteCard(id: string) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight flex items-center gap-2">
-              <CalendarDays className="w-7 h-7 text-ww-violet" />
+              <Compass className="w-7 h-7 text-ww-violet" />
               Momentum Board
             </h1>
             <p className="text-white/70 max-w-2xl mt-1">
@@ -1136,9 +1179,10 @@ async function handleDeleteCard(id: string) {
   title={item.title || 'Untitled idea'}
   subtitle={platformLabel(item.platform)}
   statusDotClass={statusDotColor(item.status)}
+  metadata={item.metadata}
+  highlighted={item.id === highlightedCardId}
   previewText={item.caption || ''}
   hashtagsPreview={hashtagsPreview}
-  highlighted={isRecentlyDropped}
   armed={isArmed}
   onOpen={() => setExpandedItem(toSharedCard(item))}
   actions={

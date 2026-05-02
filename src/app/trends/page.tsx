@@ -5,9 +5,8 @@ import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import LimitReachedPill from '@/components/ww/LimitReachedPill'
-import { buildStandardHeader, renderWwPdf, type PdfLine } from '@/lib/wwPdf'
-
-
+import { type PdfLine, buildStandardHeader } from '@/lib/wwPdf'
+import { useGeneratingMessages } from '@/hooks/useGeneratingMessages'
 import {
   Sparkles,
   Radar,
@@ -23,6 +22,7 @@ import {
   Send,
   FolderOpen,
   Trash2,
+  TrendingUp,
 } from 'lucide-react'
 
 import { useWwProfile } from '@/hooks/useWwProfile'
@@ -97,6 +97,19 @@ type SavedSession = {
   output: any
 }
 
+const TREND_GENERATING_MESSAGES = [
+  'Scanning for fresh content angles...',
+  'Matching trends to your lane...',
+  'Filtering ideas for your platform...',
+  'Building your trend results...',
+]
+
+const PEER_GENERATING_MESSAGES = [
+  'Scanning artists in your lane...',
+  'Comparing hooks, visuals, and formats...',
+  'Finding useful patterns...',
+  'Building your peer analysis...',
+]
 
 // ---------- Platform labels/icons ----------
 const platformLabels: Record<string, string> = {
@@ -117,7 +130,7 @@ const platformIcons: Record<string, ReactNode> = {
 
 // map UI platform → content_calendar.platform (respecting DB check)
 function mapPlatformForCalendar(
-  p: 'instagram' | 'tiktok' | 'youtube' | 'x' | 'spotify' | 'facebook' | 'x'
+  p: 'instagram' | 'tiktok' | 'youtube' | 'spotify' | 'facebook' | 'x'
 ): 'instagram' | 'tiktok' | 'youtube' | 'facebook' | 'x' {
   switch (p) {
     case 'instagram':
@@ -149,6 +162,7 @@ function formatDate(iso: string) {
     return iso
   }
 }
+
 function buildTrendsPdfLines(args: {
   artistName: string
   platformLabel: string
@@ -159,12 +173,15 @@ function buildTrendsPdfLines(args: {
   releaseContext: string
   result: TrendResponse
 }): PdfLine[] {
-  const lines: PdfLine[] = []
+  
 
-  lines.push({ kind: 'title', text: 'Trend Finder' })
-  lines.push({ kind: 'subtitle', text: `${args.artistName || 'Artist'} • ${args.platformLabel}` })
-  lines.push({ kind: 'divider' })
-  lines.push({ kind: 'spacer', height: 10 })
+  const lines: PdfLine[] = [
+  ...buildStandardHeader({
+    title: 'Trend Finder',
+    subtitle: `${args.artistName || 'Artist'} • ${args.platformLabel}`,
+  }),
+  { kind: 'spacer', height: 10 },
+]
 
   lines.push({ kind: 'sectionTitle', text: 'Context' })
   lines.push({ kind: 'body', text: `Genre/lane: ${args.genre || '—'}` })
@@ -204,12 +221,14 @@ function buildPeersPdfLines(args: {
   peerVibe: string
   result: PeerRadarResult
 }): PdfLine[] {
-  const lines: PdfLine[] = []
+  const lines: PdfLine[] = [
+  ...buildStandardHeader({
+    title: 'Peer Radar',
+    subtitle: `${args.artistName || 'Artist'} • ${args.platformLabel}`,
+  }),
+  { kind: 'spacer', height: 10 },
+]
 
-  lines.push({ kind: 'title', text: 'Peer Radar' })
-  lines.push({ kind: 'subtitle', text: `${args.artistName || 'Artist'} • ${args.platformLabel}` })
-  lines.push({ kind: 'divider' })
-  lines.push({ kind: 'spacer', height: 10 })
 
   lines.push({ kind: 'sectionTitle', text: 'Context' })
   lines.push({ kind: 'body', text: `Genre/lane: ${args.genre || '—'}` })
@@ -279,6 +298,8 @@ const [exportingPdf, setExportingPdf] = useState(false)
   if (!trendResult?.trends?.length) return
   setExportingPdf(true)
   try {
+    const { renderWwPdf } = await import('@/lib/pdf.client')
+
     const lines = buildTrendsPdfLines({
       artistName,
       platformLabel,
@@ -289,8 +310,8 @@ const [exportingPdf, setExportingPdf] = useState(false)
       releaseContext,
       result: trendResult,
     })
-    renderWwPdf(lines, `trend-finder-${platform}`)
 
+    await renderWwPdf(lines, `trend-finder-${platform}`)
     toast.success('Trends exported as PDF ✅')
   } catch (e: any) {
     console.error('[trends-pdf]', e)
@@ -304,6 +325,8 @@ async function handleExportPeersPdf() {
   if (!peerResult?.artists?.length) return
   setExportingPdf(true)
   try {
+    const { renderWwPdf } = await import('@/lib/pdf.client')
+
     const lines = buildPeersPdfLines({
       artistName,
       platformLabel,
@@ -313,8 +336,8 @@ async function handleExportPeersPdf() {
       peerVibe,
       result: peerResult,
     })
-    renderWwPdf(lines, `peer-radar-${platform}`)
 
+    await renderWwPdf(lines, `peer-radar-${platform}`)
     toast.success('Peer Radar exported as PDF ✅')
   } catch (e: any) {
     console.error('[peers-pdf]', e)
@@ -379,7 +402,8 @@ const [currentTrendSessionId, setCurrentTrendSessionId] = useState<string | null
   const [peerLoading, setPeerLoading] = useState(false)
   const [peerResult, setPeerResult] = useState<PeerRadarResult | null>(null)
   const [peerRanOnce, setPeerRanOnce] = useState(false)
-
+  const trendGeneratingMessage = useGeneratingMessages(trendLoading, TREND_GENERATING_MESSAGES)
+const peerGeneratingMessage = useGeneratingMessages(peerLoading, PEER_GENERATING_MESSAGES)
   const platformLabel = useMemo(() => platformLabels[platform] ?? 'Platform', [platform])
 
   // ---------- Apply WW profile to inputs (once) ----------
@@ -1000,51 +1024,53 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
   return (
     <main className="min-h-screen bg-black text-white px-6 py-10">
       <Toaster position="top-center" richColors />
-
+      
+{/* Header */}
       <div className="mx-auto max-w-5xl space-y-8">
-        {/* Header */}
-        <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between border-b border-white/10 pb-4">
-          <div>
-            <div className="inline-flex items-center gap-2 text-sm text-ww-violet/90 mb-1">
-              <Sparkles className="w-4 h-4" />
-              <span>Trend Studio</span>
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Discover your next move</h1>
-            <p className="mt-2 text-white/70 text-sm md:text-base max-w-xl">
-              Use Trend Finder for concrete content ideas, or Peer Radar to analyse artists in your lane and steal the
-              structure, not the soul.
-            </p>
-          </div>
-        </header>     
-</div>
+  <header className="border-b border-white/10 pb-5">
+    <div className="inline-flex items-center gap-2 text-xs tracking-[0.18em] text-ww-amber/80 mb-3 uppercase">
+      <TrendingUp className="w-4 h-4" />
+      <span>Trend Studio</span>
+    </div>
 
+    <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+      Discover your next move
+    </h1>
 
-<div className="max-w-3xl mx-auto space-y-4">
-        {/* Tabs */}
-        <div className="inline-flex items-center rounded-full border border-white/10 bg-black/60 p-1">
-          <button
-            onClick={() => setActiveTab('trends')}
-            className={`px-4 h-9 rounded-full text-sm font-medium flex items-center gap-2 transition-all ${
-              activeTab === 'trends'
-                ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.6)]'
-                : 'text-white/70 hover:text-white'
-            }`}
-          >
-            <Sparkles className="w-4 h-4" />
-            Trend Finder
-          </button>
-          <button
-            onClick={() => setActiveTab('peers')}
-            className={`px-4 h-9 rounded-full text-sm font-medium flex items-center gap-2 transition-all ${
-              activeTab === 'peers'
-                ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.6)]'
-                : 'text-white/70 hover:text-white'
-            }`}
-          >
-            <Radar className="w-4 h-4" />
-            Peer Radar
-          </button>
-        </div>
+    <p className="mt-3 text-white/70 text-sm md:text-base max-w-2xl leading-relaxed">
+      Use Trend Finder for concrete content ideas, or Peer Radar to analyse artists in your lane and steal the
+      structure, not the soul.
+    </p>
+  </header>
+
+  <div className="pt-1">
+    <div className="inline-flex items-center rounded-full border border-white/10 bg-black/60 p-1">
+      <button
+        onClick={() => setActiveTab('trends')}
+        className={`px-4 h-9 rounded-full text-sm font-medium flex items-center gap-2 transition-all ${
+          activeTab === 'trends'
+            ? 'bg-ww-amber text-white shadow-[0_0_16px_rgba(186,85,211,0.6)]'
+            : 'text-white/70 hover:text-white'
+        }`}
+      >
+        <Sparkles className="w-4 h-4" />
+        Trend Finder
+      </button>
+
+      <button
+        onClick={() => setActiveTab('peers')}
+        className={`px-4 h-9 rounded-full text-sm font-medium flex items-center gap-2 transition-all ${
+          activeTab === 'peers'
+            ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.6)]'
+            : 'text-white/70 hover:text-white'
+        }`}
+      >
+        <Radar className="w-4 h-4" />
+        Peer Radar
+      </button>
+    </div>
+  </div>
+
 
         {/* Profile banner (shared store) */}
         {hasProfileSuggestion && (
@@ -1204,9 +1230,11 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-wrap gap-3 items-center justify-between">
   <div>
     <p className="text-sm font-medium text-white">Ready to scan for ideas?</p>
-    <p className="text-xs text-white/50 mt-1">
-      You’ll get 3–4 concrete trend-led ideas tailored to your lane.
-    </p>
+    <p className="text-xs text-white/50 mt-1 min-h-[18px]">
+  {trendLoading
+    ? trendGeneratingMessage
+    : 'You’ll get 3–4 concrete trend-led ideas tailored to your lane.'}
+</p>
   </div>
 
   <div className="flex flex-wrap gap-2 items-center">
@@ -1240,7 +1268,69 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
             </section>
 
             {/* Trend Finder results */}
-            {trendResult && (
+{trendLoading ? (
+  <section className="p-5 md:p-6 rounded-2xl bg-black/60 border border-white/10 space-y-5">
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div>
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Activity className="w-4 h-4 text-ww-violet" />
+          Trend ideas for {platformLabel}
+        </h2>
+        <p className="text-sm text-white/70 mt-1">
+          This is what your trend results will look like.
+        </p>
+      </div>
+    </div>
+
+    <div className="rounded-2xl border border-dashed border-ww-violet/20 bg-white/[0.02] p-4">
+      <p className="text-sm font-medium text-white/80">Building your trend cards...</p>
+      <p className="mt-1 text-xs text-white/50">
+        We’re shaping ideas that fit your lane and platform.
+      </p>
+    </div>
+
+    <div className="grid gap-4 md:grid-cols-2">
+      {Array.from({ length: 4 }).map((_, idx) => (
+        <article
+          key={idx}
+          className="rounded-2xl border border-white/10 bg-black/70 p-4 flex flex-col gap-3 opacity-80"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="space-y-2 blur-[2px]">
+              <div className="h-5 w-36 rounded bg-white/10" />
+              <div className="h-3 w-16 rounded bg-white/8" />
+            </div>
+            <div className="h-6 w-16 rounded-full border border-white/10 bg-white/[0.04]" />
+          </div>
+
+          <div className="space-y-2 blur-[2px]">
+            <div className="h-4 w-full rounded bg-white/8" />
+            <div className="h-4 w-5/6 rounded bg-white/8" />
+          </div>
+
+          <div className="space-y-2 blur-[2px]">
+            <div className="h-3 w-24 rounded bg-white/10" />
+            <div className="h-4 w-4/5 rounded bg-white/8" />
+          </div>
+
+          <div className="space-y-2 blur-[2px]">
+            <div className="h-3 w-20 rounded bg-white/10" />
+            <div className="h-4 w-full rounded bg-white/8" />
+          </div>
+
+          <div className="border-t border-white/10 pt-2 mt-1 space-y-2 blur-[2px]">
+            <div className="h-3 w-full rounded bg-white/8" />
+            <div className="h-3 w-4/5 rounded bg-white/8" />
+          </div>
+
+          <div className="pt-2 flex flex-wrap gap-2">
+            <div className="h-8 w-36 rounded-full bg-ww-violet/20 border border-ww-violet/30" />
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+) : trendResult && (
               <section className="p-5 md:p-6 rounded-2xl bg-black/60 border border-white/10 space-y-5">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div>
@@ -1649,14 +1739,76 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
   />
 ) : null}
 
-                <p className="text-xs text-white/50">
-                  Peer Radar will analyse patterns in your lane and suggest structures you can adapt.
-                </p>
+                <p className="text-xs text-white/50 min-h-[18px]">
+  {peerLoading
+    ? peerGeneratingMessage
+    : 'Peer Radar will analyse patterns in your lane and suggest structures you can adapt.'}
+</p>
               </div>
             </section>
 
             {/* Peer Radar results */}
-{peerResult && (
+{peerLoading ? (
+  <section className="p-5 md:p-6 rounded-2xl bg-black/60 border border-white/10 space-y-5">
+    <div className="flex flex-col gap-2">
+      <h2 className="text-lg font-semibold flex items-center gap-2">
+        <Activity className="w-4 h-4 text-ww-violet" />
+        Peer Radar results for {platformLabel}
+      </h2>
+      <p className="text-sm text-white/75">
+        This is what your peer analysis will look like.
+      </p>
+    </div>
+
+    <div className="rounded-2xl border border-dashed border-ww-violet/20 bg-white/[0.02] p-4">
+      <p className="text-sm font-medium text-white/80">Building your peer breakdown...</p>
+      <p className="mt-1 text-xs text-white/50">
+        We’re mapping artists, patterns, and structures in your lane.
+      </p>
+    </div>
+
+    <div className="grid gap-4 md:grid-cols-2">
+      {Array.from({ length: 4 }).map((_, idx) => (
+        <article
+          key={idx}
+          className="rounded-2xl border border-white/10 bg-black/70 p-4 space-y-3 opacity-80"
+        >
+          <div className="space-y-2 blur-[2px]">
+            <div className="h-5 w-32 rounded bg-white/10" />
+            <div className="h-3 w-40 rounded bg-white/8" />
+          </div>
+
+          <div className="space-y-2 blur-[2px]">
+            <div className="h-3 w-24 rounded bg-white/10" />
+            <div className="h-4 w-full rounded bg-white/8" />
+            <div className="h-4 w-5/6 rounded bg-white/8" />
+          </div>
+
+          <div className="space-y-2 blur-[2px]">
+            <div className="h-3 w-20 rounded bg-white/10" />
+            <div className="h-4 w-full rounded bg-white/8" />
+            <div className="h-4 w-4/5 rounded bg-white/8" />
+          </div>
+
+          <div className="space-y-2 blur-[2px]">
+            <div className="h-3 w-24 rounded bg-white/10" />
+            <div className="h-4 w-full rounded bg-white/8" />
+            <div className="h-4 w-3/4 rounded bg-white/8" />
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <div className="rounded-2xl border border-white/10 bg-black/70 p-4 space-y-3 opacity-80">
+      <div className="h-4 w-20 rounded bg-white/10 blur-[2px]" />
+      <div className="space-y-2 blur-[2px]">
+        <div className="h-4 w-full rounded bg-white/8" />
+        <div className="h-4 w-5/6 rounded bg-white/8" />
+        <div className="h-4 w-4/5 rounded bg-white/8" />
+      </div>
+    </div>
+  </section>
+) : peerResult && (
   <section className="p-5 md:p-6 rounded-2xl bg-black/60 border border-white/10 space-y-5">
     <div className="flex flex-col gap-2">
       <h2 className="text-lg font-semibold flex items-center gap-2">

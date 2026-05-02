@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   const {
     artistName = '',
     genre = '',
-    influences = '',
+    influences: influences = '',
     brandWords = '',
     audience = '',
     goal = '',

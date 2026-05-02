@@ -1,10 +1,13 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { toast } from 'sonner'
 import { X, Loader2, Download, Sparkles, Send, Edit3, Check, CalendarDays } from 'lucide-react'
-import { type PdfLayout, type PdfLine, normalizeText, renderPdfFromLines } from '@/lib/wwPdf'
+import { type PdfLine, normalizeText } from '@/lib/wwPdf'
+import { renderPdfFromLines } from '@/lib/pdf.client'
+
 function formatNumberedSteps(text: string) {
   const t = (text || '').trim()
   if (!t) return ''
@@ -173,34 +176,6 @@ function mergeGeneratedCaption(existing: string | null | undefined, generated: s
 }
 
 // ---------- PDF helpers ----------
-const PDF_LAYOUT: PdfLayout = {
-  page: { unit: 'pt', format: 'a4' },
-  marginX: 64,
-  marginTop: 72,
-  marginBottom: 64,
-  maxWidthPadding: 0,
-
-  titleSize: 20,
-  subtitleSize: 11,
-  sectionTitleSize: 11,
-  bodySize: 11,
-
-  titleLeading: 24,
-  subtitleLeading: 16,
-  sectionTitleLeading: 16,
-  bodyLeading: 16,
-
-  titleGapAfter: 6,
-  gapAfterSubtitle: 14,
-
-  dividerPadTop: 16,
-  dividerPadBottom: 14,
-  dividerExtraAfter: 10,
-  dividerAfterLineGap: 0,
-
-  gapAfterSectionTitle: 8,
-  gapAfterParagraph: 10,
-}
 
 function buildCardPdfLines(item: ContentCard): PdfLine[] {
   const lines: PdfLine[] = []
@@ -248,6 +223,9 @@ export default function ContentCardModal({
   showSendToMomentum = false,
   showPdfExport = true,
 }: Props) {
+
+    const router = useRouter()
+
   const outlineBtn =
     'inline-flex items-center gap-2 px-4 h-9 rounded-full border border-white/20 text-white/85 text-xs ' +
     'hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.6)] ' +
@@ -287,6 +265,11 @@ export default function ContentCardModal({
       year: 'numeric',
     })
   }, [item.scheduled_at])
+
+  const refinedCaption = item.metadata?.refined_caption_text || ''
+const isRefinedCaption = !!item.metadata?.caption_refined
+
+    const hasAttachedCaption = !!item.caption?.trim()
 
   useEffect(() => {
     if (!open) return
@@ -351,7 +334,7 @@ export default function ContentCardModal({
         (item.title && item.title.trim()) ||
         (item.scheduled_at ? item.scheduled_at.slice(0, 10) : '') ||
         `content-card-${item.id.slice(0, 8)}`
-      renderPdfFromLines({ lines, filenameBase: base, layout: PDF_LAYOUT })
+      await renderPdfFromLines({ lines, filenameBase: base })
       toast.success('Card exported as PDF ✅')
     } catch (e: any) {
       toast.error(e?.message || 'Could not export PDF')
@@ -412,6 +395,39 @@ export default function ContentCardModal({
     }
   }
 
+  function extractCaptionOnly(raw: string | null | undefined) {
+  const text = (raw || '').trim()
+  if (!text) return ''
+
+  const parsed = parseCaptionSections(text)
+
+  // For structured Idea Factory cards, use CTA as the actual caption input.
+  if (parsed.isSectioned) {
+    return (parsed.cta || '').trim()
+  }
+
+  // For older caption-appended cards
+  const marker = '\n\n---\n\nCaption:\n'
+  if (text.includes(marker)) {
+    return text.split(marker)[1]?.trim() || ''
+  }
+
+  return text
+}
+
+    function handleRefineCaptions() {
+  const actualCaptionOnly = extractCaptionOnly(item.caption)
+
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem('ww_caption_source_card_id', item.id)
+    sessionStorage.setItem('ww_caption_source_feature', item.feature || '')
+    sessionStorage.setItem('ww_caption_polish_input', actualCaptionOnly)
+    sessionStorage.setItem('ww_caption_return_to', '/calendar')
+  }
+
+  window.location.href = '/captions?tab=polish'
+}
+
   return (
     <div
       className="fixed inset-0 z-50 bg-black/70 backdrop-blur flex items-center justify-center px-4"
@@ -441,10 +457,12 @@ export default function ContentCardModal({
               <h3 className="text-lg font-semibold truncate">{item.title || 'Untitled'}</h3>
             )}
 
-            <p className="text-xs text-white/55 flex items-center gap-2">
-              <CalendarDays className="w-3.5 h-3.5" />
-              {scheduledLabel}
-            </p>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-white/55">
+              <span className="inline-flex items-center gap-2">
+                <CalendarDays className="w-3.5 h-3.5" />
+                {scheduledLabel}
+              </span>
+            </div>
           </div>
 
           <button
@@ -536,7 +554,7 @@ export default function ContentCardModal({
               </div>
               <div className="text-sm text-white/85 leading-relaxed">{children}</div>
             </div>
-          )
+          )          
 
           return (
             <div className="space-y-2">
@@ -548,7 +566,25 @@ export default function ContentCardModal({
 
               {s.format ? <Section label="Format">{s.format}</Section> : null}
               {s.angle ? <Section label="Angle">{s.angle}</Section> : null}
-              {s.cta ? <Section label="CTA">{s.cta}</Section> : null}
+              {s.cta ? (
+  <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+    <div className="mb-1 flex items-center justify-between gap-2">
+      <div className="text-[0.65rem] uppercase tracking-wide text-white/45">
+        CTA
+      </div>
+
+      {isRefinedCaption ? (
+        <span className="inline-flex items-center rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[0.58rem] uppercase tracking-wide text-emerald-300 whitespace-nowrap">
+          Refined
+        </span>
+      ) : null}
+    </div>
+
+    <div className="text-sm text-white/85 leading-relaxed">
+      {refinedCaption || s.cta}
+    </div>
+  </div>
+) : null}
 
               {s.pillar ? (
                 <div className="pt-1 text-[0.75rem] text-white/65">
@@ -585,12 +621,21 @@ export default function ContentCardModal({
               </button>
             )}
 
-            {showQuickCaptionGen && !isEditing && (
-              <button type="button" onClick={handleQuickCaptionGen} disabled={quickGenLoading} className={primaryBtn}>
-                {quickGenLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                {quickGenLoading ? 'Generating…' : 'Quick caption'}
-              </button>
+                        {showQuickCaptionGen && !isEditing && (
+              hasAttachedCaption ? (
+                <button type="button" onClick={handleRefineCaptions} className={primaryBtn}>
+                  <Sparkles className="w-4 h-4" />
+                  Refine Captions
+                </button>
+              ) : (
+                <button type="button" onClick={handleQuickCaptionGen} disabled={quickGenLoading} className={primaryBtn}>
+                  {quickGenLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  {quickGenLoading ? 'Generating…' : 'Quick Captions'}
+                </button>
+              )
             )}
+
+            
 
             {showSendToMomentum && !isEditing && (
               <button type="button" onClick={handleSendToMomentum} disabled={sending} className={outlineBtn}>

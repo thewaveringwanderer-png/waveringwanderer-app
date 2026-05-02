@@ -13,6 +13,8 @@ export type WwProfile = {
   artistName?: string
   tone?: string
 is_pilot?: boolean
+email?: string | null
+
 
   // billing
   tier?: Tier
@@ -22,6 +24,7 @@ is_pilot?: boolean
   genre?: string
   audience?: string
   goal?: string
+   direction?: string
 
   // usage limits
   usage?: Usage
@@ -36,16 +39,26 @@ const STORAGE_KEY = 'ww_profile'
 
 const TIER_ORDER: Tier[] = ['free', 'creator', 'pro']
 
-export function effectiveTier(profile?: WwProfile) {
+export function effectiveTier(profile?: WwProfile): Tier {
   const override = profile?.tier_override as Tier | null | undefined
   if (override) return override
+
+  const email = String(profile?.email || '')
+    .trim()
+    .toLowerCase()
+
+  const allowList = String(process.env.NEXT_PUBLIC_PILOT_PRO_USERS || '')
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean)
+
+  // Pilot Pro override disabled for launch testing.
+// Re-enable only when you are sure the allow list is correct.
+// if (email && allowList.includes(email)) {
+//   return 'pro'
+// }
+
   return (profile?.tier as Tier) || 'free'
-}
-
-
-
-export function hasTier(current: Tier, required: Tier): boolean {
-  return TIER_ORDER.indexOf(current) >= TIER_ORDER.indexOf(required)
 }
 
 // ---------- Local helpers ----------
@@ -104,21 +117,38 @@ export async function loadWwProfile(): Promise<WwProfile | null> {
 
   // ✅ Fetch THIS user's row only
   const { data, error } = await supabase
-    .from('ww_profiles')
-    .select('profile')
-    .eq('user_id', user.id)
-    .maybeSingle()
+  .from('ww_profiles')
+  .select('user_id, tier, usage, onboarding_started, identity_completed')
+  .eq('user_id', user.id)
+  .maybeSingle()
 
-  const dbProfile = !error && data ? ((data as any).profile || {}) : {}
-  let merged = mergeWwProfiles(local, dbProfile)
+const row = data as any
 
-  // ✅ Pilot allowlist => force Pro override locally
+const dbProfile = !error && row
+  ? {
+      tier: row.tier || 'free',
+      usage: row.usage || {},
+      onboarding_started: !!row.onboarding_started,
+      identity_completed: !!row.identity_completed,
+      email: user.email || '',
+    }
+  : {}
+
+let merged = mergeWwProfiles(local, dbProfile)
+
+// Pilot Pro override disabled for launch testing.
+// Re-enable only when you are sure the allow list is correct.
+// const email = (user.email || '').trim().toLowerCase()
+// const allow = PILOT_EMAILS.map(e => e.trim().toLowerCase())
+
+// if (email && allow.includes(email)) {
+//   merged = mergeWwProfiles(merged, { tier_override: 'pro' })
+// }
+
   const email = (user.email || '').trim().toLowerCase()
   const allow = PILOT_EMAILS.map(e => e.trim().toLowerCase())
 
-  if (email && allow.includes(email)) {
-    merged = mergeWwProfiles(merged, { tier_override: 'pro' })
-  }
+  
 
   writeLocalWwProfile(merged)
   return merged
@@ -145,23 +175,32 @@ export async function saveWwProfile(patch: Partial<WwProfile>): Promise<WwProfil
   }
 
   const { data, error } = await supabase
-    .from('ww_profiles')
-    .upsert(
-      { user_id: user.id, profile: next },
-      { onConflict: 'user_id' } // ✅ important
-    )
-    .select('profile')
-    .single()
+  .from('ww_profiles')
+  .upsert(
+  {
+  user_id: user.id,
+  usage: next.usage || current.usage || {},
+  onboarding_started: next.onboarding_started ?? current.onboarding_started ?? false,
+  identity_completed: next.identity_completed ?? current.identity_completed ?? false,
+},
+  { onConflict: 'user_id' }
+)
+  .select('user_id, tier, usage')
+  .single()
 
-  // if DB fails, still keep local optimistic state
-  if (error) {
-    writeLocalWwProfile(next)
-    return next
-  }
+if (error) {
+  writeLocalWwProfile(next)
+  return next
+}
 
-  const finalProfile = ((data as any)?.profile || next) as WwProfile
-  writeLocalWwProfile(finalProfile)
-  return finalProfile
+const finalProfile = {
+  ...next,
+  tier: (data as any)?.tier || next.tier || 'free',
+  usage: (data as any)?.usage || next.usage || {},
+}
+
+writeLocalWwProfile(finalProfile)
+return finalProfile
 }
 
 
