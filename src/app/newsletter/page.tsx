@@ -724,7 +724,7 @@ const isProLocked = tier !== 'pro'
                 {isProLocked ? (
   <LimitReachedPill
     message="Newsletter is available on Pro."
-    onUpgrade={() => router.push('/pricing')}
+    onUpgrade={() => router.push('/#pricing')}
   />
 ) : null}
 

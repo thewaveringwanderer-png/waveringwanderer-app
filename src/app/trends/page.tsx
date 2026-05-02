@@ -1260,7 +1260,7 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
     {isProLocked ? (
       <LimitReachedPill
         message="Trends is available on Pro."
-        onUpgrade={() => router.push('/pricing')}
+        onUpgrade={() => router.push('/#pricing')}
       />
     ) : null}
   </div>
@@ -1735,7 +1735,7 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
                 {isProLocked ? (
   <LimitReachedPill
     message="Peer Radar is available on Pro."
-    onUpgrade={() => router.push('/pricing')}
+    onUpgrade={() => router.push('/#pricing')}
   />
 ) : null}
 

@@ -27,6 +27,7 @@ import {
   Sparkles,
   Lock,
   
+  
 
 } from 'lucide-react'
 
@@ -67,13 +68,22 @@ const { profile, tier, updateProfile, loading: profileLoading, refresh } = useWw
   !profileLoading &&
   !!profile &&
   !profile.onboarding_started
-const searchParams = useSearchParams()
-const paymentSuccess = searchParams.get('success') === 'true'
+
+
 const isPro = tier === 'pro'
 const hasTier = (current: 'free' | 'creator' | 'pro', needed: 'free' | 'creator' | 'pro') => {
   const rank = { free: 0, creator: 1, pro: 2 } as const
   return rank[current] >= rank[needed]
 }
+const searchParams = useSearchParams()
+
+useEffect(() => {
+  if (searchParams.get('checkout') !== 'success') return
+
+  refresh?.()
+  toast.success('You’ve been upgraded to Creator 🎉')
+}, [searchParams, refresh])
+const paymentSuccess = searchParams.get('success') === 'true'
 const trendsLocked = !hasTier(tier, 'pro')
 const pressKitLocked = !hasTier(tier, 'pro')
 const newsletterLocked = !hasTier(tier, 'pro')

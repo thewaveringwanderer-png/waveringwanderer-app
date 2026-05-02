@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
 import { useWwProfile } from '@/hooks/useWwProfile'
-import { effectiveTier, getUsage } from '@/lib/wwProfile'
+import { effectiveTier, getUsage, bumpUsage } from '@/lib/wwProfile'
 import { useRouter } from 'next/navigation'
 import { normalizeText } from '@/lib/wwPdf'
 import { useGeneratingMessages } from '@/hooks/useGeneratingMessages'
@@ -171,6 +171,7 @@ function isHexColour(s: string) {
 export default function IdentityKitPage() {
 
   
+  
   const router = useRouter()
 
   const {
@@ -268,7 +269,7 @@ const freeLimitReached = Boolean(identityLocked || identityFreeLimitReached)
   const [collapseCampaignCard, setCollapseCampaignCard] = useState(false)
 const kitGeneratingMessage = useGeneratingMessages(submitting, KIT_GENERATING_MESSAGES)
 const campaignGeneratingMessage = useGeneratingMessages(loadingCampaigns, CAMPAIGN_GENERATING_MESSAGES)
-
+const isFreeIdentityPreview = mounted && tier === 'free'
   const brandWordPresets: string[] = [
   'cinematic',
   'raw',
@@ -542,7 +543,7 @@ const creativeWorldPresets = [
   async function handleGenerateKit() {
     if (freeLimitReached) {
   toast.info('Upgrade to Creator to keep using Identity Kit.')
-  router.push('/pricing')
+  router.push('/#pricing')
   return
 }
   void save({ artistName, genre, audience, direction })
@@ -640,6 +641,10 @@ const creativeWorldPresets = [
 
     const next = data.result || data
     setResult(next)
+    if (tier === 'free') {
+  await bumpUsage('identity_generate_uses' as any)
+  setIdentityFreeLimitReached(true)
+}
     setKitSavedForCurrentResult(false)
 
     void autoSaveKitQuiet(next)
@@ -664,7 +669,7 @@ const creativeWorldPresets = [
 
     if (campaignLocked) {
   toast.info('Campaign concepts are available on Creator.')
-  router.push('/pricing')
+  router.push('/#pricing')
   return
 }
 
@@ -1714,7 +1719,7 @@ function PaletteGroup({
 
     <button
       type="button"
-      onClick={() => router.push('/pricing')}
+      onClick={() => router.push('/#pricing')}
       className="
         h-9 px-4 rounded-xl
         bg-gradient-to-r from-ww-violet/80 to-ww-violet
@@ -1738,8 +1743,15 @@ function PaletteGroup({
         {tab === 'kit' ? (
           <button
   type="button"
-  onClick={handleGenerateKit}
-  disabled={submitting}
+  onClick={() => {
+  if (freeLimitReached) {
+    router.push('/#pricing')
+    return
+  }
+
+  handleGenerateKit()
+}}
+  disabled={submitting || freeLimitReached}
   className={primaryBtn + ' w-full justify-center'}
 >
   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
@@ -2152,7 +2164,8 @@ one consistent artist brief.
     </div>
   </div>
 </Section>
-
+{!isFreeIdentityPreview && (
+  <>
 <Section id="tone" title="Tone of voice" hint="How the brand should sound, what to lean into, and what to avoid">
   <div className="space-y-4">
     <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
@@ -2371,31 +2384,10 @@ one consistent artist brief.
               </p>
             </div>
           </div>
-          <div className="rounded-[24px] border border-ww-violet/25 bg-gradient-to-r from-ww-violet/[0.12] via-ww-violet/[0.05] to-transparent p-4 md:p-5">
-  <p className="text-[11px] uppercase tracking-[0.16em] text-ww-violet/80">Next step</p>
-  <h4 className="mt-2 text-white font-semibold text-lg">Turn this identity into content ideas</h4>
-  <p className="mt-2 text-sm text-white/68 leading-relaxed max-w-3xl">
-    Your Identity Kit defines the brand foundation. The next step is to use Idea Factory to turn
-    this positioning, tone, audience psychology, and visual world into actual content angles.
-  </p>
-
-  <div className="mt-4">
-    <button
-      type="button"
-      className={primaryBtn}
-      onClick={() => {
-        toast.success('Next step: open Idea Factory and build from this identity system.')
-      }}
-    >
-      <Sparkles className="w-4 h-4" />
-      Generate ideas in Idea Factory
-    </button>
-  </div> 
-</div>
-        </div>        
-      ))}           
-    </div>      
-  </div>  
+        </div>
+      ))}
+    </div>
+  </div>
 </Section>
 
 <div className="mt-6 rounded-2xl border border-ww-violet/20 bg-black/50 p-4 flex items-center justify-between gap-4">
@@ -2427,7 +2419,8 @@ one consistent artist brief.
     Go to Idea Factory
   </button>
 </div>
-
+ </>
+)}
       </div>
     ) : null}
   </div>

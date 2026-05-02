@@ -493,7 +493,7 @@ return
     <span>You’ve used your 1 free calendar generation.</span>
     <button
       type="button"
-      onClick={() => router.push('/pricing')}
+      onClick={() => router.push('/#pricing')}
       className="px-4 h-9 rounded-full bg-ww-violet text-white font-semibold"
     >
       Upgrade

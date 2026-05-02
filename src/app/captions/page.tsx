@@ -961,7 +961,7 @@ function hasToneTag(value: string) {
     {isCaptionLocked ? (
       <LimitReachedPill
         message="You've used your 1 free caption generation."
-        onUpgrade={() => router.push('/pricing')}
+        onUpgrade={() => router.push('/#pricing')}
       />
     ) : null}
   </div>

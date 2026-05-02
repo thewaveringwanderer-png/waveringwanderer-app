@@ -906,7 +906,7 @@ const [selectedIdentityKit, setSelectedIdentityKit] = useState<any | null>(null)
 
 if (releaseStrategyLocked) {
   toast.info('Upgrade to Creator to keep using Release Strategy.')
-  router.push('/pricing')
+  router.push('/#pricing')
   return
 }
 
@@ -1539,7 +1539,8 @@ if (inp.selectedIdentityKitId) {
                   <p className={labelClass}>Execution intensity</p>
                   <div className="inline-flex p-1 rounded-full bg-white/[0.04] border border-white/10 text-xs">
                     {(['light', 'standard', 'aggressive'] as const).map((level) => {
-  const disabled = tier === 'free' && level !== 'light'
+  const disabled =
+  level === 'aggressive' || (tier === 'free' && level === 'standard')
 
   return (
     <button
@@ -1557,10 +1558,11 @@ if (inp.selectedIdentityKitId) {
             ? 'bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.55)]'
             : 'text-white/70 hover:bg-white/10'
       }`}
-      title={disabled ? 'Coming soon' : undefined}
+      title={disabled ? 'Creator Only' : undefined}
     >
       {level}
-      {disabled ? ' · soon' : ''}
+{level === 'standard' && tier === 'free' ? ' · Creator' : ''}
+{level === 'aggressive' ? ' · soon' : ''}
     </button>
   )
 })}
@@ -1579,7 +1581,7 @@ if (inp.selectedIdentityKitId) {
 
     <button
       type="button"
-      onClick={() => router.push('/pricing')}
+      onClick={() => router.push('/#pricing')}
       className="h-9 px-4 rounded-xl bg-gradient-to-r from-ww-violet/80 to-ww-violet text-white text-sm font-medium shadow-[0_0_12px_rgba(186,85,211,0.25)] hover:shadow-[0_0_18px_rgba(186,85,211,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center gap-2"
     >
       <Sparkles className="w-4 h-4" />
@@ -1953,8 +1955,6 @@ if (inp.selectedIdentityKitId) {
                   </CollapsibleSection>
                 ) : null}
 
-{!isFreeReleasePreview && (
-  <>
                 {plan.keyMoments?.length ? (
                   <CollapsibleSection
                     title="Key Moments"
@@ -2360,8 +2360,7 @@ if (inp.selectedIdentityKitId) {
                     </div>
                   </CollapsibleSection>
                 ) : null}
-                  </>
-)}
+                  
               </div>
             ) : (
               

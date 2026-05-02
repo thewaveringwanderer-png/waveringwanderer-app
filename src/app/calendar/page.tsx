@@ -627,9 +627,12 @@ useEffect(() => {
   const tier = effectiveTier(profile)
   const usage = useMemo(() => (mounted ? getUsage(profile) : {}), [mounted, profile])
   const usedCalendarGenerations = Number((usage as any).calendar_generate_uses || 0)
+const [calendarFreeLimitReached, setCalendarFreeLimitReached] = useState(false)
 
-  const freeLimitReached = mounted && tier === 'free' && usedCalendarGenerations >= 1
-  const isCalendarLocked = freeLimitReached
+  const freeLimitReached =
+  mounted && tier === 'free' && (usedCalendarGenerations >= 1 || calendarFreeLimitReached)
+
+const isCalendarLocked = freeLimitReached
   const searchParams = useSearchParams()
   
 
@@ -731,7 +734,6 @@ const campaignName = searchParams.get('campaignName')
 const campaignHook = searchParams.get('campaignHook')
 const campaignSynopsis = searchParams.get('campaignSynopsis')
 const artistNameFromCampaign = searchParams.get('artistName')
-
 useEffect(() => {
   if (from === 'identity') {
     setAudience(prev => prev || audienceFromIdentity || '')
@@ -1077,7 +1079,7 @@ function applyReleaseStrategyContext(row: ReleaseStrategyContextLite) {
 
 if (isCalendarLocked) {
   toast.info('Upgrade to Creator to keep using Idea Factory.')
-  router.push('/pricing')
+  router.push('/#pricing')
   return
 }
 
@@ -1231,8 +1233,10 @@ releaseStrategyContext:
       toast.success(`${ideaCount} ideas generated ✅`)
 
       if (tier === 'free') {
-        await bumpUsage('calendar_generate_uses' as any)
-      }
+  await bumpUsage('calendar_generate_uses' as any)
+  setCalendarFreeLimitReached(true)
+}
+
     } catch (e: any) {
       console.error('[idea-factory] generate error', e)
       toast.error(e?.message || 'Could not generate ideas')
@@ -1828,7 +1832,7 @@ Use WW profile
       title={disabled ? 'Creator only' : undefined}
     >
       {n} ideas
-      {disabled ? ' · pro' : ''}
+{mounted && disabled ? ' · Creator' : ''}
     </button>
   )
 })}
@@ -1919,7 +1923,7 @@ Use WW profile
 
       <button
         type="button"
-        onClick={() => router.push('/pricing')}
+        onClick={() => router.push('/#pricing')}
         className="h-9 px-4 rounded-xl bg-gradient-to-r from-ww-violet/80 to-ww-violet text-white text-sm font-medium shadow-[0_0_12px_rgba(186,85,211,0.25)] hover:shadow-[0_0_18px_rgba(186,85,211,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center gap-2"
       >
         <Sparkles className="w-4 h-4" />
@@ -1933,7 +1937,7 @@ Use WW profile
     onClick={() => {
       if (isCalendarLocked) {
         toast.info('Upgrade to Creator to keep using Idea Factory.')
-        router.push('/pricing')
+        router.push('/#pricing')
         return
       }
 

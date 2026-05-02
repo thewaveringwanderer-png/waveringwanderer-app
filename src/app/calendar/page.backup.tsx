@@ -879,7 +879,7 @@ export default function CalendarPage() {
   {freeLimitReached ? (
     <LimitReachedPill
       message="You've used your 1 free idea generation."
-      onUpgrade={() => router.push('/pricing')}
+      onUpgrade={() => router.push('/#pricing')}
     />
   ) : null}
 

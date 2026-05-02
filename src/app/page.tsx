@@ -318,7 +318,7 @@ export default function HomePage() {
 
                 <div className="mt-6">
                   <a
-                    href="/pricing"
+                    href="/#pricing"
                     className={[
                       "inline-flex items-center justify-center w-full h-10 rounded-full text-sm font-semibold transition",
                       tier.highlight
