@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { useWwProfile } from '@/hooks/useWwProfile'
@@ -48,7 +48,7 @@ type Card = {
   locked?: boolean
 }
 
-export default function DashboardPage() {
+function DashboardPageInner() {
   async function markOnboardingStarted() {
   localStorage.setItem('ww_identity_banner_dismissed', 'true')
   setDismissedIdentityBanner(true)
@@ -570,3 +570,10 @@ function toneBadge(tone: CardTone) {
   )
 }
 
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardPageInner />
+    </Suspense>
+  )
+}

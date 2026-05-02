@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
 import { useWwProfile } from '@/hooks/useWwProfile'
@@ -68,7 +68,7 @@ const CAPTION_POLISHING_MESSAGES = [
  
 
 // ---------- Component ----------
-export default function CaptionsPage() {
+function CaptionsPageInner() {
  const {
   profile,
   tier,
@@ -1559,5 +1559,12 @@ function hasToneTag(value: string) {
         </section>
       )}
     </main>
+  )
+}
+export default function CaptionsPage() {
+  return (
+    <Suspense fallback={null}>
+      <CaptionsPageInner />
+    </Suspense>
   )
 }

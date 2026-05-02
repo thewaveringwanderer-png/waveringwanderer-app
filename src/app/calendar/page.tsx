@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
@@ -21,6 +21,8 @@ import ContentCardModal, { type ContentCard as SharedContentCard } from '@/compo
 import { useWwProfile } from '@/hooks/useWwProfile'
 import { effectiveTier, getUsage, bumpUsage } from '@/lib/wwProfile'
 import { useGeneratingMessages } from '@/hooks/useGeneratingMessages'
+
+export const dynamic = 'force-dynamic'
 // ---------- Supabase ----------
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -601,7 +603,7 @@ const searchParams = useSearchParams()
   )
 }
 
-export default function CalendarPage() {
+function CalendarPageInner() {
   const router = useRouter()
 
 
@@ -2282,3 +2284,10 @@ Use WW profile
     )}
   </main>
 )}
+export default function CalendarPage() {
+  return (
+    <Suspense fallback={null}>
+      <CalendarPageInner />
+    </Suspense>
+  )
+}

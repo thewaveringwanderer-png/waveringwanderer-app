@@ -1,6 +1,47 @@
 'use client'
 
-import { WW_PDF_LAYOUT as LAYOUT, type PdfLine } from '@/lib/wwPdf'
+import { type PdfLine } from '@/lib/wwPdf'
+
+const LAYOUT = {
+  pageWidth: 595,
+  pageHeight: 842,
+
+  marginX: 48,
+  marginTop: 48,
+  marginBottom: 48,
+
+  dividerPadTop: 10,
+  dividerPadBottom: 10,
+  dividerGap: 0,
+
+  titleSize: 24,
+  titleLeading: 30,
+  titleGapAfter: 14,
+
+  subtitleSize: 12,
+  subtitleLeading: 18,
+  gapAfterSubtitle: 18,
+
+  sectionTitleSize: 11,
+  sectionTitleLeading: 15,
+  gapAfterSectionTitle: 10,
+
+  bodySize: 10,
+  bodyLeading: 15,
+  gapAfterParagraph: 12,
+
+  metaBoxPadX: 12,
+  metaBoxPadY: 10,
+  metaBoxRadius: 12,
+  metaLabelSize: 8,
+  metaValueSize: 10,
+  metaLeading: 14,
+
+  twoColGap: 18,
+  dividerExtraAfter: 0,
+metaRowGap: 8,
+twoColInnerGap: 8,
+}
 
 export default function PdfAccuratePreview({ lines }: { lines: PdfLine[] }) {
   const px = (pt: number) => `${Math.round((pt / 72) * 96)}px` // pt -> px approx
