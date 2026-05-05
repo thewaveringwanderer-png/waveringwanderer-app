@@ -23,6 +23,10 @@ const supabase = createClient(
 )
 
 export default function LoginPage() {
+  const nextPath =
+  typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('next') || '/dashboard'
+    : '/dashboard'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
@@ -62,7 +66,10 @@ export default function LoginPage() {
           password,
         })
         if (error) throw error
-        window.location.href = '/dashboard'
+        const params = new URLSearchParams(window.location.search)
+const next = params.get('next')
+
+window.location.href = next || '/dashboard'
       }
     } catch (e: any) {
       setError(e?.message || 'Something went wrong')
@@ -79,7 +86,7 @@ export default function LoginPage() {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+        options: { emailRedirectTo: `${window.location.origin}${nextPath}` },
       })
       if (error) throw error
       setMessage('Magic link sent! Check your inbox.')
@@ -97,7 +104,7 @@ export default function LoginPage() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/dashboard` },
+        options: { redirectTo: `${window.location.origin}${nextPath}` },
       })
       if (error) throw error
     } catch (e: any) {

@@ -452,34 +452,37 @@ function toneBadge(tone: CardTone) {
 )}
  
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 pt-8 pb-4 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
-            Creator Hub
-          </h1>
-          <p className="mt-3 text-white/70 max-w-2xl">
-            Your AI-powered workspace for music marketing. Start with your brand
-            identity, then plan, write, and ride the trends — all in one place.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-  <Link
-    href="/account"
-    className="inline-flex items-center gap-2 px-4 h-9 rounded-full border border-white/15 bg-white/5 text-white/85 text-sm font-semibold hover:border-ww-violet hover:bg-ww-violet/10 transition"
-  >
-    <Sparkles className="w-4 h-4" />
-    Account
-  </Link>
+      <section className="mx-auto max-w-6xl px-5 md:px-6 pt-8 pb-4">
+  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div className="min-w-0">
+      <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
+        Creator Hub
+      </h1>
+      <p className="mt-3 text-white/70 max-w-2xl text-base leading-relaxed">
+        Your AI-powered workspace for music marketing. Start with your brand
+        identity, then plan, write, and ride the trends — all in one place.
+      </p>
+    </div>
 
-  <button
-    onClick={handleLogout}
-    className="inline-flex items-center gap-2 px-4 h-9 rounded-full bg-ww-violet text-white text-sm font-semibold shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)] active:scale-95 transition"
-  >
-    <LogOut className="w-4 h-4" />
-    Log out
-  </button>
-</div>
-      </section>
+    <div className="flex flex-wrap items-center gap-3">
+      <Link
+        href="/account"
+        className="inline-flex items-center gap-2 px-4 h-9 rounded-full border border-white/15 bg-white/5 text-white/85 text-sm font-semibold hover:border-ww-violet hover:bg-ww-violet/10 transition"
+      >
+        <Sparkles className="w-4 h-4" />
+        Account
+      </Link>
+
+      <button
+        onClick={handleLogout}
+        className="inline-flex items-center gap-2 px-4 h-9 rounded-full bg-ww-violet text-white text-sm font-semibold shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)] active:scale-95 transition"
+      >
+        <LogOut className="w-4 h-4" />
+        Log out
+      </button>
+    </div>
+  </div>
+</section>
 
       {/* Grid */}
       <section className="mx-auto max-w-6xl px-4 pb-16">

@@ -906,7 +906,7 @@ const [selectedIdentityKit, setSelectedIdentityKit] = useState<any | null>(null)
 
 if (releaseStrategyLocked) {
   toast.info('Upgrade to Creator to keep using Release Strategy.')
-  router.push('/#pricing')
+  router.push('/pricing')
   return
 }
 
@@ -1581,7 +1581,7 @@ if (inp.selectedIdentityKitId) {
 
     <button
       type="button"
-      onClick={() => router.push('/#pricing')}
+      onClick={() => router.push('/pricing')}
       className="h-9 px-4 rounded-xl bg-gradient-to-r from-ww-violet/80 to-ww-violet text-white text-sm font-medium shadow-[0_0_12px_rgba(186,85,211,0.25)] hover:shadow-[0_0_18px_rgba(186,85,211,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center gap-2"
     >
       <Sparkles className="w-4 h-4" />

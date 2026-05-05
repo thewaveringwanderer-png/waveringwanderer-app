@@ -688,20 +688,7 @@ function hasToneTag(value: string) {
 
 
         {/* ✅ Central profile banner */}
-        {mounted && hasAnyProfile && (
-
-          <div className="p-3 rounded-2xl border border-ww-violet/40 bg-ww-violet/10 text-xs flex flex-wrap items-center justify-between gap-2">
-            <span className="text-white/80">Load your saved artist details and tone from your WW profile?</span>
-            <button
-              type="button"
-              onClick={applyProfileFromCentral}
-              className="px-3 h-8 rounded-full bg-ww-violet text-white text-xs font-semibold hover:shadow-[0_0_16px_rgba(186,85,211,0.7)] active:scale-95 transition"
-            >
-            <Sparkles className="w-3 h-3" />
-  Use WW profile
-</button>
-          </div>
-        )}
+        
 
         
       </section>
@@ -961,7 +948,7 @@ function hasToneTag(value: string) {
     {isCaptionLocked ? (
       <LimitReachedPill
         message="You've used your 1 free caption generation."
-        onUpgrade={() => router.push('/#pricing')}
+        onUpgrade={() => router.push('/pricing')}
       />
     ) : null}
   </div>

@@ -445,17 +445,7 @@ const generatingMessage = useGeneratingMessages(
           </p>
         </div>
 
-        {hasAnyProfile && (
-          <div className="p-3 rounded-2xl border border-ww-violet/40 bg-ww-violet/10 text-xs flex flex-wrap items-center justify-between gap-2">
-            <span className="text-white/80">
-              We recognised your Wavering Wanderers profile. Use it as a starting point?
-            </span>
-            <button type="button" onClick={applyProfileLocally} className={primaryButtonClass}>
-              <Sparkles className="w-3 h-3" />
-              Use WW profile
-            </button>
-          </div>
-        )}
+        
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1.35fr)]">
           {/* LEFT */}

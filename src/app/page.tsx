@@ -24,7 +24,7 @@ export default function HomePage() {
         
 
                 {/* Hero */}
-        <section className="pt-30 pb-16 md:pt-40 md:pb-24">
+        <section className="pt-28 pb-16 md:pt-40 md:pb-24">
           <div className="mx-auto max-w-4xl text-center">
           <div className="mb-6 flex justify-center relative">
   <div className="absolute h-44 w-48 rounded-full bg-ww-violet/20 blur-[50px] animate-ww-pulse" />
@@ -317,19 +317,18 @@ export default function HomePage() {
                 </ul>
 
                 <div className="mt-6">
-                  <a
-                    href="/#pricing"
-                    className={[
-                      "inline-flex items-center justify-center w-full h-10 rounded-full text-sm font-semibold transition",
-                      tier.highlight
-                        ? "bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)]"
-                        : "border border-white/15 text-white/90 hover:border-ww-violet/70 hover:shadow-[0_0_22px_rgba(186,85,211,0.35)]",
-
-                    ].join(" ")}
-                  >
-                    {tier.cta}
-                  </a>
-                </div>
+  <Link
+    href="/login?next=/pricing"
+    className={[
+      "inline-flex items-center justify-center w-full h-10 rounded-full text-sm font-semibold transition",
+      tier.highlight
+        ? "bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)]"
+        : "border border-white/15 text-white/90 hover:border-ww-violet/70 hover:shadow-[0_0_22px_rgba(186,85,211,0.35)]",
+    ].join(" ")}
+  >
+    {tier.key === "pro" ? "Coming soon" : tier.cta}
+  </Link>
+</div>
               </div>
             ))}
           </div>

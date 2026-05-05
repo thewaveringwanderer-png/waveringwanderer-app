@@ -35,14 +35,14 @@ export default function LandingNav() {
   return (
     <div
       className={[
-        'fixed top-5 left-1/2 z-50 w-[min(1100px,calc(100%-24px))] -translate-x-1/2 transition-all duration-300',
+        'fixed top-3 left-1/2 z-50 w-[min(1100px,calc(100%-24px))] -translate-x-1/2 transition-all duration-300',
         visible
           ? 'translate-y-0 opacity-100'
           : '-translate-y-6 opacity-0 pointer-events-none',
       ].join(' ')}
     >
       <div className="rounded-full border border-white/10 bg-black/55 backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.28)]">
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 md:px-6 h-16">
+        <div className="flex items-center justify-between px-4 md:px-6 h-16">
           {/* Left spacer */}
           <div />
 
@@ -60,10 +60,10 @@ export default function LandingNav() {
           </nav>
 
           {/* Right actions */}
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex items-center gap-2">
             <Link
               href="/login"
-              className="inline-flex items-center justify-center rounded-full px-4 h-10 text-sm font-semibold
+              className="inline-flex items-center justify-center rounded-full px-3 h-9 text-xs md:text-sm font-semibold
               border border-white/15 bg-white/5 text-white/85
               hover:bg-ww-deep-violet/15 hover:border-ww-violet/60 hover:text-white
               hover:shadow-[0_0_18px_rgba(186,85,211,0.35)]
@@ -73,10 +73,10 @@ export default function LandingNav() {
             </Link>
 
             <Link
-              href="/login"
+              href="/login?next=/pricing"
               className="inline-flex items-center justify-center rounded-full
               border border-white/15 bg-white/5
-              px-5 h-10 text-sm font-semibold text-white/90
+              px-4 h-10 text-sm font-semibold text-white/90
               hover:bg-ww-violet/15 hover:border-ww-violet/70 hover:text-white
               hover:shadow-[0_0_20px_rgba(155,48,255,0.35)]
               transition active:scale-[0.99]"

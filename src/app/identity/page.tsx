@@ -543,7 +543,7 @@ const creativeWorldPresets = [
   async function handleGenerateKit() {
     if (freeLimitReached) {
   toast.info('Upgrade to Creator to keep using Identity Kit.')
-  router.push('/#pricing')
+  router.push('/pricing')
   return
 }
   void save({ artistName, genre, audience, direction })
@@ -669,7 +669,7 @@ const creativeWorldPresets = [
 
     if (campaignLocked) {
   toast.info('Campaign concepts are available on Creator.')
-  router.push('/#pricing')
+  router.push('/pricing')
   return
 }
 
@@ -1348,12 +1348,7 @@ function PaletteGroup({
             </p>
           </div>
 
-          {mounted && hasAnyProfile ? (
-            <button type="button" onClick={applyProfileFromCentral} className={outlineBtn}>
-              <Sparkles className="w-4 h-4" />
-              Use WW profile
-            </button>
-          ) : null}
+          
         </div>
       </header>
 
@@ -1719,7 +1714,7 @@ function PaletteGroup({
 
     <button
       type="button"
-      onClick={() => router.push('/#pricing')}
+      onClick={() => router.push('/pricing')}
       className="
         h-9 px-4 rounded-xl
         bg-gradient-to-r from-ww-violet/80 to-ww-violet
@@ -1745,7 +1740,7 @@ function PaletteGroup({
   type="button"
   onClick={() => {
   if (freeLimitReached) {
-    router.push('/#pricing')
+    router.push('/pricing')
     return
   }
 

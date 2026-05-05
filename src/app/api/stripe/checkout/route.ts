@@ -33,7 +33,6 @@ export async function POST(req: Request) {
     )
 
     const { data: userData, error: userError } = await getUserWithRetry(supabaseAuth, token)
-
     const uid = userData?.user?.id
     const email = userData?.user?.email
 
