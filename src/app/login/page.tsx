@@ -59,7 +59,7 @@ export default function LoginPage() {
       if (mode === 'signup') {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        setMessage('Check your inbox to confirm your email, then sign in.')
+        setMessage('Check your inbox to confirm your email (and spam just in case — we’re still warming up our email system).')
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,

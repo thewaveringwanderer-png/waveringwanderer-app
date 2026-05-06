@@ -2,6 +2,7 @@
 "use client"
 
 import { useState } from "react"
+import { Camera, Music2, Mail } from "lucide-react"
 import Link from "next/link"
 import { WW_TIER_CARDS } from "@/lib/wwPricing"
 import LandingNav from '@/components/LandingNav'
@@ -357,8 +358,46 @@ export default function HomePage() {
           </div>
 
           <footer className="py-10 text-center text-xs text-white/50">
-            © {new Date().getFullYear()} Wavering Wanderers — AI-powered creativity for independent artists.
-          </footer>
+  <div className="flex flex-col items-center gap-4">
+    <p>
+      © {new Date().getFullYear()} Wavering Wanderers — AI-powered creativity for independent artists.
+    </p>
+
+    <div className="flex flex-wrap items-center justify-center gap-3">
+      <a
+        href="mailto:support@waveringwanderers.com"
+        className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 h-9 text-white/65 hover:border-ww-violet/50 hover:text-white transition"
+      >
+        <Mail className="w-4 h-4" />
+        Support
+      </a>
+
+      <a
+        href="https://www.instagram.com/natestapes/"
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 h-9 text-white/65 hover:border-ww-violet/50 hover:text-white transition"
+      >
+        <Camera className="w-4 h-4" />
+        Instagram
+      </a>
+
+      <a
+        href="https://www.tiktok.com/@wavering.wanderer?_r=1&_t=ZN-968TmBxTbhm"
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 h-9 text-white/65 hover:border-ww-violet/50 hover:text-white transition"
+      >
+        <Music2 className="w-4 h-4" />
+        TikTok
+      </a>
+    </div>
+
+    <p className="text-white/40">
+      Need help? Email support@waveringwanderers.com
+    </p>
+  </div>
+</footer>
         </section>
       </div>{activeImage && (
   <div
