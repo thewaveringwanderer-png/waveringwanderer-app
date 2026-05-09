@@ -63,7 +63,23 @@ const [dismissedIdentityBanner, setDismissedIdentityBanner] = useState(false)
   const router = useRouter()
   const [checking, setChecking] = useState(true)
   const [activatingPlan, setActivatingPlan] = useState(false)
+  const [artistHandle, setArtistHandle] = useState('')
+const [biggestStruggle, setBiggestStruggle] = useState('')
+const [savingContext, setSavingContext] = useState(false)
+const [contextSaved, setContextSaved] = useState(false)
 const { profile, tier, updateProfile, loading: profileLoading, refresh } = useWwProfile()
+
+useEffect(() => {
+  if (!profile || profileLoading) return
+
+  setArtistHandle(String((profile as any).artist_handle || ''))
+  setBiggestStruggle(String((profile as any).biggest_struggle || ''))
+
+  if ((profile as any).artist_handle || (profile as any).biggest_struggle) {
+    setContextSaved(true)
+  }
+}, [profile, profileLoading])
+
  const showIdentityBanner =
   !profileLoading &&
   !!profile &&
@@ -89,13 +105,17 @@ const pressKitLocked = !hasTier(tier, 'pro')
 const newsletterLocked = !hasTier(tier, 'pro')
 
 useEffect(() => {
+  setDismissedIdentityBanner(
+    localStorage.getItem('ww_identity_banner_dismissed') === 'true'
+  )
+}, [])
+
+useEffect(() => {
   if (!paymentSuccess) return
 
   let cancelled = false
 
-  useEffect(() => {
-  setDismissedIdentityBanner(localStorage.getItem('ww_identity_banner_dismissed') === 'true')
-}, [])
+
 
   async function confirmUpgrade() {
     setActivatingPlan(true)
@@ -134,6 +154,28 @@ useEffect(() => {
   }
 
   confirmUpgrade()
+
+  async function handleSaveArtistContext() {
+  setSavingContext(true)
+
+  try {
+    const next = await updateProfile({
+      artist_handle: artistHandle.trim(),
+      biggest_struggle: biggestStruggle.trim(),
+    } as any)
+
+    if (next) {
+      setContextSaved(true)
+      toast.success('Thanks — this helps me improve WW around real artists 🙏')
+    } else {
+      toast.error('Could not save details yet')
+    }
+  } catch {
+    toast.error('Could not save details yet')
+  } finally {
+    setSavingContext(false)
+  }
+}
 
   return () => {
     cancelled = true
@@ -266,6 +308,28 @@ useEffect(() => {
     await supabase.auth.signOut()
     router.replace('/login')
   }
+
+  async function handleSaveArtistContext() {
+  setSavingContext(true)
+
+  try {
+    const next = await updateProfile({
+      artist_handle: artistHandle.trim(),
+      biggest_struggle: biggestStruggle.trim(),
+    } as any)
+
+    if (next) {
+      setContextSaved(true)
+      toast.success('Thanks — this helps me improve WW around real artists 🙏')
+    } else {
+      toast.error('Could not save details yet')
+    }
+  } catch {
+    toast.error('Could not save details yet')
+  } finally {
+    setSavingContext(false)
+  }
+}
 
   function toneBorder(tone: CardTone) {
   if (tone === 'blue') return 'border-ww-blue/20 hover:border-ww-blue/50'
@@ -483,6 +547,59 @@ function toneBadge(tone: CardTone) {
     </div>
   </div>
 </section>
+
+{!contextSaved && (
+  <section className="mx-auto max-w-6xl px-5 md:px-6 pb-6">
+    <div className="rounded-2xl border border-ww-violet/20 bg-black/60 p-4 md:p-5 shadow-[0_0_18px_rgba(186,85,211,0.08)]">
+      <p className="text-[11px] uppercase tracking-[0.16em] text-ww-violet/80">
+        Help shape WW
+      </p>
+
+      <h3 className="mt-2 text-white font-semibold text-lg">
+        Tell me who you are
+      </h3>
+
+      <p className="mt-1 text-sm text-white/60">
+        This helps me understand who’s using the platform and improve it around real independent artists.
+      </p>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <input
+          value={artistHandle}
+          onChange={(e) => setArtistHandle(e.target.value)}
+          placeholder="Artist name or @handle"
+          className="h-11 rounded-xl border border-white/10 bg-black/60 px-3 text-sm text-white placeholder:text-white/35 focus:border-ww-violet focus:outline-none"
+        />
+
+        <input
+          value={biggestStruggle}
+          onChange={(e) => setBiggestStruggle(e.target.value)}
+          placeholder="Biggest struggle right now"
+          className="h-11 rounded-xl border border-white/10 bg-black/60 px-3 text-sm text-white placeholder:text-white/35 focus:border-ww-violet focus:outline-none"
+        />
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={handleSaveArtistContext}
+          disabled={savingContext || (!artistHandle.trim() && !biggestStruggle.trim())}
+          className="inline-flex h-10 items-center justify-center rounded-full bg-ww-violet px-5 text-sm font-semibold text-white shadow-[0_0_16px_rgba(186,85,211,0.45)] transition hover:shadow-[0_0_22px_rgba(186,85,211,0.7)] disabled:opacity-50"
+        >
+          {savingContext ? 'Saving…' : 'Save details'}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setContextSaved(true)}
+          className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 px-5 text-sm font-semibold text-white/65 hover:border-white/20 hover:text-white transition"
+        >
+          Skip for now
+        </button>
+      </div>
+    </div>
+  </section>
+)}
 
       {/* Grid */}
       <section className="mx-auto max-w-6xl px-4 pb-16">

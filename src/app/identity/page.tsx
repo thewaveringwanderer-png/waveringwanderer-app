@@ -1190,6 +1190,58 @@ function ActionTip({ label }: { label: string }) {
   const outputInnerCardClass =
   'rounded-2xl border border-white/10 bg-black/45 backdrop-blur-sm p-4'
 
+function LockedPreviewSection({
+  title,
+  hint,
+}: {
+  title: string
+  hint: string
+}) {
+  return (
+    <Section id={`locked-${title.toLowerCase().replace(/\s+/g, '-')}`} title={title} hint={hint}>
+      <div className="relative overflow-hidden rounded-2xl border border-ww-violet/20 bg-black/50 p-4">
+        <div className="pointer-events-none select-none blur-[3px] opacity-45">
+          <div className="space-y-3">
+            <div className="h-4 w-2/3 rounded bg-white/15" />
+            <div className="h-4 w-full rounded bg-white/10" />
+            <div className="h-4 w-5/6 rounded bg-white/10" />
+            <div className="h-4 w-3/4 rounded bg-white/10" />
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="h-3 w-24 rounded bg-white/15" />
+              <div className="mt-3 h-3 w-full rounded bg-white/10" />
+              <div className="mt-2 h-3 w-4/5 rounded bg-white/10" />
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="h-3 w-24 rounded bg-white/15" />
+              <div className="mt-3 h-3 w-full rounded bg-white/10" />
+              <div className="mt-2 h-3 w-3/4 rounded bg-white/10" />
+            </div>
+          </div>
+        </div>
+
+        <div className="absolute inset-0 flex items-center justify-center bg-black/45 backdrop-blur-[1px]">
+          <div className="rounded-2xl border border-ww-violet/25 bg-black/80 px-5 py-4 text-center shadow-[0_0_24px_rgba(186,85,211,0.18)]">
+            <p className="text-sm font-semibold text-white">
+              Upgrade to see this section
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.assign('/pricing')}
+              className="mt-3 inline-flex h-9 items-center justify-center rounded-full bg-ww-violet px-4 text-xs font-semibold text-white transition hover:shadow-[0_0_18px_rgba(186,85,211,0.7)]"
+            >
+              Upgrade to Creator
+            </button>
+          </div>
+        </div>
+      </div>
+    </Section>
+  )
+}
+
 function isHexColor(value?: string) {
   if (!value) return false
   return /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(value.trim())
@@ -2159,7 +2211,30 @@ one consistent artist brief.
     </div>
   </div>
 </Section>
-{!isFreeIdentityPreview && (
+
+{isFreeIdentityPreview ? (
+  <>
+    <LockedPreviewSection
+      title="Tone of voice"
+      hint="How the brand should sound, what to lean into, and what to avoid"
+    />
+
+    <LockedPreviewSection
+      title="Visual system"
+      hint="Palette, lighting, environments, framing, texture, symbolism"
+    />
+
+    <LockedPreviewSection
+      title="Content system"
+      hint="Pillars and repeatable containers for showing up consistently"
+    />
+
+    <LockedPreviewSection
+      title="Identity rules"
+      hint="Constraints that keep the brand coherent across every output"
+    />
+  </>
+) : (
   <>
 <Section id="tone" title="Tone of voice" hint="How the brand should sound, what to lean into, and what to avoid">
   <div className="space-y-4">
