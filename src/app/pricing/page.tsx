@@ -65,7 +65,7 @@ alert(json?.error || text || "Could not start checkout")
 }
   return (
     <main className="min-h-screen bg-black text-white px-6 py-16">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-4xl">
       
 
         {/* Header */}
@@ -74,12 +74,12 @@ alert(json?.error || text || "Could not start checkout")
             Pricing
           </h1>
           <p className="mt-4 text-white/70 max-w-xl mx-auto">
-            Start free. Upgrade when you're ready to operate like a professional artist.
+            Start free. Unlock the full Wavering Wanderers system when you're ready.
           </p>
         </div>
 
         {/* Cards */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           {WW_TIER_CARDS.map((tier) => (
             <div
               key={tier.key}
@@ -120,30 +120,24 @@ alert(json?.error || text || "Could not start checkout")
               {/* CTA */}
               <div className="mt-6">
                 {tier.key === "free" ? (
-                  <Link
-                    href="/login"
-                    className="inline-flex items-center justify-center w-full h-10 rounded-full text-sm font-semibold border border-white/15 text-white/90 hover:border-ww-violet/70 hover:shadow-[0_0_22px_rgba(186,85,211,0.35)] transition"
-                  >
-                    Get started free
-                  </Link>
-                ) : tier.key === "creator" ? (
-                  <button
-  type="button"
-  onClick={handleCreatorCheckout}
-  disabled={loadingCheckout}
-  className="inline-flex items-center justify-center w-full h-10 rounded-full text-sm font-semibold bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)] transition disabled:opacity-60"
->
-  {loadingCheckout ? "Opening checkout…" : "Upgrade to Creator"}
-</button>
-                      
-                ) : (
-                  <button
-                    disabled
-                    className="inline-flex items-center justify-center w-full h-10 rounded-full text-sm font-semibold border border-white/10 text-white/40 cursor-not-allowed"
-                  >
-                    Coming soon
-                  </button>
-                )}
+  <Link
+    href="/login"
+    className="inline-flex items-center justify-center w-full h-10 rounded-full text-sm font-semibold border border-white/15 text-white/90 hover:border-ww-violet/70 hover:shadow-[0_0_22px_rgba(186,85,211,0.35)] transition"
+  >
+    Get started free
+  </Link>
+) : (
+  <button
+    type="button"
+    onClick={handleCreatorCheckout}
+    disabled={loadingCheckout}
+    className="inline-flex items-center justify-center w-full h-10 rounded-full text-sm font-semibold bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)] transition disabled:opacity-60"
+  >
+    {loadingCheckout
+      ? "Opening checkout…"
+      : "Unlock full WW system"}
+  </button>
+)}
               </div>
             </div>
           ))}

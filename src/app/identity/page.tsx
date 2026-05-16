@@ -1233,7 +1233,7 @@ function LockedPreviewSection({
               onClick={() => window.location.assign('/pricing')}
               className="mt-3 inline-flex h-9 items-center justify-center rounded-full bg-ww-violet px-4 text-xs font-semibold text-white transition hover:shadow-[0_0_18px_rgba(186,85,211,0.7)]"
             >
-              Upgrade to Creator
+              Unlock the full WW system
             </button>
           </div>
         </div>
@@ -1768,9 +1768,9 @@ function PaletteGroup({
       type="button"
       onClick={() => router.push('/pricing')}
       className="
-        h-9 px-4 rounded-xl
+        h-11 px-8 rounded-xl
         bg-gradient-to-r from-ww-violet/80 to-ww-violet
-        text-white text-sm font-medium
+        text-white text-xs font-medium
         shadow-[0_0_12px_rgba(186,85,211,0.25)]
         hover:shadow-[0_0_18px_rgba(186,85,211,0.45)]
         hover:scale-[1.02]
@@ -1780,7 +1780,7 @@ function PaletteGroup({
       "
     >
       <Sparkles className="w-4 h-4" />
-      Upgrade
+      Unlock the full WW system
     </button>
   </div>
 )}
@@ -1801,9 +1801,9 @@ function PaletteGroup({
   disabled={submitting || freeLimitReached}
   className={primaryBtn + ' w-full justify-center'}
 >
-  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
   {freeLimitReached
-    ? 'Upgrade to Creator to continue'
+    ? 'Unlock the full WW system'
     : submitting
     ? 'Generating…'
     : 'Generate Identity Kit'}
@@ -1818,7 +1818,7 @@ function PaletteGroup({
 >
   {loadingCampaigns ? <Loader2 className="w-4 h-4 animate-spin" /> : <Film className="w-4 h-4" />}
   {campaignLocked
-    ? 'Upgrade to Creator for Campaign Concepts'
+    ? 'Unlock the full WW system for Campaign Concepts'
     : loadingCampaigns
     ? 'Generating…'
     : 'Generate Campaign Concepts'}

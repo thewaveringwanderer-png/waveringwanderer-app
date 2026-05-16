@@ -33,15 +33,7 @@ const planCopy: Record<string, { name: string; description: string; features: st
       'Momentum Board',
     ],
   },
-  pro: {
-    name: 'Pro',
-    description: 'Expanded strategic depth, premium tools, and future advanced systems as they roll out.',
-    features: [
-      'Everything in Creator',
-      'Premium tools and advanced workflows',
-      'Pro features rolling out over time',
-    ],
-  },
+ 
 }
 
 

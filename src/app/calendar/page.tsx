@@ -1931,7 +1931,7 @@ releaseStrategyContext:
     type="button"
     onClick={() => {
       if (isCalendarLocked) {
-        toast.info('Upgrade to Creator to keep using Idea Factory.')
+        toast.info('Unlock the full WW system to keep using Idea Factory.')
         router.push('/pricing')
         return
       }
@@ -1943,11 +1943,11 @@ releaseStrategyContext:
       handleGenerateIdeas()
     }}
     disabled={generating}
-    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-ww-violet px-4 h-10 text-sm font-semibold text-white shadow-[0_0_16px_rgba(186,85,211,0.6)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)] active:scale-95 transition disabled:opacity-60"
+    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-ww-violet px-4 h-10 text-xs font-semibold text-white shadow-[0_0_16px_rgba(186,85,211,0.6)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)] active:scale-95 transition disabled:opacity-60"
   >
     {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
     {isCalendarLocked
-      ? 'Upgrade to Creator to continue'
+      ? 'Unlock the full WW system'
       : generating
       ? 'Generating ideas…'
       : 'Generate ideas'}

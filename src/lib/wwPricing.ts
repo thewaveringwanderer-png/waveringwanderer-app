@@ -30,19 +30,5 @@ export const WW_TIER_CARDS = [
     ],
     highlight: true,
   },
-  {
-    key: 'pro',
-    name: 'Pro',
-    priceLabel: '£39 / month',
-    subLabel: 'Operate like a professional artist',
-    cta: 'Go Pro',
-    features: [
-      'Everything in Creator',
-      'Trend Finder (adapt what’s working now)',
-      'Press Kit Builder (bios, positioning, EPK)',
-      'Newsletter Generator (own your audience)',
-      'Run releases without managers or labels',
-      'Your complete independent artist system',
-    ],
-  },
+  
 ]

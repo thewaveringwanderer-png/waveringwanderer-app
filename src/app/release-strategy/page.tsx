@@ -1594,10 +1594,10 @@ if (inp.selectedIdentityKitId) {
                   type="button"
                   onClick={handleGeneratePlan}
                   disabled={loadingPlan}
-                  className={primaryBtn + ' w-full justify-center h-10 text-sm'}
+                  className={primaryBtn + ' w-full justify-center h-10 text-xs'}
                 >
                   {releaseStrategyLocked
-  ? 'Upgrade to Creator to continue'
+  ? 'Unlock the full WW systeme'
   : loadingPlan
   ? 'Generating…'
   : 'Generate Release Strategy'}

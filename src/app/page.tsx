@@ -281,59 +281,59 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Pricing */}
-        <section id="pricing" className="mx-auto max-w-6xl px-4 py-16 border-t border-white/10">
-          <div className="mb-8 text-center">
-            <h2 className="text-3xl font-bold text-white">Pricing</h2>
-            <p className="mt-2 text-white/70">
-              Start free. Upgrade when you’re ready to operate like a professional.
-            </p>
-          </div>
+       {/* Pricing */}
+<section id="pricing" className="mx-auto max-w-6xl px-4 py-16 border-t border-white/10">
+  <div className="mb-8 text-center">
+    <h2 className="text-3xl font-bold text-white">Pricing</h2>
+    <p className="mt-2 text-white/70">
+      Start free. Unlock the full Wavering Wanderers system when you’re ready.
+    </p>
+  </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {WW_TIER_CARDS.map(tier => (
-              <div
-                key={tier.key}
-                className={[
-                  "rounded-3xl border bg-black/70 p-6",
-                  tier.highlight
-                    ? "border-ww-violet/50 shadow-[0_0_24px_rgba(186,85,211,0.35)]"
-                    : "border-white/10",
-                ].join(" ")}
-              >
-                <div className="flex items-baseline justify-between">
-                  <h3 className="text-xl font-semibold text-white">{tier.name}</h3>
-                  <span className="text-white/80">{tier.priceLabel}</span>
-                </div>
+  <div className="mx-auto flex w-full max-w-4xl flex-col items-center justify-center gap-6 md:flex-row">
+    {WW_TIER_CARDS.map(tier => (
+      <div
+        key={tier.key}
+        className={[
+          "w-full max-w-[380px] min-h-[380px] rounded-3xl border bg-black/70 p-6 flex flex-col justify-between",
+          tier.highlight
+            ? "border-ww-violet/50 shadow-[0_0_24px_rgba(186,85,211,0.35)]"
+            : "border-white/10",
+        ].join(" ")}
+      >
+        <div className="flex items-baseline justify-between">
+          <h3 className="text-xl font-semibold text-white">{tier.name}</h3>
+          <span className="text-white/80">{tier.priceLabel}</span>
+        </div>
 
-                {tier.subLabel && <p className="mt-1 text-sm text-white/60">{tier.subLabel}</p>}
+        {tier.subLabel && <p className="mt-1 text-sm text-white/60">{tier.subLabel}</p>}
 
-                <ul className="mt-5 space-y-2 text-sm text-white/80">
-                  {tier.features.map((f, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span className="text-ww-violet">•</span>
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
+        <ul className="mt-5 space-y-2 text-sm text-white/80">
+          {tier.features.map((f, i) => (
+            <li key={i} className="flex gap-2">
+              <span className="text-ww-violet">•</span>
+              <span>{f}</span>
+            </li>
+          ))}
+        </ul>
 
-                <div className="mt-6">
-  <Link
-    href="/login?next=/pricing"
-    className={[
-      "inline-flex items-center justify-center w-full h-10 rounded-full text-sm font-semibold transition",
-      tier.highlight
-        ? "bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)]"
-        : "border border-white/15 text-white/90 hover:border-ww-violet/70 hover:shadow-[0_0_22px_rgba(186,85,211,0.35)]",
-    ].join(" ")}
-  >
-    {tier.key === "pro" ? "Coming soon" : tier.cta}
-  </Link>
-</div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <div className="mt-6">
+          <Link
+            href="/login?next=/pricing"
+            className={[
+              "inline-flex items-center justify-center w-full h-10 rounded-full text-sm font-semibold transition",
+              tier.highlight
+                ? "bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)]"
+                : "border border-white/15 text-white/90 hover:border-ww-violet/70 hover:shadow-[0_0_22px_rgba(186,85,211,0.35)]",
+            ].join(" ")}
+          >
+            {tier.cta}
+          </Link>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
 
         {/* Footer CTA */}
         <section className="py-16 border-t border-white/10">
