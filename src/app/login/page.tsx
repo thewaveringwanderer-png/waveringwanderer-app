@@ -59,7 +59,7 @@ export default function LoginPage() {
       if (mode === 'signup') {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        setMessage('Check your inbox to confirm your email (and spam just in case — we’re still warming up our email system).')
+        setMessage('Confirmation email sent ✨ If you don’t see it in a minute, check promotions or spam.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -122,38 +122,48 @@ window.location.href = next || '/dashboard'
           <p className="text-white/70 mt-1">Sign in to your Creator Hub.</p>
 
           {/* Mode Switch */}
-          <div className="mt-4 inline-flex rounded-full border border-white/10 p-1">
-            <button
-              onClick={() => setMode('signin')}
-              className={`px-4 h-9 rounded-full text-sm transition ${
-                mode === 'signin'
-                  ? 'bg-ww-violet text-white'
-                  : 'hover:text-white/90'
-              }`}
-            >
-              Sign in
-            </button>
-            <button
-              onClick={() => setMode('signup')}
-              className={`px-4 h-9 rounded-full text-sm transition ${
-                mode === 'signup'
-                  ? 'bg-ww-violet text-white'
-                  : 'hover:text-white/90'
-              }`}
-            >
-              Create account
-            </button>
-            <button
-              onClick={() => setMode('magic')}
-              className={`px-4 h-9 rounded-full text-sm transition ${
-                mode === 'magic'
-                  ? 'bg-ww-violet text-white'
-                  : 'hover:text-white/90'
-              }`}
-            >
-              Magic link
-            </button>
-          </div>
+<div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-black/40 p-1">
+  <button
+    onClick={() => setMode('signin')}
+    className={`min-h-[52px] rounded-xl px-2 text-[0.82rem] leading-tight transition flex items-center justify-center text-center ${
+      mode === 'signin'
+        ? 'bg-ww-violet text-white'
+        : 'text-white/60 hover:text-white/90'
+    }`}
+  >
+    Sign in
+  </button>
+
+  <button
+    onClick={() => setMode('signup')}
+    className={`min-h-[52px] rounded-xl px-2 text-[0.82rem] leading-tight transition flex items-center justify-center text-center ${
+      mode === 'signup'
+        ? 'bg-ww-violet text-white'
+        : 'text-white/60 hover:text-white/90'
+    }`}
+  >
+    <span className="leading-tight">
+      Create
+      <br />
+      account
+    </span>
+  </button>
+
+  <button
+    onClick={() => setMode('magic')}
+    className={`min-h-[52px] rounded-xl px-2 text-[0.82rem] leading-tight transition flex items-center justify-center text-center ${
+      mode === 'magic'
+        ? 'bg-ww-violet text-white'
+        : 'text-white/60 hover:text-white/90'
+    }`}
+  >
+    <span className="leading-tight">
+      Magic
+      <br />
+      link
+    </span>
+  </button>
+</div>
 
           {/* Alerts */}
           {message && (

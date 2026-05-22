@@ -745,7 +745,7 @@ const [selectedIdentityKit, setSelectedIdentityKit] = useState<any | null>(null)
   const [executionIntensity, setExecutionIntensity] = useState<
     'light' | 'standard' | 'aggressive'
   >('standard')
-  
+ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create') 
   useEffect(() => {
   if (mounted && tier === 'free' && executionIntensity !== 'light') {
     setExecutionIntensity('light')
@@ -1254,9 +1254,40 @@ if (inp.selectedIdentityKitId) {
 </div>
       
         </header>
+{/* MOBILE PANEL SWITCHER */}
+<div className="sticky top-14 z-20 mb-4 md:hidden">
+  <div className="rounded-2xl border border-white/10 bg-black/85 p-1 backdrop-blur">
+    <div className="grid grid-cols-2 gap-1">
+      <button
+        type="button"
+        onClick={() => setMobilePanel('create')}
+        className={`h-10 rounded-xl text-sm font-semibold transition ${
+          mobilePanel === 'create'
+            ? 'bg-ww-violet text-white shadow-[0_0_14px_rgba(186,85,211,0.35)]'
+            : 'text-white/55 hover:text-white'
+        }`}
+      >
+        Create
+      </button>
 
+      <button
+        type="button"
+        onClick={() => setMobilePanel('results')}
+        className={`h-10 rounded-xl text-sm font-semibold transition ${
+          mobilePanel === 'results'
+            ? 'bg-ww-violet text-white shadow-[0_0_14px_rgba(186,85,211,0.35)]'
+            : 'text-white/55 hover:text-white'
+        }`}
+      >
+        Results
+      </button>
+    </div>
+  </div>
+</div>
         <div className="grid gap-6 xl:gap-7 lg:grid-cols-[minmax(360px,0.95fr)_minmax(0,1.15fr)] lg:items-start">
-          <section className={panelClass + ' p-5 md:p-6 xl:p-7 space-y-5'}>
+         <section
+  className={`${mobilePanel === 'create' ? 'block' : 'hidden'} md:block ${panelClass} p-5 md:p-6 xl:p-7 space-y-5`}
+>
             <div className="pointer-events-none absolute inset-0">
               <div className="absolute -top-20 left-1/2 h-[220px] w-[380px] -translate-x-1/2 rounded-full bg-ww-violet/10 blur-[80px]" />
             </div>
@@ -1612,7 +1643,9 @@ if (inp.selectedIdentityKitId) {
             </div>
           </section>
 
-          <section className={panelClass + ' p-5 md:p-6 xl:p-7 h-full'}>
+         <section
+  className={`${mobilePanel === 'results' ? 'block' : 'hidden'} md:block ${panelClass} p-5 md:p-6 xl:p-7 h-full`}
+>
             {loadingPlan ? (
               <div className="space-y-5 h-full overflow-y-auto pr-1">
                 <header className="border-b border-white/10 pb-4 space-y-2">

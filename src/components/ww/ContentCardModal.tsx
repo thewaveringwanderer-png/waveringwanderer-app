@@ -23,19 +23,43 @@ function parseCaptionSections(caption: string) {
   const raw = (caption || '').trim()
   const up = raw.toUpperCase()
 
-  const keys = ['IDEA:', 'FORMAT:', 'ANGLE:', 'CTA:', 'PILLAR:']
+  const keys = [
+    'CONTENT ANGLE:',
+    'HOOK:',
+    'ON-SCREEN TEXT:',
+    'VIDEO EXECUTION:',
+    'CAPTION:',
+    'CTA:',
+    'WHY THIS WORKS:',
+    'BEST FOR:',
+  ]
+
   const hasAnyKey = keys.some(k => up.includes(k))
 
   if (!hasAnyKey) {
-    return { isSectioned: false as const, idea: '', format: '', angle: '', cta: '', pillar: '', plain: raw }
+    return {
+      isSectioned: false as const,
+      contentAngle: '',
+      hook: '',
+      onScreenText: '',
+      videoExecution: '',
+      caption: '',
+      cta: '',
+      whyThisWorks: '',
+      bestFor: '',
+      plain: raw,
+    }
   }
 
   const norm = raw
-    .replace(/idea:/gi, 'IDEA:')
-    .replace(/format:/gi, 'FORMAT:')
-    .replace(/angle:/gi, 'ANGLE:')
+    .replace(/content angle:/gi, 'CONTENT ANGLE:')
+    .replace(/hook:/gi, 'HOOK:')
+    .replace(/on-screen text:/gi, 'ON-SCREEN TEXT:')
+    .replace(/video execution:/gi, 'VIDEO EXECUTION:')
+    .replace(/caption:/gi, 'CAPTION:')
     .replace(/cta:/gi, 'CTA:')
-    .replace(/pillar:/gi, 'PILLAR:')
+    .replace(/why this works:/gi, 'WHY THIS WORKS:')
+    .replace(/best for:/gi, 'BEST FOR:')
 
   const takeBetween = (start: string, end?: string) => {
     const s = norm.indexOf(start)
@@ -45,19 +69,16 @@ function parseCaptionSections(caption: string) {
     return (e === -1 ? norm.slice(from) : norm.slice(from, e)).trim()
   }
 
-  const idea = takeBetween('IDEA:', 'FORMAT:')
-  const format = takeBetween('FORMAT:', 'ANGLE:')
-  const angle = takeBetween('ANGLE:', 'CTA:')
-  const cta = takeBetween('CTA:', 'PILLAR:')
-  const pillar = takeBetween('PILLAR:')
-
   return {
     isSectioned: true as const,
-    idea: formatNumberedSteps(idea),
-    format,
-    angle,
-    cta,
-    pillar,
+    contentAngle: takeBetween('CONTENT ANGLE:', 'HOOK:'),
+    hook: takeBetween('HOOK:', 'ON-SCREEN TEXT:'),
+    onScreenText: takeBetween('ON-SCREEN TEXT:', 'VIDEO EXECUTION:'),
+    videoExecution: takeBetween('VIDEO EXECUTION:', 'CAPTION:'),
+    caption: takeBetween('CAPTION:', 'CTA:'),
+    cta: takeBetween('CTA:', 'WHY THIS WORKS:'),
+    whyThisWorks: takeBetween('WHY THIS WORKS:', 'BEST FOR:'),
+    bestFor: takeBetween('BEST FOR:'),
     plain: '',
   }
 }
@@ -268,6 +289,7 @@ export default function ContentCardModal({
 
   const refinedCaption = item.metadata?.refined_caption_text || ''
 const isRefinedCaption = !!item.metadata?.caption_refined
+const structured = item.metadata?.structured || null
 
     const hasAttachedCaption = !!item.caption?.trim()
 
@@ -531,6 +553,7 @@ const isRefinedCaption = !!item.metadata?.caption_refined
     <div className="border-t border-white/10 pt-3">
       {item.caption ? (
         (() => {
+         
           const s = parseCaptionSections(item.caption)
 
           if (!s.isSectioned) {
@@ -556,44 +579,63 @@ const isRefinedCaption = !!item.metadata?.caption_refined
             </div>
           )          
 
-          return (
-            <div className="space-y-2">
-              {s.idea ? (
-                <Section label="Idea">
-                  <div className="whitespace-pre-line">{s.idea}</div>
-                </Section>
-              ) : null}
-
-              {s.format ? <Section label="Format">{s.format}</Section> : null}
-              {s.angle ? <Section label="Angle">{s.angle}</Section> : null}
-              {s.cta ? (
-  <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-    <div className="mb-1 flex items-center justify-between gap-2">
-      <div className="text-[0.65rem] uppercase tracking-wide text-white/45">
-        CTA
-      </div>
-
-      {isRefinedCaption ? (
-        <span className="inline-flex items-center rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[0.58rem] uppercase tracking-wide text-emerald-300 whitespace-nowrap">
-          Refined
-        </span>
+ if (structured && typeof structured === 'object') {
+  return (
+    <div className="space-y-2">
+      {structured.hook ? <Section label="Hook">{structured.hook}</Section> : null}
+      {structured.onScreenText ? (
+  <Section label="On-Screen Text">{structured.onScreenText}</Section>
+) : null}
+      {structured.concept ? <Section label="Content Angle">{structured.concept}</Section> : null}
+      {structured.execution ? <Section label="Video Execution">{structured.execution}</Section> : null}
+      {structured.cta ? <Section label="CTA">{refinedCaption || structured.cta}</Section> : null}
+      {Array.isArray(structured.why) && structured.why.length ? (
+        <Section label="Why This Works">
+          <ul className="space-y-1">
+            {structured.why.map((line: string, index: number) => (
+              <li key={index}>• {line}</li>
+            ))}
+          </ul>
+        </Section>
       ) : null}
     </div>
+  )
+}
 
-    <div className="text-sm text-white/85 leading-relaxed">
-      {refinedCaption || s.cta}
-    </div>
-  </div>
+          return (
+            <div className="space-y-2">
+              {s.contentAngle ? (
+  <Section label="Content Angle">{s.contentAngle}</Section>
 ) : null}
 
-              {s.pillar ? (
-                <div className="pt-1 text-[0.75rem] text-white/65">
-                  <span className="text-white/45 uppercase tracking-wide mr-2">
-                    Pillar
-                  </span>
-                  <span>{s.pillar}</span>
-                </div>
-              ) : null}
+{s.hook ? (
+  <Section label="Hook">{s.hook}</Section>
+) : null}
+
+{s.onScreenText ? (
+  <Section label="On-Screen Text">{s.onScreenText}</Section>
+) : null}
+
+{s.videoExecution ? (
+  <Section label="Video Execution">{s.videoExecution}</Section>
+) : null}
+
+{s.caption ? (
+  <Section label="Caption">{s.caption}</Section>
+) : null}
+
+{s.cta ? (
+  <Section label="CTA">{refinedCaption || s.cta}</Section>
+) : null}
+
+{s.whyThisWorks ? (
+  <Section label="Why This Works">{s.whyThisWorks}</Section>
+) : null}
+
+{s.bestFor ? (
+  <Section label="Best For">{s.bestFor}</Section>
+) : null}
+              
             </div>
           )
         })()

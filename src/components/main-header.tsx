@@ -18,13 +18,12 @@ export default function MainHeader() {
   const isMomentumBoard = pathname?.startsWith('/strategy-board')
 
   const baseBtn =
-    'inline-flex items-center gap-2 px-3 h-9 rounded-full border border-white/10 text-white/90 hover:border-ww-violet hover:shadow-[0_0_14px_rgba(186,85,211,0.45)] transition'
+    'shrink-0 inline-flex items-center justify-center rounded-full border border-white/10 px-3 py-2 text-[0.78rem] font-medium whitespace-nowrap text-white/85 hover:border-ww-violet hover:bg-ww-violet/10 hover:shadow-[0_0_14px_rgba(186,85,211,0.35)] transition'
 
   const handleLogout = useCallback(async () => {
     try {
       await supabase.auth.signOut()
     } catch (e) {
-      // even if signOut fails, still push them to login
       console.error('Logout error', e)
     } finally {
       router.replace('/login')
@@ -33,39 +32,34 @@ export default function MainHeader() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-white/5 bg-black/65 backdrop-blur">
-      <nav className="mx-auto max-w-6xl h-14 px-4 flex items-center justify-between">
-        <Link href="/" className="font-semibold tracking-tight no-underline text-white">
+      <nav className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-3 px-3 py-2 sm:px-4">
+        <Link
+          href="/"
+          className="shrink-0 text-base font-semibold leading-tight tracking-tight no-underline text-white sm:text-lg"
+        >
           Wavering <span className="text-ww-violet">Wanderers</span>
         </Link>
 
-        {/* Right side of nav depends on current page */}
-        <div className="hidden sm:flex items-center gap-2">
-          {/* Dashboard page: only "Log out" */}
+        <div className="flex min-w-0 items-center gap-2 overflow-x-auto pb-1">
           {isDashboard && (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className={baseBtn}
-            >
+            <button type="button" onClick={handleLogout} className={baseBtn}>
               Log out
             </button>
           )}
 
-          {/* Momentum Board page: only "Dashboard" */}
           {isMomentumBoard && !isDashboard && (
             <Link href="/dashboard" className={baseBtn}>
               Dashboard
             </Link>
           )}
 
-          {/* All other pages: Dashboard + Momentum Board */}
           {!isDashboard && !isMomentumBoard && (
             <>
               <Link href="/dashboard" className={baseBtn}>
                 Dashboard
               </Link>
               <Link href="/strategy-board" className={baseBtn}>
-                Momentum Board
+                Momentum
               </Link>
             </>
           )}

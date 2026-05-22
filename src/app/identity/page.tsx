@@ -248,6 +248,7 @@ const [showGenrePicks, setShowGenrePicks] = useState(false)
 const [showAudiencePicks, setShowAudiencePicks] = useState(false)
 const [showWorldPicks, setShowWorldPicks] = useState(false)
 const [showBrandPicks, setShowBrandPicks] = useState(false)
+const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
@@ -1197,6 +1198,8 @@ function LockedPreviewSection({
   title: string
   hint: string
 }) {
+
+  
   return (
     <Section id={`locked-${title.toLowerCase().replace(/\s+/g, '-')}`} title={title} hint={hint}>
       <div className="relative overflow-hidden rounded-2xl border border-ww-violet/20 bg-black/50 p-4">
@@ -1404,10 +1407,41 @@ function PaletteGroup({
         </div>
       </header>
 
+{/* MOBILE PANEL SWITCHER */}
+<div className="sticky top-14 z-20 mb-4 md:hidden">
+  <div className="rounded-2xl border border-white/10 bg-black/85 p-1 backdrop-blur">
+    <div className="grid grid-cols-2 gap-1">
+      <button
+        type="button"
+        onClick={() => setMobilePanel('create')}
+        className={`h-10 rounded-xl text-sm font-semibold transition ${
+          mobilePanel === 'create'
+            ? 'bg-ww-violet text-white shadow-[0_0_14px_rgba(186,85,211,0.35)]'
+            : 'text-white/55 hover:text-white'
+        }`}
+      >
+        Create
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setMobilePanel('results')}
+        className={`h-10 rounded-xl text-sm font-semibold transition ${
+          mobilePanel === 'results'
+            ? 'bg-ww-violet text-white shadow-[0_0_14px_rgba(186,85,211,0.35)]'
+            : 'text-white/55 hover:text-white'
+        }`}
+      >
+        Results
+      </button>
+    </div>
+  </div>
+</div>
+
       <div className="grid gap-6 xl:gap-7 lg:grid-cols-[minmax(360px,0.95fr)_minmax(0,1.15fr)] lg:items-start">
     {/* LEFT PANEL */}
     <section
-  className={panelClass + ' p-5 md:p-6 xl:p-7 space-y-5'}
+  className={`${mobilePanel === 'create' ? 'block' : 'hidden'} md:block ${panelClass} p-5 md:p-6 xl:p-7 space-y-5`}
   style={{ overflowAnchor: 'none' as any }}
 >
       <div className="pointer-events-none absolute inset-0">
@@ -1850,7 +1884,7 @@ function PaletteGroup({
 {/* RIGHT PANEL */}
 <section
   ref={resultRef}
-  className="space-y-6 lg:sticky lg:top-6 self-start"
+  className={`${mobilePanel === 'results' ? 'block' : 'hidden'} md:block space-y-6 lg:sticky lg:top-6 self-start`}
   style={{ overflowAnchor: 'none' as any }}
 >
   {tab === 'kit' && submitting ? (
@@ -3066,7 +3100,7 @@ one consistent artist brief.
     </div>
   )}
 </section>
-)
+
 
       </div>
     </section>

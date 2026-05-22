@@ -30,42 +30,33 @@ function parseCaptionSections(caption: string) {
   const raw = (caption || '').trim()
   const up = raw.toUpperCase()
 
-  const keys = ['IDEA:', 'FORMAT:', 'ANGLE:', 'CTA:', 'PILLAR:']
+  const keys = [
+    'CONTENT ANGLE:',
+    'HOOK:',
+    'ON-SCREEN TEXT:',
+    'VIDEO EXECUTION:',
+    'CAPTION:',
+    'CTA:',
+    'WHY THIS WORKS:',
+    'BEST FOR:',
+    'IDEA:',
+    'FORMAT:',
+    'ANGLE:',
+    'PILLAR:',
+  ]
+
   const hasAnyKey = keys.some(k => up.includes(k))
 
-  
-
-  function buildMiniPreviewLines(caption: string) {
-  const s = parseCaptionSections(caption)
-
-
-
-  
-
-  // If it's not sectioned, just split into lines.
-  if (!s.isSectioned) {
-    return splitIntoLines(s.plain).slice(0, 4)
-  }
-
-  // Sectioned: turn into compact single-line bullets.
-  const lines: string[] = []
-
-  if (s.idea) {
-    // Idea can be multi-line; keep first 1–2 lines max for mini.
-    const ideaLines = splitIntoLines(s.idea)
-    const ideaShort = ideaLines.slice(0, 2).join(' / ')
-    lines.push(`IDEA: ${ideaShort}`)
-  }
-  if (s.format) lines.push(`FORMAT: ${s.format}`)
-  if (s.angle) lines.push(`ANGLE: ${s.angle}`)
-  if (s.cta) lines.push(`CTA: ${s.cta}`)
-  if (s.pillar) lines.push(`PILLAR: ${s.pillar}`)
-
-  return lines.slice(0, 4)
-}
   if (!hasAnyKey) {
     return {
       isSectioned: false as const,
+      contentAngle: '',
+      hook: '',
+      onScreenText: '',
+      videoExecution: '',
+      caption: '',
+      whyThisWorks: '',
+      bestFor: '',
       idea: '',
       format: '',
       angle: '',
@@ -76,10 +67,17 @@ function parseCaptionSections(caption: string) {
   }
 
   const norm = raw
+    .replace(/content angle:/gi, 'CONTENT ANGLE:')
+    .replace(/hook:/gi, 'HOOK:')
+    .replace(/on-screen text:/gi, 'ON-SCREEN TEXT:')
+    .replace(/video execution:/gi, 'VIDEO EXECUTION:')
+    .replace(/caption:/gi, 'CAPTION:')
+    .replace(/cta:/gi, 'CTA:')
+    .replace(/why this works:/gi, 'WHY THIS WORKS:')
+    .replace(/best for:/gi, 'BEST FOR:')
     .replace(/idea:/gi, 'IDEA:')
     .replace(/format:/gi, 'FORMAT:')
     .replace(/angle:/gi, 'ANGLE:')
-    .replace(/cta:/gi, 'CTA:')
     .replace(/pillar:/gi, 'PILLAR:')
 
   const takeBetween = (start: string, end?: string) => {
@@ -90,14 +88,29 @@ function parseCaptionSections(caption: string) {
     return (e === -1 ? norm.slice(from) : norm.slice(from, e)).trim()
   }
 
+  const contentAngle = takeBetween('CONTENT ANGLE:', 'HOOK:')
+  const hook = takeBetween('HOOK:', 'ON-SCREEN TEXT:')
+  const onScreenText = takeBetween('ON-SCREEN TEXT:', 'VIDEO EXECUTION:')
+  const videoExecution = takeBetween('VIDEO EXECUTION:', 'CAPTION:')
+  const captionText = takeBetween('CAPTION:', 'CTA:')
+  const whyThisWorks = takeBetween('WHY THIS WORKS:', 'BEST FOR:')
+  const bestFor = takeBetween('BEST FOR:')
+
   const idea = takeBetween('IDEA:', 'FORMAT:')
   const format = takeBetween('FORMAT:', 'ANGLE:')
   const angle = takeBetween('ANGLE:', 'CTA:')
-  const cta = takeBetween('CTA:', 'PILLAR:')
+  const cta = takeBetween('CTA:', contentAngle ? 'WHY THIS WORKS:' : 'PILLAR:')
   const pillar = takeBetween('PILLAR:')
 
   return {
     isSectioned: true as const,
+    contentAngle,
+    hook,
+    onScreenText,
+    videoExecution,
+    caption: captionText,
+    whyThisWorks,
+    bestFor,
     idea: formatNumberedSteps(idea),
     format,
     angle,
@@ -405,6 +418,7 @@ export default function ContentCard({
   return (
     <div className="mt-2 space-y-2 text-[0.75rem] text-white/70 leading-snug">
       {s.idea ? (
+        
         <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
           <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">Idea</div>
           <div className={['whitespace-pre-line', isPool ? 'line-clamp-5' : 'line-clamp-4'].join(' ')}>
@@ -419,6 +433,90 @@ export default function ContentCard({
           <div className="line-clamp-2">{s.format}</div>
         </div>
       ) : null}
+
+{s.contentAngle ? (
+  <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
+    <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">
+      Content Angle
+    </div>
+
+    <div className="line-clamp-3">
+      {s.contentAngle}
+    </div>
+  </div>
+) : null}
+
+{s.hook ? (
+  <div className="rounded-xl border border-ww-violet/20 bg-ww-violet/[0.06] px-3 py-3">
+    <div className="text-[0.62rem] uppercase tracking-wide text-ww-violet/70 mb-1">
+      Hook
+    </div>
+
+    <div className="text-sm font-medium text-white line-clamp-3">
+      {s.hook}
+    </div>
+  </div>
+) : null}
+
+{s.onScreenText ? (
+  <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
+    <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">
+      On-Screen Text
+    </div>
+
+    <div className="italic text-white/80 line-clamp-3">
+      {s.onScreenText}
+    </div>
+  </div>
+) : null}
+
+{s.videoExecution ? (
+  <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
+    <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">
+      Video Execution
+    </div>
+
+    <div className="line-clamp-4">
+      {s.videoExecution}
+    </div>
+  </div>
+) : null}
+
+{s.caption ? (
+  <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
+    <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">
+      Caption
+    </div>
+
+    <div className="line-clamp-4">
+      {s.caption}
+    </div>
+  </div>
+) : null}
+
+{s.whyThisWorks ? (
+  <div className="rounded-lg border border-emerald-400/15 bg-emerald-400/[0.04] px-2.5 py-2">
+    <div className="text-[0.62rem] uppercase tracking-wide text-emerald-300/70 mb-1">
+      Why This Works
+    </div>
+
+    <div className="line-clamp-4 text-white/75">
+      {s.whyThisWorks}
+    </div>
+  </div>
+) : null}
+
+{s.bestFor ? (
+  <div className="flex items-center justify-between gap-2 px-1">
+    <span className="text-[0.62rem] uppercase tracking-wide text-white/45">
+      Best For
+    </span>
+
+    <span className="text-[0.7rem] text-white/70 truncate">
+      {s.bestFor}
+    </span>
+  </div>
+) : null}
 
       {s.angle ? (
         <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">

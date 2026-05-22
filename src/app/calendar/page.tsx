@@ -64,15 +64,18 @@ type ApiCalendarItem = {
   angle?: string
   cta?: string
   structured?: {
-    title?: string
-    platform?: string
-    contentType?: string
-    hook?: string
-    concept?: string
-    execution?: string
-    cta?: string
-    why?: string[]
-  }
+  title?: string
+  platform?: string
+  contentType?: string
+  hook?: string
+  onScreenText?: string
+  concept?: string
+  execution?: string
+  caption?: string
+  cta?: string
+  why?: string[]
+  bestFor?: string
+}
 }
 
 type StructuredIdea = {
@@ -80,10 +83,13 @@ type StructuredIdea = {
   platform?: string
   contentType?: string
   hook?: string
+  onScreenText?: string
   concept?: string
   execution?: string
+  caption?: string
   cta?: string
   why?: string[]
+  bestFor?: string
 }
 
 type ContextSourceType = 'manual' | 'campaign' | 'release_strategy'
@@ -537,9 +543,20 @@ const searchParams = useSearchParams()
   </div>
 ) : null}
 
+{structured?.onScreenText ? (
+  <div className="rounded-2xl border border-white/10 bg-black/35 p-3">
+    <p className="text-[11px] uppercase tracking-[0.16em] text-white/40 mb-1">
+      On-screen text
+    </p>
+    <p className="text-sm italic font-medium leading-relaxed text-white/85">
+      {structured.onScreenText}
+    </p>
+  </div>
+) : null}
+
         <div>
           <p className="text-[11px] uppercase tracking-[0.16em] text-white/40 mb-1.5">
-            What happens
+            Video execution
           </p>
           <p className="text-sm leading-relaxed text-white/72">
             {execution}
@@ -682,6 +699,8 @@ const [genre, setGenre] = useState('')
 const [artistType, setArtistType] = useState('other')
 const [performanceStyle, setPerformanceStyle] = useState('')
 const [audience, setAudience] = useState('')
+const [audienceSize, setAudienceSize] = useState('')
+const [monthlyListeners, setMonthlyListeners] = useState('')
 const [goal, setGoal] = useState('')
 const [tone, setTone] = useState('brand-consistent, concise, human, engaging')
 const [ideaDepth, setIdeaDepth] = useState<IdeaDepth>('balanced')
@@ -1113,6 +1132,8 @@ if (isCalendarLocked) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          audienceSize,
+monthlyListeners,
           artistName,
           genre,
           artistType,
@@ -1365,6 +1386,34 @@ releaseStrategyContext:
     }
   }
 
+  function renderIdeaSections(text: string) {
+  const sections = [
+    "CONTENT ANGLE",
+    "HOOK",
+    "ON-SCREEN TEXT",
+    "VIDEO EXECUTION",
+    "CAPTION",
+    "CTA",
+    "WHY THIS WORKS",
+    "BEST FOR",
+  ]
+
+  let formatted = text
+
+  sections.forEach(section => {
+    formatted = formatted.replace(
+      new RegExp(`${section}:`, "g"),
+      `|||${section}:`
+    )
+  })
+
+  return formatted
+    .split("|||")
+    .filter(Boolean)
+}
+
+const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
+
   return (
   <main className="min-h-screen bg-black text-white">
     <Toaster position="top-center" richColors />
@@ -1407,9 +1456,44 @@ releaseStrategyContext:
   </div>
 ) : null}
 
+{/* MOBILE PANEL SWITCHER */}
+<div className="sticky top-14 z-20 mb-4 md:hidden">
+  <div className="rounded-2xl border border-white/10 bg-black/85 p-1 backdrop-blur">
+    <div className="grid grid-cols-2 gap-1">
+      <button
+        type="button"
+        onClick={() => setMobilePanel('create')}
+        className={`h-10 rounded-xl text-sm font-semibold transition ${
+          mobilePanel === 'create'
+            ? 'bg-ww-violet text-white shadow-[0_0_14px_rgba(186,85,211,0.35)]'
+            : 'text-white/55 hover:text-white'
+        }`}
+      >
+        Create
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setMobilePanel('results')}
+        className={`h-10 rounded-xl text-sm font-semibold transition ${
+          mobilePanel === 'results'
+            ? 'bg-ww-violet text-white shadow-[0_0_14px_rgba(186,85,211,0.35)]'
+            : 'text-white/55 hover:text-white'
+        }`}
+      >
+        Results
+      </button>
+    </div>
+  </div>
+</div>
+
+<div className="grid gap-6 xl:gap-7 lg:grid-cols-[minmax(360px,0.95fr)_minmax(0,1.15fr)] lg:items-start"></div>
+
       <div className="grid gap-6 xl:gap-7 lg:grid-cols-[minmax(360px,0.95fr)_minmax(0,1.15fr)] lg:items-start">
         {/* LEFT: INPUTS */}
-        <section className={panelClass + ' self-start p-5 md:p-6 xl:p-7 space-y-5'}>
+        <section
+  className={`${mobilePanel === 'create' ? 'block' : 'hidden'} md:block ${panelClass} self-start p-5 md:p-6 xl:p-7 space-y-5`}
+>
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute -top-20 left-1/2 h-[220px] w-[380px] -translate-x-1/2 rounded-full bg-ww-violet/10 blur-[80px]" />
           </div>
@@ -1649,6 +1733,52 @@ releaseStrategyContext:
       onChange={e => setAudience(e.target.value)}
     />
   </div>
+
+  <div className="grid gap-3 md:grid-cols-2">
+  <div className="space-y-1">
+    <p className={labelClass}>Current audience size</p>
+
+    <select
+      className={selectClass}
+      value={audienceSize}
+      onChange={e => setAudienceSize(e.target.value)}
+    >
+      <option value="">Select audience stage...</option>
+      <option value="under_250">Under 250 followers</option>
+      <option value="250_1k">250–1k followers</option>
+      <option value="1k_3k">1k–3k followers</option>
+      <option value="3k_6k">3k–6k followers</option>
+      <option value="6k_10k">6k–10k followers</option>
+      <option value="10k_plus">10k+ followers</option>
+    </select>
+
+    <p className="text-[11px] leading-relaxed text-white/45">
+      This helps WW tailor ideas to your current stage of growth.
+    </p>
+  </div>
+
+  <div className="space-y-1">
+    <p className={labelClass}>Spotify monthly listeners (optional)</p>
+
+    <select
+      className={selectClass}
+      value={monthlyListeners}
+      onChange={e => setMonthlyListeners(e.target.value)}
+    >
+      <option value="">Select monthly listeners...</option>
+      <option value="under_100">Under 100</option>
+      <option value="100_500">100–500</option>
+      <option value="500_1k">500–1k</option>
+      <option value="1k_5k">1k–5k</option>
+      <option value="5k_10k">5k–10k</option>
+      <option value="10k_plus">10k+</option>
+    </select>
+
+    <p className="text-[11px] leading-relaxed text-white/45">
+      Optional — helps contextualise your current reach.
+    </p>
+  </div>
+</div>
 
   <div className="space-y-1">
     <p className={labelClass}>Goal</p>
@@ -1962,7 +2092,9 @@ releaseStrategyContext:
         </section>
 
         {/* RIGHT: RESULTS */}
-        <section className="relative self-start overflow-hidden rounded-[28px] border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.05] via-black to-black p-5 md:p-6 xl:p-7 space-y-5 shadow-[0_0_20px_rgba(186,85,211,0.08)]">
+        <section
+  className={`${mobilePanel === 'results' ? 'block' : 'hidden'} md:block relative self-start overflow-hidden rounded-[28px] border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.05] via-black to-black p-5 md:p-6 xl:p-7 space-y-5 shadow-[0_0_20px_rgba(186,85,211,0.08)]`}
+>
           <div className="relative flex flex-col gap-4 border-b border-white/10 pb-5">
   <div className="flex items-start justify-between gap-4">
     <div className="min-w-0">

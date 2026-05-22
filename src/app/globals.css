@@ -141,3 +141,49 @@ html {
   background-size: 200% 200%;
   animation: ww-gradient-sweep 12s ease-in-out infinite;
 }
+
+@keyframes ww-helm-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-ww-helm {
+  animation: ww-helm-spin 24s linear infinite;
+}
+
+@keyframes ww-gradient-float {
+  0% {
+    transform: translate(-50%, 0px);
+  }
+
+  50% {
+    transform: translate(-50%, -14px);
+  }
+
+  100% {
+    transform: translate(-50%, 0px);
+  }
+}
+
+.animate-ww-float {
+  animation: ww-gradient-float 12s ease-in-out infinite;
+}
+
+@keyframes ww-helm-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-ww-helm {
+  animation: ww-helm-spin 28s linear infinite;
+}

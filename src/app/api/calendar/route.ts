@@ -59,16 +59,18 @@ export type CalendarItem = {
   suggested_caption: string
   angle: string
   cta: string
-  structured?: {
-    title: string
-    platform: string
-    contentType: string
-    hook: string
-    concept: string
-    execution: string
-    cta: string
-    why: string[]
-  }
+  structured: {
+  title: string
+  platform: string
+  contentType: string
+  hook: string
+  onScreenText: string
+  concept: string
+  execution: string
+  caption: string
+  cta: string
+  why: string[]
+}
 }
 
 type AiCalendarItem = {
@@ -78,8 +80,10 @@ type AiCalendarItem = {
   short_label?: string
   pillar?: string
   content_type?: string
-  hook?: string
-  concept?: string
+ hook?: string
+onScreenText?: string
+on_screen_text?: string
+concept?: string
   execution?: string
   suggested_caption?: string
   cta?: string
@@ -425,6 +429,8 @@ const variantIndex = (index + usedTitles.length + usedConcepts.length) % fallbac
       platform,
       contentType: format,
       hook,
+      onScreenText: hook,
+      caption: fallbackCaption,
       concept: idea,
       execution,
       cta,
@@ -792,6 +798,68 @@ ${ideaDepthGuidance}
 - Do not produce the same idea with small wording changes.
 - If two ideas could be mistaken for the same post, make one of them more distinct or replace it entirely.
 - Across the batch, vary the content angle, not just the wording.
+Every generated idea must include:
+
+- A scroll-stopping hook.
+- A CTA that matches the artist’s audience stage.
+- On-screen text appropriate for short-form platforms.
+- A clear emotional or curiosity trigger.
+- Hooks should feel modern, conversational, and platform-native.
+- Avoid generic engagement bait.
+- Avoid repetitive CTAs.
+Strong hooks often use:
+- curiosity
+- identity
+- relatability
+- emotional honesty
+- tension
+- vulnerability
+- unexpected statements
+- “found early” psychology
+- transformation
+- social proof framing
+Avoid:
+- generic engagement bait
+- vague CTAs
+- corporate wording
+- repetitive “comment below” structures
+- hooks that assume a large fanbase
+- ideas requiring an already engaged audience
+
+Every generated content idea MUST include the following sections in this exact order:
+
+CONTENT ANGLE:
+HOOK:
+ON-SCREEN TEXT:
+VIDEO EXECUTION:
+CAPTION:
+CTA:
+WHY THIS WORKS:
+BEST FOR:
+
+Guidelines:
+- Hooks must feel scroll-stopping, modern, emotionally intelligent, and platform-native.
+- On-screen text should feel short-form optimised and easy to overlay onto TikTok/Instagram videos.
+- Video execution should explain HOW the content should be filmed or presented.
+- CTAs must align with the artist’s audience stage.
+- Avoid generic engagement bait.
+- Avoid repetitive “comment below” structures.
+- Avoid assuming the artist already has a large audience.
+- WHY THIS WORKS should briefly explain the psychology behind the idea.
+- BEST FOR should explain what type of artist or growth stage the idea suits best.
+
+Format every section clearly using labels and spacing.
+
+Example format:
+
+CONTENT ANGLE:
+...
+
+HOOK:
+...
+
+ON-SCREEN TEXT:
+...
 Output STRICTLY valid JSON with this shape:
 
 {
@@ -803,8 +871,9 @@ Output STRICTLY valid JSON with this shape:
       "short_label": "Very short label",
       "pillar": "Performance" | "Story" | "BTS" | "Education" | "Community" | "Visual" | "Humour" | "Other",
       "content_type": "performance" | "story" | "bts" | "education" | "community" | "visual" | "humour" | "other",
-      "hook": "A first spoken line, on-screen opener, or opening phrase. It must NOT repeat the title wording.",
-      "concept": "A short summary of the idea itself, distinct from the hook",
+      "hook": "A first spoken line or scroll-stopping opening phrase. It must NOT repeat the title wording.",
+"onScreenText": "Short text overlay for the video. This should be different from the hook and should feel native to TikTok/Reels.",
+"concept": "A short summary of the idea itself, distinct from the hook",
       "execution": "What the artist actually films or shows, step by step if needed",
       "suggested_caption": "A short human caption",
       "cta": "A natural CTA",
@@ -812,6 +881,20 @@ Output STRICTLY valid JSON with this shape:
     }
   ]
 }
+
+Audience stage guidance:
+
+If the artist is early-stage (under 250, 250–1k, or 1k–3k):
+- Avoid CTAs that assume an existing fanbase.
+- Avoid ideas that rely on audience participation or existing community engagement.
+- Focus on discovery-based hooks, emotional relatability, identity-building, storytelling, curiosity, and "found early" framing.
+- Include stronger on-screen text ideas and cold-audience hooks.
+- Prioritise content that earns first attention rather than deep engagement.
+
+If the artist is 3k+:
+- Introduce more engagement-focused CTAs.
+- Include community participation ideas.
+- Encourage repeatable audience interaction formats.
 
 Rules:
 - Return ONLY JSON
@@ -827,6 +910,7 @@ Rules:
 - Do not repeat the exact same phrase across title, hook, and concept.
 - "concept" should explain the idea, not restate the title.
 - Titles should read like clear card labels, not like full spoken sentences unless that is genuinely the best fit.
+
 `.trim()
 
   const userPrompt = `
@@ -969,22 +1053,26 @@ ${
 
     const safePlatforms = Array.isArray(platforms) && platforms.length ? platforms : ['instagram']
 
-    const candidateItems: CalendarItem[] = parsed.items
-  .map((item, index) => {
+   const candidateItems = (parsed.items as CalendarItem[]).map((item, index) => {
+    const rawItem = item as any
     const fallbackPlatform = safePlatforms[0] || 'instagram'
     const platform =
-      item.platform && safePlatforms.includes(item.platform)
-        ? item.platform
+      rawItem.platform && safePlatforms.includes(rawItem.platform)
+        ? rawItem.platform
         : fallbackPlatform
 
-    const date = item.date || addDaysIso(startDate, index)
-    const contentType = (item.content_type || 'other').toLowerCase().trim()
-    const why = Array.isArray(item.why) ? item.why.filter(Boolean).slice(0, 2) : []
+    const date = rawItem.date || addDaysIso(startDate, index)
+    const contentType = (rawItem.content_type || 'other').toLowerCase().trim()
+    const why = Array.isArray(rawItem.why) ? rawItem.why.filter(Boolean).slice(0, 2) : []
 
-    const title = item.title?.trim() || `Idea ${index + 1}`
-    const concept = item.concept?.trim() || item.execution?.trim() || ''
-    const execution = item.execution?.trim() || item.concept?.trim() || ''
-    const rawHook = item.hook?.trim() || ''
+    const title = rawItem.title?.trim() || `Idea ${index + 1}`
+    const concept = rawItem.concept?.trim() || rawItem.execution?.trim() || ''
+    const execution = rawItem.execution?.trim() || rawItem.concept?.trim() || ''
+    const onScreenText =
+  (rawItem as any).on_screen_text?.trim() ||
+  (rawItem as any).onScreenText?.trim() ||
+  ''
+    const rawHook = rawItem.hook?.trim() || ''
     const titleLower = title.trim().toLowerCase()
     const hookLower = rawHook.trim().toLowerCase()
 
@@ -995,8 +1083,8 @@ ${
         ? concept
         : ''
 
-    const cta = item.cta?.trim() || 'What do you think?'
-    const pillar = item.pillar?.trim() || 'Other'
+    const cta = rawItem.cta?.trim() || 'What do you think?'
+    const pillar = rawItem.pillar?.trim() || 'Other'
 
     return {
       date,
@@ -1013,6 +1101,7 @@ ${
         title,
         platform,
         contentType,
+        onScreenText,
         hook,
         concept,
         execution,
@@ -1032,7 +1121,7 @@ ${
     return hasTitle && hasSomeUsableContent
   })
 
-const dedupedItems: CalendarItem[] = []
+const dedupedItems: any[] = []
 for (const item of candidateItems) {
   const candidateShape = {
     title: item.title,

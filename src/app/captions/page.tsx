@@ -145,6 +145,7 @@ const activePolishPlatform = polishPlatforms[0] || 'instagram'
   const generatingMessage = useGeneratingMessages(loadingGenerate, CAPTION_GENERATING_MESSAGES)
   const [attachingPolish, setAttachingPolish] = useState(false)
 const [showPolishHelp, setShowPolishHelp] = useState(false)
+const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
   // ✅ Non-destructive: if local fields are empty, hydrate from central profile
   useEffect(() => {
   if (profile?.artistName && !artistName) setArtistName(profile.artistName)
@@ -729,13 +730,42 @@ function hasToneTag(value: string) {
       {/* ----------- Generate TAB ----------- */}
       {mounted && activeTab === 'generate' && (
   <section className="mx-auto max-w-6xl px-4 pb-10">
+    <div className="sticky top-14 z-20 mb-4 md:hidden">
+  <div className="rounded-2xl border border-white/10 bg-black/85 p-1 backdrop-blur">
+    <div className="grid grid-cols-2 gap-1">
+      <button
+        type="button"
+        onClick={() => setMobilePanel('create')}
+        className={`h-10 rounded-xl text-sm font-semibold transition ${
+          mobilePanel === 'create'
+            ? 'bg-ww-violet text-white shadow-[0_0_14px_rgba(186,85,211,0.35)]'
+            : 'text-white/55 hover:text-white'
+        }`}
+      >
+        Create
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setMobilePanel('results')}
+        className={`h-10 rounded-xl text-sm font-semibold transition ${
+          mobilePanel === 'results'
+            ? 'bg-ww-violet text-white shadow-[0_0_14px_rgba(186,85,211,0.35)]'
+            : 'text-white/55 hover:text-white'
+        }`}
+      >
+        Results
+      </button>
+    </div>
+  </div>
+</div>
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.2fr)] lg:items-start">
           
  
 
 
           {/* Generator Card */}
-          <section className="relative overflow-hidden rounded-3xl border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.07] via-black/95 to-black p-5 md:p-7 space-y-5 shadow-[0_0_24px_rgba(186,85,211,0.08)]">
+          <section className={`${mobilePanel === 'create' ? 'block' : 'hidden'} md:block relative overflow-hidden rounded-3xl border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.07] via-black/95 to-black p-5 md:p-7 space-y-5 shadow-[0_0_24px_rgba(186,85,211,0.08)]`}>
           <div className="pointer-events-none absolute inset-0">
   <div className="absolute -top-20 left-1/2 h-[220px] w-[360px] -translate-x-1/2 rounded-full bg-ww-violet/10 blur-[80px]" />
 </div>
@@ -1004,7 +1034,7 @@ function hasToneTag(value: string) {
           </section>
         
           {/* RIGHT PANEL */}
-<section className="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-black to-zinc-900 p-5 md:p-6 min-h-[540px]">
+<section className={`${mobilePanel === 'results' ? 'block' : 'hidden'} md:block rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-black to-zinc-900 p-5 md:p-6 min-h-[540px]`}>
   {loadingGenerate ? (
     <section className="space-y-4">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -1239,9 +1269,38 @@ function hasToneTag(value: string) {
             {/* ----------- Polish TAB ----------- */}
       {mounted && activeTab === 'polish' && (
         <section className="mx-auto max-w-6xl px-4 pb-12">
+          <div className="sticky top-14 z-20 mb-4 md:hidden">
+  <div className="rounded-2xl border border-white/10 bg-black/85 p-1 backdrop-blur">
+    <div className="grid grid-cols-2 gap-1">
+      <button
+        type="button"
+        onClick={() => setMobilePanel('create')}
+        className={`h-10 rounded-xl text-sm font-semibold transition ${
+          mobilePanel === 'create'
+            ? 'bg-ww-violet text-white shadow-[0_0_14px_rgba(186,85,211,0.35)]'
+            : 'text-white/55 hover:text-white'
+        }`}
+      >
+        Create
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setMobilePanel('results')}
+        className={`h-10 rounded-xl text-sm font-semibold transition ${
+          mobilePanel === 'results'
+            ? 'bg-ww-violet text-white shadow-[0_0_14px_rgba(186,85,211,0.35)]'
+            : 'text-white/55 hover:text-white'
+        }`}
+      >
+        Results
+      </button>
+    </div>
+  </div>
+</div>
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.2fr)] lg:items-start">
             {/* LEFT PANEL */}
-            <section className="relative overflow-hidden rounded-3xl border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.07] via-black/95 to-black p-5 md:p-7 space-y-5 shadow-[0_0_24px_rgba(186,85,211,0.08)]">
+<section className={`${mobilePanel === 'create' ? 'block' : 'hidden'} md:block relative overflow-hidden rounded-3xl border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.07] via-black/95 to-black p-5 md:p-7 space-y-5 shadow-[0_0_24px_rgba(186,85,211,0.08)]`}>
   <div className="pointer-events-none absolute inset-0">
     <div className="absolute -top-20 left-1/2 h-[220px] w-[360px] -translate-x-1/2 rounded-full bg-ww-violet/10 blur-[80px]" />
   </div>
@@ -1431,7 +1490,7 @@ function hasToneTag(value: string) {
             </section>
 
             {/* RIGHT PANEL */}
-            <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-black to-zinc-900 p-5 md:p-6 min-h-[540px]">
+<section className={`${mobilePanel === 'results' ? 'block' : 'hidden'} md:block rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-black to-zinc-900 p-5 md:p-6 min-h-[540px]`}>
               {loadingPolish ? (
                 <section className="space-y-4">
                   <div className="flex items-center gap-2">

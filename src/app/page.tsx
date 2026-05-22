@@ -2,6 +2,7 @@
 "use client"
 
 import { useState } from "react"
+import { motion } from "framer-motion"
 import { Camera, Music2, Mail } from "lucide-react"
 import Link from "next/link"
 import { WW_TIER_CARDS } from "@/lib/wwPricing"
@@ -9,19 +10,30 @@ import LandingNav from '@/components/LandingNav'
 
 export default function HomePage() {
   const [activeImage, setActiveImage] = useState<string | null>(null)
+const fadeUp = {
+  hidden: { opacity: 0, y: 26 },
+  visible: { opacity: 1, y: 0 },
+}
 
+const revealProps = {
+  initial: "hidden",
+  whileInView: "visible",
+  viewport: { once: true, amount: 0.18 },
+  transition: { duration: 0.7, ease: "easeOut" },
+  variants: fadeUp,
+}
   return (
     <main className="relative min-h-screen bg-black text-white overflow-x-hidden">
       <LandingNav />
       {/* Background glows */}
-<div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-  <div className="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-ww-violet/20 blur-[120px]" />
+<div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+  <div className="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-ww-violet/20 blur-[120px] animate-ww-float" />
   <div className="absolute bottom-[-220px] right-[-120px] h-[520px] w-[520px] rounded-full bg-ww-emerald/10 blur-[120px]" />
 </div>
 
 
 
-      <div className="relative mx-auto w-full max-w-6xl px-6">
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-6">
         
 
                 {/* Hero */}
@@ -32,11 +44,17 @@ export default function HomePage() {
   <img
     src="/logo/helm.png"
     alt="Wavering Wanderers"
-    className="relative w-64 md:w-72 opacity-95 drop-shadow-[0_0_18px_rgba(155,48,255,0.35)]"
+   className="
+relative
+w-64 md:w-72
+opacity-95
+drop-shadow-[0_0_18px_rgba(155,48,255,0.35)]
+animate-ww-helm
+"
   />
 </div>
 
-            <h1 className="mt-6 text-3xl md:text-5xl font-bold leading-[1.04] tracking-tight">
+            <h1 className="mt-6 text-[1.85rem] sm:text-4xl md:text-5xl font-bold leading-[1.06] tracking-tight">
   Operate like a{" "}
   <span className="whitespace-nowrap bg-gradient-to-r from-white via-ww-soft-violet to-ww-violet bg-clip-text text-transparent">
     professional artist
@@ -52,7 +70,7 @@ export default function HomePage() {
   {" "}— so you spend less time marketing and more time making music.
 </p>
 
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="mt-10 flex flex-row flex-wrap items-center justify-center gap-3">
               <Link
   href="/login"
   className="inline-flex items-center justify-center rounded-full
@@ -77,10 +95,42 @@ export default function HomePage() {
           </div>
         </section>
 
+       <div className="mt-10 flex flex-row flex-wrap items-center justify-center gap-3 sm:gap-4 text-[13px] sm:text-sm text-white/65">
+  {[
+    ["500+", "artist conversations"],
+    ["60+", "interested artists"],
+    ["Built by", "an independent artist"],
+  ].map(([number, label]) => (
+    <div
+      key={label}
+      className="group relative overflow-hidden rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 backdrop-blur-sm transition hover:-translate-y-[1px] hover:border-ww-violet/40 hover:bg-ww-violet/[0.08] hover:shadow-[0_0_18px_rgba(186,85,211,0.25)]"
+    >
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
+      <span className="relative font-semibold text-white">{number}</span>{" "}
+      <span className="relative text-white/55">{label}</span>
+    </div>
+  ))}
+</div>
+
         {/* Value strip */}
-        <section className="w-full pb-20">
-          <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-3 items-stretch">
-            <div className="group relative w-full min-w-0 rounded-3xl border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.12] via-white/[0.03] to-black p-7 text-center transition hover:-translate-y-[3px] hover:border-ww-violet/50 hover:shadow-[0_0_30px_rgba(186,85,211,0.22)]">
+<motion.section
+  initial="hidden"
+  whileInView="visible"
+  viewport={{ once: true, amount: 0.18 }}
+  transition={{ duration: 0.7, ease: "easeOut" }}
+  variants={fadeUp}
+  className="w-full pt-12 pb-20">
+          <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory md:grid md:grid-cols-3 md:overflow-visible md:pb-0">
+            <div className="
+group
+relative
+overflow-hidden
+shrink-0 w-[82vw] snap-center md:w-full
+w-full
+min-w-0
+rounded-3xl
+border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.12] via-white/[0.03] to-black p-7 text-center transition hover:-translate-y-[3px] hover:border-ww-violet/50 hover:shadow-[0_0_30px_rgba(186,85,211,0.22)]">
+  <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-white/[0.08] via-white/[0.02] to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
               <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl border border-ww-violet/30 bg-ww-violet/[0.12] shadow-[0_0_22px_rgba(186,85,211,0.16)]">
                 <span className="h-2 w-2 rounded-full bg-ww-violet" />
               </div>
@@ -90,7 +140,16 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="group relative w-full min-w-0 rounded-3xl border border-ww-amber/25 bg-gradient-to-br from-ww-amber/[0.12] via-white/[0.03] to-black p-7 text-center transition hover:-translate-y-[3px] hover:border-ww-amber/50 hover:shadow-[0_0_30px_rgba(208,132,112,0.22)]">
+            <div className="
+group
+relative
+overflow-hidden
+shrink-0 w-[82vw] snap-center md:w-full
+w-full
+min-w-0
+rounded-3xl
+border border-ww-amber/25 bg-gradient-to-br from-ww-amber/[0.12] via-white/[0.03] to-black p-7 text-center transition hover:-translate-y-[3px] hover:border-ww-amber/50 hover:shadow-[0_0_30px_rgba(208,132,112,0.22)]">
+  <div className="absolute inset-0 rounded-3xl bg-white/[0.02] opacity-0 transition duration-500 group-hover:opacity-100" />
               <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl border border-ww-amber/30 bg-ww-amber/[0.12] shadow-[0_0_22px_rgba(208,132,112,0.16)]">
                 <span className="h-2 w-2 rounded-full bg-ww-amber" />
               </div>
@@ -100,7 +159,15 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="group relative w-full min-w-0 rounded-3xl border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] to-black p-7 text-center transition hover:-translate-y-[3px] hover:border-ww-blue/45 hover:shadow-[0_0_30px_rgba(59,130,246,0.18)]">
+            <div className="
+group
+relative
+overflow-hidden
+shrink-0 w-[82vw] snap-center md:w-full
+min-w-0
+rounded-3xl
+border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] to-black p-7 text-center transition hover:-translate-y-[3px] hover:border-ww-blue/45 hover:shadow-[0_0_30px_rgba(59,130,246,0.18)]">
+  <div className="absolute inset-0 rounded-3xl bg-white/[0.02] opacity-0 transition duration-500 group-hover:opacity-100" />
               <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl border border-ww-blue/25 bg-ww-blue/[0.12] shadow-[0_0_20px_rgba(59,130,246,0.12)]">
                 <span className="h-2 w-2 rounded-full bg-ww-blue" />
               </div>
@@ -110,9 +177,15 @@ export default function HomePage() {
               </p>
             </div>
           </div>
-        </section>
+        </motion.section>
 
-        <section className="border-t border-white/10 px-6 py-20 md:px-10">
+        <motion.section
+  initial="hidden"
+  whileInView="visible"
+  viewport={{ once: true, amount: 0.18 }}
+  transition={{ duration: 0.7, ease: "easeOut" }}
+  variants={fadeUp}
+  className="border-t border-white/10 px-6 py-20 md:px-10">
           <div className="mx-auto max-w-6xl">
             <div className="text-center max-w-3xl mx-auto">
               <p className="text-sm uppercase tracking-[0.22em] text-ww-violet/75">Your workflow</p>
@@ -124,8 +197,8 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="mt-14 grid gap-6 lg:grid-cols-3">
-              <div className="rounded-3xl border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.11] via-white/[0.03] to-black p-6 md:p-7 transition hover:-translate-y-[3px] hover:border-ww-violet/40 hover:shadow-[0_0_28px_rgba(186,85,211,0.16)]">
+            <div className="mt-14 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0">
+              <div className="shrink-0 w-[82vw] snap-center lg:w-full rounded-3xl border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.11] via-white/[0.03] to-black p-6 md:p-7 transition hover:-translate-y-[3px] hover:border-ww-violet/40 hover:shadow-[0_0_28px_rgba(186,85,211,0.16)]">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full border border-ww-violet/25 bg-black text-sm font-semibold text-ww-violet">
                     01
@@ -139,7 +212,7 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="rounded-3xl border border-ww-amber/20 bg-gradient-to-br from-ww-amber/[0.11] via-white/[0.03] to-black p-6 md:p-7 transition hover:-translate-y-[3px] hover:border-ww-amber/45 hover:shadow-[0_0_30px_rgba(245,158,11,0.18)]">
+              <div className="shrink-0 w-[82vw] snap-center lg:w-full rounded-3xl border border-ww-amber/20 bg-gradient-to-br from-ww-amber/[0.11] via-white/[0.03] to-black p-6 md:p-7 transition hover:-translate-y-[3px] hover:border-ww-amber/45 hover:shadow-[0_0_30px_rgba(245,158,11,0.18)]">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full border border-ww-amber/25 bg-black text-sm font-semibold text-ww-amber">
                     02
@@ -154,7 +227,7 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="rounded-3xl border border-ww-blue/25 bg-gradient-to-br from-ww-blue/[0.12] via-ww-blue/[0.05] to-black p-6 md:p-7 shadow-[0_0_30px_rgba(16,185,129,0.14)] transition hover:-translate-y-[3px] hover:border-ww-blue/45 hover:shadow-[0_0_34px_rgba(16,185,129,0.2)]">
+              <div className="shrink-0 w-[82vw] snap-center lg:w-full rounded-3xl border border-ww-blue/25 bg-gradient-to-br from-ww-blue/[0.12] via-ww-blue/[0.05] to-black p-6 md:p-7 shadow-[0_0_30px_rgba(16,185,129,0.14)] transition hover:-translate-y-[3px] hover:border-ww-blue/45 hover:shadow-[0_0_34px_rgba(16,185,129,0.2)]">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full border border-ww-blue/30 bg-black text-sm font-semibold text-ww-blue">
                     03
@@ -175,10 +248,16 @@ export default function HomePage() {
               </p>
             </div>
           </div>
-        </section>
+        </motion.section>
 
 {/* Feature Previews */}
-<section className="py-20 border-t border-white/10 bg-ww-dark text-center">
+<motion.section
+  initial="hidden"
+  whileInView="visible"
+  viewport={{ once: true, amount: 0.18 }}
+  transition={{ duration: 0.7, ease: "easeOut" }}
+  variants={fadeUp}
+  className="py-20 border-t border-white/10 bg-ww-dark text-center">
   <div className="mx-auto max-w-5xl">
     <div className="text-center max-w-3xl mx-auto mb-10">
       <p className="text-sm uppercase tracking-[0.22em] text-ww-violet/75">
@@ -218,71 +297,45 @@ export default function HomePage() {
       ))}
     </div>
   </div>
-</section>
+</motion.section>
 
-
-        {/* How it works */}
-        <section id="how" className="py-16 border-t border-white/10 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold">How it works</h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-3 text-center">
-            {[
-              ["1", "Tell us about your music", "Your vibe, goals, audience, and direction."],
-              ["2", "Generate your toolkit", "Identity, assets, and plans tailored to you."],
-              ["3", "Build momentum", "Execute consistently with clarity and confidence."],
-            ].map(([num, title, desc]) => (
-              <div
-  key={num}
-  className="
-    group
-    relative
-    rounded-2xl
-    border border-white/10
-    bg-gradient-to-b from-white/[0.05] to-black
-    p-6
-    transition
-    hover:-translate-y-[2px]
-    hover:border-ww-violet/40
-    hover:shadow-[0_0_24px_rgba(186,85,211,0.4)]
-  "
->
-
-                <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full 
-  bg-ww-violet/15 text-sm font-semibold text-ww-violet
-  shadow-[0_0_12px_rgba(186,85,211,0.4)]">
-  {num}
-</div>
-
-                <div className="mt-2 font-semibold">{title}</div>
-                <div className="mt-2 text-sm text-white/70">{desc}</div>
-              </div>
-            ))}
-          </div>
-        </section>
 
         {/* Founder block */}
-        <section className="py-16 border-t border-white/10">
+        <motion.section
+  initial="hidden"
+  whileInView="visible"
+  viewport={{ once: true, amount: 0.18 }}
+  transition={{ duration: 0.7, ease: "easeOut" }}
+  variants={fadeUp}
+  className="py-16 border-t border-white/10">
   <div className="max-w-3xl mx-auto text-center">
 
-            <h2 className="text-2xl md:text-3xl font-bold">Built by an independent artist.</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">
+  Built by someone living the problem.
+</h2>
 
-            <p className="mt-4 text-white/70 leading-relaxed">
-              I’m a single dad with a full-time job, building Wavering Wanderers — and still making music.
-            </p>
+<p className="mt-4 text-white/70 leading-relaxed">
+  I’m an independent artist, a single dad, and I work full time — so I know what it feels like to love music but struggle to find the time and energy to market it properly.
+</p>
 
-            <p className="mt-4 text-white/70 leading-relaxed">
-              WW exists because I didn’t have hours to plan content. I needed a system that worked inside real life.
-            </p>
+<p className="mt-4 text-white/70 leading-relaxed">
+  Wavering Wanderers came from that exact tension: wanting to stay consistent, promote releases, and build momentum without spending every spare hour overthinking content.
+</p>
 
-            <p className="mt-4 text-white/70 leading-relaxed">So I built one.</p>
-
-            <p className="mt-4 text-white/70 leading-relaxed">
-              Now I use WW to run my own releases — and I’m opening it up to artists who want the same freedom.
-            </p>
+<p className="mt-4 text-white/70 leading-relaxed">
+  This isn’t built for artists with huge teams behind them. It’s built for artists trying to create something meaningful while real life is still happening.
+</p>
           </div>
-        </section>
+        </motion.section>
 
        {/* Pricing */}
-<section id="pricing" className="mx-auto max-w-6xl px-4 py-16 border-t border-white/10">
+<motion.section
+  initial="hidden"
+  whileInView="visible"
+  viewport={{ once: true, amount: 0.18 }}
+  transition={{ duration: 0.7, ease: "easeOut" }}
+  variants={fadeUp}
+  id="pricing" className="mx-auto max-w-6xl px-4 py-16 border-t border-white/10">
   <div className="mb-8 text-center">
     <h2 className="text-3xl font-bold text-white">Pricing</h2>
     <p className="mt-2 text-white/70">
@@ -290,12 +343,12 @@ export default function HomePage() {
     </p>
   </div>
 
-  <div className="mx-auto flex w-full max-w-4xl flex-col items-center justify-center gap-6 md:flex-row">
+  <div className="mx-auto flex w-full max-w-4xl gap-4 overflow-x-auto pb-3 snap-x snap-mandatory md:flex-row md:items-center md:justify-center md:overflow-visible md:pb-0">
     {WW_TIER_CARDS.map(tier => (
       <div
         key={tier.key}
         className={[
-          "w-full max-w-[380px] min-h-[380px] rounded-3xl border bg-black/70 p-6 flex flex-col justify-between",
+          "w-[82vw] shrink-0 snap-center md:w-full md:max-w-[380px] w-full max-w-[380px] min-h-[380px] rounded-3xl border bg-black/70 p-6 flex flex-col justify-between",
           tier.highlight
             ? "border-ww-violet/50 shadow-[0_0_24px_rgba(186,85,211,0.35)]"
             : "border-white/10",
@@ -333,10 +386,16 @@ export default function HomePage() {
       </div>
     ))}
   </div>
-</section>
+</motion.section>
 
         {/* Footer CTA */}
-        <section className="py-16 border-t border-white/10">
+        <motion.section
+  initial="hidden"
+  whileInView="visible"
+  viewport={{ once: true, amount: 0.18 }}
+  transition={{ duration: 0.7, ease: "easeOut" }}
+  variants={fadeUp}
+  className="py-16 border-t border-white/10">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
             <h3 className="text-xl md:text-2xl font-bold">Turn your music into momentum.</h3>
             <p className="mt-3 text-white/70 max-w-2xl mx-auto">
@@ -398,7 +457,7 @@ export default function HomePage() {
     </p>
   </div>
 </footer>
-        </section>
+        </motion.section>
       </div>{activeImage && (
   <div
     className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4 py-8 backdrop-blur-sm"
