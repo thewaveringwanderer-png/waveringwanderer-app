@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
 import { useWwProfile } from '@/hooks/useWwProfile'
-import { bumpUsage, getUsage } from '@/lib/wwProfile'
+import { bumpUsage, getUsage, effectiveTier } from '@/lib/wwProfile'
 import { useRouter, useSearchParams } from 'next/navigation'
 import LimitReachedPill from '@/components/ww/LimitReachedPill'
 import { useGeneratingMessages } from '@/hooks/useGeneratingMessages'
@@ -14,6 +14,7 @@ import {
   Image as ImageIcon,
   Instagram,
   Music2,
+  Lock,
   Youtube,
   Facebook,
   Twitter,
@@ -71,7 +72,6 @@ const CAPTION_POLISHING_MESSAGES = [
 function CaptionsPageInner() {
  const {
   profile,
-  tier,
   refresh,
   hasProfile: hasAnyProfile,
   setLocalOnly: applyTo,
@@ -94,9 +94,21 @@ const searchParams = useSearchParams()
 
 const usage = useMemo(() => (mounted ? getUsage(profile) : {}), [mounted, profile])
 const usedCaptionGenerations = Number((usage as any).captions_generate_uses || 0)
+
+const tier = effectiveTier(profile)
+
+
+const hasCaptionsAccess =
+  tier === 'creator' || tier === 'free'
+
+
 const safeTier = mounted ? tier : 'free'
-const freeCaptionLimitReached = safeTier === 'free' && usedCaptionGenerations >= 1
+
+const freeCaptionLimitReached =
+  safeTier === 'free' && usedCaptionGenerations >= 1
+
 const isCaptionLocked = freeCaptionLimitReached
+
 
 
 
@@ -660,7 +672,39 @@ function hasToneTag(value: string) {
     .includes(value.toLowerCase())
 }
 
-  // ---------- JSX ----------
+ // ---------- JSX ----------
+if (!hasCaptionsAccess) {
+  return (
+    <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+      <div className="max-w-xl w-full rounded-3xl border border-white/10 bg-black/70 p-8 text-center shadow-[0_0_40px_rgba(186,85,211,0.12)]">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-ww-violet/15 border border-ww-violet/30 mb-5">
+          <Type className="w-8 h-8 text-ww-violet" />
+        </div>
+
+        <p className="text-xs uppercase tracking-[0.25em] text-white/45 mb-3">
+          Creator Feature
+        </p>
+
+        <h1 className="text-3xl font-bold mb-3">
+          Unlock Captions
+        </h1>
+
+        <p className="text-white/65 leading-relaxed mb-8">
+          Generate, polish, save, and export stronger captions that match your artist voice across every platform.
+        </p>
+
+        <a
+          href="/pricing"
+          className="inline-flex items-center justify-center h-11 px-6 rounded-full bg-ww-violet text-white font-semibold shadow-[0_0_18px_rgba(186,85,211,0.7)] hover:shadow-[0_0_26px_rgba(186,85,211,0.95)] transition"
+        >
+          Upgrade to Creator
+        </a>
+      </div>
+    </main>
+  )
+}
+
+
   return (
     <main className="min-h-screen bg-black text-white">
       <Toaster position="top-center" richColors />

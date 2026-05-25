@@ -1,5 +1,11 @@
-export type Tier = 'free' | 'creator' | 'pro'
-const rank: Record<Tier, number> = { free: 0, creator: 1, pro: 2 }
+export type Tier = 'free' | 'idea_factory' | 'creator' | 'pro'
+
+const rank: Record<Tier, number> = {
+  free: 0,
+  idea_factory: 1,
+  creator: 2,
+  pro: 3,
+}
 
 export function hasTier(userTier: Tier, required: Tier) {
   return rank[userTier] >= rank[required]
@@ -18,6 +24,20 @@ export const TIERS = {
       pdfExport: false,
     },
   },
+
+  idea_factory: {
+  name: 'Idea Factory',
+  price: 7,
+  features: {
+    identity: false,
+    calendar: true,
+    captions: false,
+    pressKit: false,
+    momentum: false,
+    trends: false,
+    pdfExport: false,
+  },
+},
 
   creator: {
     name: 'Creator',

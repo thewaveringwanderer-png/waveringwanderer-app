@@ -254,10 +254,22 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
   useEffect(() => setMounted(true), [])
 const [identityFreeLimitReached, setIdentityFreeLimitReached] = useState(false)
 const tier = effectiveTier(profile)
-const campaignLocked = mounted && tier === 'free'
+const hasIdentityAccess =
+  tier === 'creator' || tier === 'free'
+const isCreator = mounted && tier === 'creator'
+const isFree = mounted && tier === 'free'
+const isIdeaFactory = mounted && tier === 'idea_factory'
+
+const campaignLocked = mounted && !isCreator
+
 const usage = useMemo(() => (mounted ? getUsage(profile) : {}), [mounted, profile])
-const usedIdentityGenerations = Number((usage as any)?.['identity_generations'] ?? 0)
-const identityLocked = mounted && tier === 'free' && usedIdentityGenerations >= 1
+const usedIdentityGenerations = Number((usage as any)?.['identity_generate_uses'] ?? 0)
+
+const identityLocked =
+  mounted && (
+    isIdeaFactory ||
+    (isFree && usedIdentityGenerations >= 1)
+  )
 const freeLimitReached = Boolean(identityLocked || identityFreeLimitReached)
 
 
@@ -542,8 +554,13 @@ const creativeWorldPresets = [
   }
 
   async function handleGenerateKit() {
+    if (tier === 'idea_factory') {
+  toast.info('Identity Kit is part of the full Creator system.')
+  router.push('/pricing')
+  return
+}
     if (freeLimitReached) {
-  toast.info('Upgrade to Creator to keep using Identity Kit.')
+  toast.info('Identity Kit is part of the full Creator system.')
   router.push('/pricing')
   return
 }
@@ -669,7 +686,7 @@ const creativeWorldPresets = [
   async function handleGenerateCampaigns() {
 
     if (campaignLocked) {
-  toast.info('Campaign concepts are available on Creator.')
+  toast.info('Campaign concepts are part of the full Creator system.')
   router.push('/pricing')
   return
 }
@@ -1380,6 +1397,71 @@ function PaletteGroup({
     )
   }
 
+if (!hasIdentityAccess) {
+  return (
+    <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+      <div className="max-w-xl w-full rounded-3xl border border-white/10 bg-black/70 p-8 text-center shadow-[0_0_40px_rgba(186,85,211,0.12)]">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-ww-violet/15 border border-ww-violet/30 mb-5">
+          <Palette className="w-8 h-8 text-ww-violet" />
+        </div>
+
+        <p className="text-xs uppercase tracking-[0.25em] text-white/45 mb-3">
+          Creator Feature
+        </p>
+
+        <h1 className="text-3xl font-bold mb-3">
+          Unlock Identity Kit
+        </h1>
+
+        <p className="text-white/65 leading-relaxed mb-8">
+          Define your artistic identity, audience, visual direction, and brand voice to build a stronger foundation for every release.
+        </p>
+
+        <a
+          href="/pricing"
+          className="inline-flex items-center justify-center h-11 px-6 rounded-full bg-ww-violet text-white font-semibold shadow-[0_0_18px_rgba(186,85,211,0.7)] hover:shadow-[0_0_26px_rgba(186,85,211,0.95)] transition"
+        >
+          Upgrade to Creator
+        </a>
+      </div>
+    </main>
+  )
+}
+
+if (effectiveTier() === 'idea_factory') {
+  return (
+    <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+      <Toaster position="top-center" richColors />
+
+      <div className="max-w-xl w-full rounded-3xl border border-white/10 bg-black/70 p-8 text-center shadow-[0_0_40px_rgba(186,85,211,0.12)]">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-ww-violet/15 border border-ww-violet/30 mb-5">
+          <Palette className="w-8 h-8 text-ww-violet" />
+        </div>
+
+        <p className="text-xs uppercase tracking-[0.25em] text-white/45 mb-3">
+          Creator Feature
+        </p>
+
+        <h1 className="text-3xl font-bold mb-3">
+          Identity Kit is part of Creator
+        </h1>
+
+        <p className="text-white/65 leading-relaxed mb-8">
+          Idea Factory gives you content ideas only. Upgrade to Creator to unlock Identity Kit, campaigns, Momentum Board, and the full WW workflow.
+        </p>
+
+        <button
+          type="button"
+          onClick={() => router.push('/pricing')}
+          className="inline-flex items-center justify-center h-11 px-6 rounded-full bg-ww-violet text-white font-semibold shadow-[0_0_18px_rgba(186,85,211,0.7)] hover:shadow-[0_0_26px_rgba(186,85,211,0.95)] transition"
+        >
+          Upgrade to Creator
+        </button>
+      </div>
+    </main>
+  )
+}
+
   return (
   <main className="min-h-screen bg-black text-white" style={{ overflowAnchor: 'none' as any }}>
     <Toaster position="top-center" richColors />
@@ -1795,7 +1877,7 @@ function PaletteGroup({
         {freeLimitReached && (
   <div className="flex items-center justify-between gap-3 rounded-2xl border border-ww-violet/20 bg-black/60 px-4 py-3 shadow-[0_0_18px_rgba(186,85,211,0.10)]">
     <p className="text-sm text-white/80">
-      You’ve used your free Identity Kit preview.
+      Identity Kit is part of the full Creator system.
     </p>
 
     <button
@@ -1825,6 +1907,11 @@ function PaletteGroup({
           <button
   type="button"
   onClick={() => {
+  if (effectiveTier() === 'idea_factory') {
+    router.push('/pricing')
+    return
+  }
+
   if (freeLimitReached) {
     router.push('/pricing')
     return
@@ -1832,15 +1919,17 @@ function PaletteGroup({
 
   handleGenerateKit()
 }}
-  disabled={submitting || freeLimitReached}
+  disabled={submitting}
   className={primaryBtn + ' w-full justify-center'}
 >
   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-  {freeLimitReached
-    ? 'Unlock the full WW system'
-    : submitting
-    ? 'Generating…'
-    : 'Generate Identity Kit'}
+  {effectiveTier() === 'idea_factory'
+  ? 'Unlock the full WW system'
+  : freeLimitReached
+  ? 'Unlock the full WW system'
+  : submitting
+  ? 'Generating…'
+  : 'Generate Identity Kit'}
 </button>
         ) : (
           

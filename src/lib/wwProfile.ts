@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { PILOT_EMAILS } from '@/lib/pilotAllowlist'
 
-export type Tier = 'free' | 'creator' | 'pro'
+export type Tier = 'free' | 'idea_factory' | 'creator' 
 
 export type Usage = {
   identity_generate_uses?: number
@@ -37,7 +37,7 @@ const STORAGE_KEY = 'ww_profile'
 
 // ---------- Tier helpers ----------
 
-const TIER_ORDER: Tier[] = ['free', 'creator', 'pro']
+const TIER_ORDER: Tier[] = ['free', 'idea_factory', 'creator']
 
 export function effectiveTier(profile?: WwProfile): Tier {
   const override = profile?.tier_override as Tier | null | undefined

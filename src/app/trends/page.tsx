@@ -353,7 +353,7 @@ const [mounted, setMounted] = useState(false)
 useEffect(() => setMounted(true), [])
 
 const safeTier = mounted ? tier : 'free'
-const isProLocked = safeTier !== 'pro'
+const isProLocked = safeTier !== 'creator'
 const isPdfLocked = safeTier === 'free'
 
 const [currentTrendSessionId, setCurrentTrendSessionId] = useState<string | null>(null)

@@ -12,7 +12,7 @@ import {
 } from '@/lib/wwProfile'
 
 type UseWwProfileResult = {
-  tier: 'free' | 'creator' | 'pro'
+  tier: 'free' | 'idea_factory' | 'creator' 
   profile: WwProfile
   hasProfile: boolean
   loading: boolean

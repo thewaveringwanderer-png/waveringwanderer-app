@@ -645,7 +645,9 @@ useEffect(() => {
   const usage = useMemo(() => (mounted ? getUsage(profile) : {}), [mounted, profile])
   const usedCalendarGenerations = Number((usage as any).calendar_generate_uses || 0)
 const [calendarFreeLimitReached, setCalendarFreeLimitReached] = useState(false)
-
+const hasIdeaFactoryAccess =
+  tier === 'idea_factory' || tier === 'creator'
+  
   const freeLimitReached =
   mounted && tier === 'free' && (usedCalendarGenerations >= 1 || calendarFreeLimitReached)
 
@@ -1097,7 +1099,7 @@ function applyReleaseStrategyContext(row: ReleaseStrategyContextLite) {
 }
 
 if (isCalendarLocked) {
-  toast.info('Upgrade to Creator to keep using Idea Factory.')
+  toast.info('Upgrade to Idea Factory or Creator to keep using Idea Factory.')
   router.push('/pricing')
   return
 }
@@ -1288,6 +1290,11 @@ releaseStrategyContext:
 }
 
   async function handleSendVisibleToMomentum() {
+    if (tier !== 'creator') {
+  toast.info('Momentum Board is part of the full Creator system.')
+  router.push('/pricing')
+  return
+}
     const ids = visibleItems.filter(it => !it.in_momentum).map(it => it.id)
     if (!ids.length) {
       toast.info('These ideas are already in Momentum Board')
@@ -1954,10 +1961,10 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
           ? 'border-ww-violet bg-ww-violet/20 text-white shadow-[0_0_12px_rgba(186,85,211,0.4)]'
           : 'border-white/15 text-white/70 hover:border-ww-violet'
       }`}
-      title={disabled ? 'Creator only' : undefined}
+      title={disabled ? 'Upgrade to Idea Factory or Creator' : undefined}
     >
       {n} ideas
-{mounted && disabled ? ' · Creator' : ''}
+{mounted && disabled ? ' · Upgrade' : ''}
     </button>
   )
 })}
@@ -2202,7 +2209,7 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
       <button
         type="button"
         onClick={handleSendVisibleToMomentum}
-        disabled={!visibleItems.length || sendingVisible}
+        disabled={!visibleItems.length || sendingVisible || tier !== 'creator'}
         aria-label="Send to Momentum"
         className={`group relative h-12 w-12 rounded-xl border flex items-center justify-center transition ${
           !visibleItems.length || sendingVisible
@@ -2217,7 +2224,7 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
         )}
 
         <span className="pointer-events-none absolute -bottom-9 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/10 bg-black/90 px-3 py-1 text-[11px] text-white/75 opacity-0 shadow-[0_0_16px_rgba(0,0,0,0.45)] transition group-hover:opacity-100">
-          Send all to Momentum
+          {tier === 'creator' ? 'Send all to Momentum' : 'Creator only'}
         </span>
       </button>
 

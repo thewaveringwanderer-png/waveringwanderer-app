@@ -29,11 +29,7 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
   const session = event.data.object as Stripe.Checkout.Session
 
-  console.log('[webhook checkout completed]', {
-    userId: session.metadata?.userId,
-    tier: session.metadata?.tier,
-    customerId: session.customer,
-  })
+  
 
   const userId = session.metadata?.userId
   const tier = session.metadata?.tier
@@ -49,9 +45,7 @@ export async function POST(req: Request) {
       .eq('user_id', userId)
       .select('user_id, tier, stripe_customer_id')
 
-    console.log('[webhook profile update]', { data, error })
-  } else {
-    console.log('[webhook missing data]', { userId, tier, customerId })
+  
   }
 }
 

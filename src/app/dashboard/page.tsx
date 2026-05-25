@@ -86,9 +86,9 @@ useEffect(() => {
   !profile.onboarding_started
 
 
-const isPro = tier === 'pro'
-const hasTier = (current: 'free' | 'creator' | 'pro', needed: 'free' | 'creator' | 'pro') => {
-  const rank = { free: 0, creator: 1, pro: 2 } as const
+
+const hasTier = (current: 'free' | 'idea_factory' | 'creator' | 'pro', needed: 'free' | 'idea_factory' | 'creator' | 'pro') => {
+  const rank = { free: 0, idea_factory: 1, creator: 2, pro: 3 } as const
   return rank[current] >= rank[needed]
 }
 const searchParams = useSearchParams()
@@ -279,7 +279,7 @@ useEffect(() => {
   icon: <FileText className="w-5 h-5" />,
   badge: 'Coming soon',
   tone: 'amber',
-  locked: !isPro,
+  locked: true,
 },
 {
   href: '/newsletter',
@@ -288,7 +288,7 @@ useEffect(() => {
   icon: <Mail className="w-5 h-5" />,
   badge: 'Coming soon',
   tone: 'amber',
-  locked: !isPro,
+  locked: true,
 },
 {
   href: '/trends',
@@ -297,7 +297,7 @@ useEffect(() => {
   icon: <TrendingUp className="w-5 h-5" />,
   badge: 'Coming soon',
   tone: 'amber',
-  locked: !isPro,
+  locked: true,
 },
 
 

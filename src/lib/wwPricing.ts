@@ -14,6 +14,23 @@ export const WW_TIER_CARDS = [
       'Upgrade anytime',
     ],
   },
+
+{
+  key: 'idea_factory',
+  name: 'Idea Factory',
+  priceLabel: '£7 / mo',
+  subLabel: 'For artists who mainly need content ideas.',
+  cta: 'Unlock Idea Factory',
+  highlight: false,
+  features: [
+    'Unlimited Idea Factory generations',
+    'Audience-stage aware hooks',
+    'On-screen text, captions and CTAs',
+    'No Momentum Board saving',
+    'No full WW system access',
+  ],
+},
+
   {
     key: 'creator',
     name: 'Creator',

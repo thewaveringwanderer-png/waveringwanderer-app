@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, Fragment, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
 import { type PdfLine } from '@/lib/wwPdf'
-
+import { effectiveTier } from '@/lib/wwProfile'
 import {
   CalendarDays,
   Loader2,
@@ -290,7 +290,14 @@ export default function StrategyBoardPage() {
     }
   }, [])
 
-  const { profile, updateProfile  } = useWwProfile() // ✅ fallback only; does not enforce storage changes
+  const {
+  profile,
+  updateProfile,
+} = useWwProfile()
+
+const tier = effectiveTier(profile)
+const hasMomentumAccess =
+  tier === 'creator' // ✅ fallback only; does not enforce storage changes
 
 useEffect(() => {
   if (profile && !profile.onboarding_started) {
@@ -958,6 +965,37 @@ async function handleDeleteCard(id: string) {
     if (armedItemId) assignArmedItemToDate(day)
     else setExpandedDay(day)
   }
+
+ if (!hasMomentumAccess) {
+  return (
+    <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+      <div className="max-w-xl w-full rounded-3xl border border-white/10 bg-black/70 p-8 text-center shadow-[0_0_40px_rgba(186,85,211,0.12)]">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-ww-violet/15 border border-ww-violet/30 mb-5">
+          <Compass className="w-8 h-8 text-ww-violet" />
+        </div>
+
+        <p className="text-xs uppercase tracking-[0.25em] text-white/45 mb-3">
+          Creator Feature
+        </p>
+
+        <h1 className="text-3xl font-bold mb-3">
+          Unlock Momentum Board
+        </h1>
+
+        <p className="text-white/65 leading-relaxed mb-8">
+          Plan releases, organise ideas, schedule content visually, and turn scattered inspiration into consistent momentum.
+        </p>
+
+        <a
+          href="/pricing"
+          className="inline-flex items-center justify-center h-11 px-6 rounded-full bg-ww-violet text-white font-semibold shadow-[0_0_18px_rgba(186,85,211,0.7)] hover:shadow-[0_0_26px_rgba(186,85,211,0.95)] transition"
+        >
+          Upgrade to Creator
+        </a>
+      </div>
+    </main>
+  )
+} 
 
   // ---------- JSX ----------
   return (

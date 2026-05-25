@@ -133,7 +133,7 @@ export default function NewsletterPage() {
   updateProfile: save,
 } = useWwProfile()
 const router = useRouter()
-const isProLocked = tier !== 'pro'
+const isCreatorLocked = tier !== 'creator'
   const [activeTab, setActiveTab] = useState<'outline' | 'draft'>('outline')
 
   // Inputs for outline generator
@@ -705,7 +705,7 @@ const isProLocked = tier !== 'pro'
                 <button
   type="button"
   onClick={handleGenerateOutline}
-  disabled={isProLocked}
+  disabled={isCreatorLocked}
   className={primaryButtonClass}
 >
 
@@ -721,9 +721,9 @@ const isProLocked = tier !== 'pro'
                     </>
                   )}
                 </button>
-                {isProLocked ? (
+                {isCreatorLocked ? (
   <LimitReachedPill
-    message="Newsletter is available on Pro."
+    message="Newsletter is available on Creator."
     onUpgrade={() => router.push('/pricing')}
   />
 ) : null}

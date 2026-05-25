@@ -1006,7 +1006,7 @@ ${
     })
 
     const raw = completion.choices[0]?.message?.content?.trim()
-    console.log('[calendar-api] raw model response:\n', raw)
+   
 
     if (!raw) {
       console.error('[calendar-api] empty model response')
@@ -1153,11 +1153,7 @@ if (
   dedupedItems.push(item)
 }
 }
-console.log('[calendar-api] requested slots:', totalSlots)
-console.log('[calendar-api] target candidate count:', targetCandidateCount)
-console.log('[calendar-api] model returned items:', parsed.items.length)
-console.log('[calendar-api] candidate valid items:', candidateItems.length)
-console.log('[calendar-api] deduped valid items:', dedupedItems.length)
+
 
 
 const trimmedItems = dedupedItems.slice(0, totalSlots)

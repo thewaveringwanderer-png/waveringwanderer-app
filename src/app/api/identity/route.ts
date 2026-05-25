@@ -140,15 +140,20 @@ let email = ''
   
 
 
-const tier = ((profileRow?.tier as any) || 'free') as 'free' | 'creator' | 'pro'
+const tier = ((profileRow?.tier as any) || 'free') as 'free' | 'idea_factory' | 'creator' 
 const usage: Record<string, any> = (profileRow?.usage as any) || {}
 const used = Number(usage.identity_generate_uses || 0)
-const devBypassEmails = ['nddawson15@gmail.com']
-const isDevBypass = devBypassEmails.includes(email.trim().toLowerCase())
+const isDevBypass = false
+if (tier === 'idea_factory') {
+  return NextResponse.json(
+    {
+      error: 'CREATOR_ONLY',
+      message: 'Identity Kit is part of the full Creator system.',
+    },
+    { status: 403 }
+  )
+}
 
-console.log('[identity] profileRow:', profileRow)
-console.log('[identity] resolved tier:', tier)
-console.log('[identity] used:', used)
 
   // ✅ Enforce free limit (this is what triggers your pill)
   if (!isDevBypass && tier === 'free' && used >= 1) {

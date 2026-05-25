@@ -22,6 +22,17 @@ const planCopy: Record<string, { name: string; description: string; features: st
       'Upgrade when you are ready for a fuller system',
     ],
   },
+
+idea_factory: {
+  name: 'Idea Factory',
+  description: 'Focused access to content idea generation for artists who want a lighter starting point.',
+  features: [
+    'Idea Factory access',
+    'Content idea generation',
+    'A focused entry plan before upgrading to Creator',
+  ],
+},
+
   creator: {
     name: 'Creator',
     description: 'A complete working system for independent artists who want clarity, content direction, and execution support.',
@@ -43,8 +54,8 @@ export default function AccountPage() {
   const { tier } = useWwProfile()
 const [mounted, setMounted] = useState(false)
   const [loadingPortal, setLoadingPortal] = useState(false)
-  const [loadingUpgrade, setLoadingUpgrade] = useState<'creator' | 'pro' | null>(null)
-  const [email, setEmail] = useState('')
+const [loadingUpgrade, setLoadingUpgrade] = useState<'idea_factory' | 'creator' | null>(null)  
+const [email, setEmail] = useState('')
 
   const currentTier = tier || 'free'
   const currentPlan = planCopy[currentTier] || planCopy.free
@@ -81,6 +92,7 @@ const [mounted, setMounted] = useState(false)
       })
 
       const data = await res.json()
+      
 
       if (!res.ok || !data?.url) {
         throw new Error(data?.error || 'Could not open billing portal')
@@ -129,7 +141,7 @@ const [mounted, setMounted] = useState(false)
   }
 }
 
-  async function handleUpgrade(targetTier: 'creator' | 'pro') {
+  async function handleUpgrade(targetTier: 'idea_factory' | 'creator') {
   if (loadingUpgrade !== null) return
 
   try {
@@ -231,22 +243,26 @@ const [mounted, setMounted] = useState(false)
                 </div>
               </div>
 
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={handleManageBilling}
-                  disabled={loadingPortal}
-                  className="inline-flex items-center gap-2 px-5 h-11 rounded-full border border-white/15 bg-white/5 text-white/90 hover:border-ww-violet hover:bg-ww-violet/10 transition disabled:opacity-60"
-                >
-                  {loadingPortal ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <CreditCard className="w-4 h-4" />
-                  )}
-                  {loadingPortal ? 'Opening…' : 'Manage subscription'}
-                  {!loadingPortal && <ArrowUpRight className="w-4 h-4" />}
-                </button>
-              </div>
+              {currentTier !== 'free' && (
+  <div className="pt-2">
+    <button
+      type="button"
+      onClick={handleManageBilling}
+      disabled={loadingPortal}
+      className="inline-flex items-center gap-2 px-5 h-11 rounded-full border border-white/15 bg-white/5 text-white/90 hover:border-ww-violet hover:bg-ww-violet/10 transition disabled:opacity-60"
+    >
+      {loadingPortal ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : (
+        <CreditCard className="w-4 h-4" />
+      )}
+
+      {loadingPortal ? 'Opening…' : 'Manage subscription'}
+
+      {!loadingPortal && <ArrowUpRight className="w-4 h-4" />}
+    </button>
+  </div>
+)}
               <button
   type="button"
   onClick={handleRefreshPlan}
@@ -258,7 +274,7 @@ const [mounted, setMounted] = useState(false)
             </div>
           </div>
 
-          {currentTier !== 'pro' ? (
+          {(currentTier === 'free' || currentTier === 'idea_factory' || currentTier === 'creator') ? (
             <div className="rounded-2xl border border-white/10 bg-black/45 p-5 space-y-4">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.16em] text-white/42">Upgrade</p>
@@ -271,52 +287,79 @@ const [mounted, setMounted] = useState(false)
 
               <div className="grid gap-3 md:grid-cols-2">
                 {currentTier === 'free' ? (
-                  <button
-                    type="button"
-                    onClick={() => handleUpgrade('creator')}
-                    disabled={loadingUpgrade !== null}
-className="rounded-2xl border border-ww-violet/25 bg-ww-violet/[0.08] p-4 text-left hover:border-ww-violet/45 hover:bg-ww-violet/[0.12] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-white font-medium">Upgrade to Creator</p>
-                        <p className="mt-1 text-sm text-white/60">£19/month</p>
-                      </div>
-                      {loadingUpgrade === 'creator' ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      ) : (
-                        <Sparkles className="w-4 h-4 text-ww-violet" />
-                      )}
-                    </div>
-                    <p className="mt-3 text-sm text-white/70 leading-relaxed">
-                      Unlock the complete working system for artists who want identity, ideas, campaigns, captions, and execution in one flow.
-                    </p>
-                  </button>
-                ) : null}
+  <>
+    <button
+      type="button"
+      onClick={() => handleUpgrade('idea_factory')}
+      disabled={loadingUpgrade !== null}
+      className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left hover:border-ww-violet/35 hover:bg-ww-violet/[0.08] transition disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-white font-medium">Upgrade to Idea Factory</p>
+          <p className="mt-1 text-sm text-white/60">Focused idea generation</p>
+        </div>
+        {loadingUpgrade === 'idea_factory' ? (
+          <Loader2 className="w-4 h-4 animate-spin text-white" />
+        ) : (
+          <Sparkles className="w-4 h-4 text-ww-violet" />
+        )}
+      </div>
+      <p className="mt-3 text-sm text-white/70 leading-relaxed">
+        Unlock Idea Factory as a focused starting point for generating content ideas.
+      </p>
+    </button>
 
-                <button
-  type="button"
-  disabled
-  className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left opacity-75 cursor-not-allowed"
->
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-white font-medium">Pro</p>
-                      <p className="mt-1 text-sm text-white/60">£39/month</p>
-                    </div>
-                    {loadingUpgrade === 'pro' ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-white" />
-                    ) : (
-                      <span className="rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-white/55">
-                        Coming soon
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-3 text-sm text-white/70 leading-relaxed">
-                    Premium expansion, advanced workflows, and deeper strategic tooling. Pro is being rolled out gradually.
-                  </p>
-                </button>
-              </div>
+    <button
+      type="button"
+      onClick={() => handleUpgrade('creator')}
+      disabled={loadingUpgrade !== null}
+      className="rounded-2xl border border-ww-violet/25 bg-ww-violet/[0.08] p-4 text-left hover:border-ww-violet/45 hover:bg-ww-violet/[0.12] transition disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-white font-medium">Upgrade to Creator</p>
+          <p className="mt-1 text-sm text-white/60">Full WW system</p>
+        </div>
+        {loadingUpgrade === 'creator' ? (
+          <Loader2 className="w-4 h-4 animate-spin text-white" />
+        ) : (
+          <Sparkles className="w-4 h-4 text-ww-violet" />
+        )}
+      </div>
+      <p className="mt-3 text-sm text-white/70 leading-relaxed">
+        Unlock the complete system: Identity Kit, Idea Factory, Campaigns, Captions, Release Strategy, and Momentum Board.
+      </p>
+    </button>
+  </>
+) : null}
+
+{currentTier === 'idea_factory' ? (
+  <button
+    type="button"
+    onClick={() => handleUpgrade('creator')}
+    disabled={loadingUpgrade !== null}
+    className="rounded-2xl border border-ww-violet/25 bg-ww-violet/[0.08] p-4 text-left hover:border-ww-violet/45 hover:bg-ww-violet/[0.12] transition disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <p className="text-white font-medium">Upgrade to Creator</p>
+        <p className="mt-1 text-sm text-white/60">Full WW system</p>
+      </div>
+      {loadingUpgrade === 'creator' ? (
+        <Loader2 className="w-4 h-4 animate-spin text-white" />
+      ) : (
+        <Sparkles className="w-4 h-4 text-ww-violet" />
+      )}
+    </div>
+    <p className="mt-3 text-sm text-white/70 leading-relaxed">
+      Move from Idea Factory into the full Creator workflow.
+    </p>
+  </button>
+) : null}   
+
+               
+             </div>
             </div>
           ) : null}
 

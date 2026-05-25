@@ -40,12 +40,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { tier } = await req.json()
+    const body = await req.json()
+const tier = body?.tier as 'idea_factory' | 'creator'
 
-    const priceId =
-      tier === 'pro'
-        ? process.env.STRIPE_PRO_PRICE_ID
-        : process.env.STRIPE_CREATOR_PRICE_ID
+const allowedTiers = ['idea_factory', 'creator'] as const
+
+if (!allowedTiers.includes(tier)) {
+  return NextResponse.json({ error: 'Invalid tier' }, { status: 400 })
+}
+
+const priceMap: Record<(typeof allowedTiers)[number], string | undefined> = {
+  idea_factory: process.env.STRIPE_IDEA_FACTORY_PRICE_ID,
+  creator: process.env.STRIPE_CREATOR_PRICE_ID,
+}
+
+const priceId = priceMap[tier]
 
     if (!priceId) {
       return NextResponse.json({ error: 'Missing price ID' }, { status: 500 })

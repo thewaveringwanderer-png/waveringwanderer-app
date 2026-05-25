@@ -148,7 +148,6 @@ export default function CalendarGeneratorPage() {
   }
 
   async function handleGenerate() {
- console.log('[calendar]', { safeTier, usedCalendarGenerations, freeLimitReached })
    
   try {
     // 1) Free tier guard (BEFORE doing any work)
