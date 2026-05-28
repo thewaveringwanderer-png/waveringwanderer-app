@@ -1121,44 +1121,13 @@ ${
     return hasTitle && hasSomeUsableContent
   })
 
-const dedupedItems: any[] = []
-for (const item of candidateItems) {
-  const candidateShape = {
-    title: item.title,
-    hook: item.structured?.hook || '',
-    concept: item.structured?.concept || item.idea,
-    execution: item.structured?.execution || item.angle,
-  }
-
-  const acceptedShapes = dedupedItems.map(existing => ({
-    title: existing.title,
-    hook: existing.structured?.hook || '',
-    concept: existing.structured?.concept || existing.idea,
-    execution: existing.structured?.execution || existing.angle,
-  }))
-
-  const acceptedBuckets = dedupedItems.map(existing => ({
-  format: existing.format,
-  pillar: existing.pillar,
-}))
-
-if (
-  !isNearDuplicateIdea(candidateShape, acceptedShapes) &&
-  !tooManySameFormat(
-    { format: item.format, pillar: item.pillar },
-    acceptedBuckets,
-    totalSlots
-  )
-) {
-  dedupedItems.push(item)
-}
-}
 
 
 
-const trimmedItems = dedupedItems.slice(0, totalSlots)
 
-    const completedItems = [...trimmedItems]
+const trimmedItems = candidateItems.slice(0, totalSlots)
+
+const completedItems = [...trimmedItems]
 
 let safety = 0
 while (completedItems.length < totalSlots && safety < 30) {
