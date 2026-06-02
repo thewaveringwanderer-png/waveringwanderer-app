@@ -5,6 +5,99 @@ import OpenAI from 'openai'
 const apiKey = process.env.OPENAI_API_KEY
 const openai = apiKey ? new OpenAI({ apiKey }) : null
 
+const CONTENT_FRAMEWORKS = [
+  "Performance clip",
+  "Lyric performance",
+  "Hook preview",
+  "Chorus preview",
+  "Verse spotlight",
+  "Punchline / bar breakdown",
+  "Studio playback",
+  "Car speaker test",
+  "Headphone listening moment",
+  "Silent acting to the song",
+  "Discovery slideshow",
+  "Lyric slideshow",
+  "Camera roll visualiser",
+  "Visual metaphor for the song",
+  "Before vs after with the song",
+  "Text-on-screen over song audio",
+  "Music video style shot",
+  "Live performance moment",
+  "Acoustic / stripped-back moment",
+  "Fan discovery hook",
+  "Sound comparison",
+  "Mood-board visual",
+  "Behind the sound",
+  "Song challenge",
+  "Duet / stitch bait",
+  "Playlist placement angle",
+  "Release countdown",
+  "Old song rediscovery",
+  "One lyric, one visual",
+  "First listen reaction",
+  "POV with song audio",
+"Lyrics on screen",
+"Lip sync performance",
+"Rap/sing to camera",
+"Direct performance to camera",
+"Performance with text overlay",
+"Lyric acting",
+"Facial expression performance",
+"Body language performance",
+"Walk-and-perform clip",
+"Mirror performance",
+"Car performance",
+"Blue sky / outdoor performance",
+"One lyric repeated visually",
+]
+
+const TEXT_ON_SCREEN_LIBRARY = {
+  foundEarly: [
+    "If you're seeing this before I blow up, you're officially early.",
+    "My music isn't trending yet, so your algorithm might know something I don't.",
+    "This isn't a hit yet, but neither was every song you currently love.",
+    "The algorithm only showed this to the cool kids.",
+    "Most people will scroll. The right people won't.",
+    "I haven't made it yet, so this one's still ours.",
+  ],
+  identity: [
+    "Go ahead and keep scrolling. This is just rap for people who overthink everything.",
+    "This is for the people carrying more pressure than they talk about.",
+    "Music for people building something nobody believes in yet.",
+    "Music for people who are tired but not finished.",
+    "This is for anyone who refuses to quit.",
+  ],
+  contrarian: [
+    "Them: drill and meaningful lyrics don't go together.",
+    "Them: nobody listens to lyrics anymore.",
+    "Them: you can't make emotional music and still be hard.",
+    "Them: small artists can't break through anymore.",
+    "Them: people only care about trends now.",
+  ],
+  emotionalPov: [
+    "POV: You know exactly what you need to do, but you're scared to do it.",
+    "POV: Life is finally improving but you're still carrying old pain.",
+    "POV: Everybody thinks you're okay because you never complain.",
+    "POV: You're exhausted but quitting isn't an option.",
+    "POV: You're becoming the person younger you needed.",
+  ],
+  musicPov: [
+    "POV: You wrote the song you needed to hear yourself.",
+    "POV: This song sounds exactly like how that memory feels.",
+    "POV: You didn't realise how much this lyric meant until now.",
+    "POV: You finally recorded the version you heard in your head.",
+    "POV: The chorus hits harder every time you hear it.",
+  ],
+  underdogArtist: [
+    "My parents gave me one year to make music work.",
+    "Every stream helps me delay getting a real job.",
+    "Trying to become an artist while working full-time is a wild experience.",
+    "Building a music career one lunch break at a time.",
+    "Still not famous, still posting.",
+  ],
+}
+
 type CalendarRequest = {
   artistName?: string
   genre?: string
@@ -204,53 +297,120 @@ usedConcepts = [],
   const usedPool = [...usedTitles, ...usedConcepts].map(normalizeForComparison)
     
 
-  const fallbackVariants = [
-    {
-      title: 'Lyric spotlight for a line people missed',
-      pillar: 'Education',
-      format: 'education',
-      idea: 'Take one lyric, bar, or phrase and unpack why it matters, what it means, or why people may have missed it.',
-      hook: 'Did you catch what I really meant here?',
-      execution: 'Perform or show the line, then explain the meaning or subtext in a short follow-up.',
-      cta: 'What line should I break down next?',
-    },
-    {
-      title: 'Story behind a specific moment',
-      pillar: 'Story',
-      format: 'story',
-      idea: 'Tell the real-life moment, memory, or emotional situation that sits behind one lyric or theme.',
-      hook: 'This part came from something real.',
-      execution: 'Talk to camera and connect one lyric, verse, or theme to a specific lived moment.',
-      cta: 'Want more stories behind the songs?',
-    },
-    {
-      title: 'Fan reaction or community prompt',
-      pillar: 'Community',
-      format: 'community',
-      idea: 'Use a question, comment prompt, or audience-facing angle to pull people into the song world.',
-      hook: 'I want to know what this one means to you.',
-      execution: 'Frame the post around a question, fan prompt, or reaction invitation tied to the music.',
-      cta: 'Drop your take below.',
-    },
-    {
-      title: 'Behind-the-scenes creative insight',
-      pillar: 'BTS',
-      format: 'bts',
-      idea: 'Show a small creative process detail, writing insight, or behind-the-scenes thought that gives the idea more depth.',
-      hook: 'Here’s something from behind the scenes.',
-      execution: 'Share one real creative detail, process note, or writing moment in a simple direct clip.',
-      cta: 'Want more behind-the-scenes moments?',
-    },
-    {
-      title: 'Visual or lifestyle-led angle',
-      pillar: 'Visual',
-      format: 'visual',
-      idea: 'Build one low-lift visual or lifestyle-led post that still connects back to the music or its emotional world.',
-      hook: 'This is the kind of feeling the track lives in.',
-      execution: 'Capture a simple visual, environment, or daily-life moment that connects back to the song mood or message.',
-      cta: 'Does this world fit the song for you?',
-    },
-  ]
+ const fallbackVariants = [
+  {
+    title: 'POV performance with lyrics on screen',
+    pillar: 'Performance',
+    format: 'performance',
+    idea: 'Perform one emotionally strong lyric directly to camera while the text appears on screen.',
+    hook: 'POV: this lyric hits harder than you expected.',
+    onScreenText: 'This line was written for the overthinkers.',
+    execution: 'Film a simple close-up performance with the song playing. Add the strongest lyric as text on screen.',
+    cta: 'Save this if the lyric hit you.',
+    why: [
+      'Combines direct performance with a lyric people can instantly understand.',
+      'Text on screen helps new listeners connect before they know the song.',
+    ],
+  },
+  {
+    title: 'Discovery slideshow for new listeners',
+    pillar: 'Discovery',
+    format: 'slideshow',
+    idea: 'Use a two-slide post to introduce the emotion of the song to people discovering you for the first time.',
+    hook: "My music isn't trending yet, so your algorithm might know something.",
+    onScreenText: "If this found you, you're early.",
+    execution: 'Slide 1: serious selfie with a curiosity line. Slide 2: lyric, song title, or emotional payoff.',
+    cta: 'Listen if this found you at the right time.',
+    why: [
+      'Makes the viewer feel like they discovered the artist early.',
+      'Slideshows are low-effort but still emotionally clear.',
+    ],
+  },
+  {
+    title: 'One lyric, one visual',
+    pillar: 'Lyrics',
+    format: 'lyrics',
+    idea: 'Pair one lyric with a simple visual that makes the emotion easier to feel.',
+    hook: 'This one line explains the whole song.',
+    onScreenText: 'One lyric. The whole feeling.',
+    execution: 'Film a quiet visual like walking outside, sitting by a window, or looking away from camera while the lyric appears.',
+    cta: 'Which line should I post next?',
+    why: [
+      'Gives the audience one clear lyric to remember.',
+      'A simple visual keeps attention on the emotion of the song.',
+    ],
+  },
+  {
+    title: 'Found early hook preview',
+    pillar: 'Discovery',
+    format: 'performance',
+    idea: 'Preview the hook using a found-early text overlay that makes viewers feel like they discovered the song before everyone else.',
+    hook: "If you're seeing this before the song takes off, you're early.",
+    onScreenText: 'The algorithm showed you this before everyone else.',
+    execution: 'Use the strongest 7–12 seconds of the hook with a simple performance or visual clip.',
+    cta: 'Save this before it finds everyone else.',
+    why: [
+      'Turns small-artist status into a discovery advantage.',
+      'The hook preview gives people a quick reason to save or revisit.',
+    ],
+  },
+  {
+    title: 'Silent acting to the song',
+    pillar: 'Visual',
+    format: 'visual',
+    idea: 'Act out the feeling of the lyric without lip syncing, using facial expression and body language.',
+    hook: 'POV: you felt the lyric before you understood it.',
+    onScreenText: 'When the song says what you could not.',
+    execution: 'Play the song audio while showing the emotion through expression, stillness, walking, or hand gestures.',
+    cta: 'Send this to someone who would feel it.',
+    why: [
+      'Lets the song carry the emotion without over-explaining it.',
+      'Facial expression and body language make the post relatable fast.',
+    ],
+  },
+  {
+    title: 'Lip sync lyric moment',
+    pillar: 'Performance',
+    format: 'performance',
+    idea: 'Lip sync the most relatable lyric with strong eye contact and a simple text overlay.',
+    hook: 'This lyric is for anyone pretending they are fine.',
+    onScreenText: 'For everyone acting like they are okay.',
+    execution: 'Film one clean take facing the camera. Keep the background simple and let the lyric carry the post.',
+    cta: 'If this line hit, the full song is for you.',
+    why: [
+      'Strong eye contact makes the lyric feel personal to the viewer.',
+      'Lip syncing keeps the music central while still feeling emotional.',
+    ],
+  },
+  {
+    title: 'Camera roll music visualiser',
+    pillar: 'Visual',
+    format: 'visual',
+    idea: 'Use camera roll clips that match the mood of the song and turn them into a simple visualiser.',
+    hook: 'This is what the song feels like in my head.',
+    onScreenText: 'The world this song lives in.',
+    execution: 'Use 5–7 clips from your phone: sky, streets, studio, night walk, mirror, train, or room details.',
+    cta: 'Would you listen to the full version?',
+    why: [
+      'Creates a visual world around the song without needing a full music video.',
+      'Camera roll footage makes the post feel personal and easy to produce.',
+    ],
+  },
+  {
+    title: 'Small artist underdog post',
+    pillar: 'Discovery',
+    format: 'discovery',
+    idea: 'Use the small-artist angle to make viewers feel like their support actually matters.',
+    hook: "I'm a small artist, so if this reached you, your algorithm is built different.",
+    onScreenText: 'Small artist. Real song. Right algorithm.',
+    execution: 'Use the song audio with a simple performance, slideshow, or lyric overlay.',
+    cta: 'A save would genuinely help this reach the right people.',
+    why: [
+      'Flatters the viewer while making the artist feel discoverable.',
+      'Turns support into a small meaningful action instead of a hard sell.',
+    ],
+  },
+]
 const variantIndex = (index + usedTitles.length + usedConcepts.length) % fallbackVariants.length
   const variant = fallbackVariants[variantIndex]
   
@@ -261,11 +421,9 @@ const variantIndex = (index + usedTitles.length + usedConcepts.length) % fallbac
   let idea = variant.idea
   let hook = variant.hook
   let execution = variant.execution
-  let cta = variant.cta
-  let why = [
-    'Low-friction ideas are easier to execute consistently.',
-    'Keeps momentum going without needing a complex setup.',
-  ]
+let cta = variant.cta
+let onScreenText = variant.onScreenText
+let why = variant.why
 
   if (focusMode === 'old_release') {
     title = 'Bring an older track back into focus'
@@ -429,7 +587,7 @@ const variantIndex = (index + usedTitles.length + usedConcepts.length) % fallbac
       platform,
       contentType: format,
       hook,
-      onScreenText: hook,
+      onScreenText,
       caption: fallbackCaption,
       concept: idea,
       execution,
@@ -682,8 +840,7 @@ export async function POST(req: Request) {
 
   const totalSlots = weeks * postsPerWeek
 
-const targetCandidateCount = Math.max(totalSlots + 4, Math.ceil(totalSlots * 1.6))
-
+const targetCandidateCount = Math.max(totalSlots + 10, Math.ceil(totalSlots * 2.5))
   const ideaDepthGuidance =
   ideaDepth === 'simple'
     ? `
@@ -773,8 +930,7 @@ You design practical, shootable content plans that respect an artist's reality
 
 Rules:
 ${ideaDepthGuidance}
-- Mix content pillars: performance, storytelling, behind-the-scenes, education, community.
-- Avoid near-duplicates. Each slot should feel distinct but on-brand.
+- Mix music-first content pillars: performance, lyrics, sound, visual world, behind-the-scenes, discovery, community.- Avoid near-duplicates. Each slot should feel distinct but on-brand.
 - If an "Avoid list" is provided, do NOT reuse or closely paraphrase those titles/hooks/ideas.
 - Make ideas feel like real platform-native content, not generic marketing suggestions.
 - Prefer strong hooks built on POV, contrast, curiosity, vulnerability, specificity, tension, or relatability.
@@ -798,6 +954,33 @@ ${ideaDepthGuidance}
 - Do not produce the same idea with small wording changes.
 - If two ideas could be mistaken for the same post, make one of them more distinct or replace it entirely.
 - Across the batch, vary the content angle, not just the wording.
+- When lyrics or release context are provided, extract the deeper human experiences behind the song before creating ideas.
+- Turn themes into audience-relatable experiences that point back to the song, lyric, performance, or release.
+- Example: a song about success after losing someone is not just "success" or "grief"; it contains experiences like wanting to share a win with someone who is gone, feeling proud and empty at the same time, or reaching a goal that cost you something.
+- Build POV ideas around those experiences, not just around the song title.
+- POV content does not have to mean lip-syncing.
+- POV execution can use facial expression, body language, hand gestures, walking shots, stillness, environment, contrast, or visual metaphor.
+- Suggest simple visual settings where useful, such as blue sky, trees, bedroom mirror, train window, street lights, car park, studio corner, or quiet outdoor spaces.
+- Avoid defaulting every music idea to lip-sync performance.
+- For early-stage artists, especially 0-3k followers, include some low-lift slideshow ideas.
+- Slideshow ideas can use selfies, still images, text overlays, lyric screenshots, camera roll moments, or simple contrast posts.
+- A useful structure is: Slide 1 = stoic face / tension / relatable problem. Slide 2 = smile, shift, lyric, realisation, or emotional payoff.
+- These should feel easy to make without filming a full video.
+- When suggesting captions or post framing, think in terms of 2 broad hashtags and 3 specific hashtags.
+- Broad hashtags should describe the general lane, such as music, rap, singer songwriter, indie artist.
+- Specific hashtags should match the actual emotional/content angle, such as grief journey, healing through music, missing someone, chasing dreams, new artist discovery.
+- The music must remain the centre of the content strategy.
+- Personal storytelling should support the song, lyric, sound, performance, release, or artist world — not replace it.
+- Avoid generating too many generic life-story posts that could work without the music.
+- Most ideas should include the track, lyric, performance, sound, visual world, release moment, or listening experience directly.
+- A good idea should make someone more likely to listen, save the song, remember the lyric, or understand the artist world.
+- Do not make the artist famous for personality alone; use personality as a bridge into the music.
+- "hook" and "onScreenText" must never be identical.
+- The hook should feel like the first spoken line, caption lead, or opening thought.
+- The onScreenText should feel like short overlay text that visually frames the video.
+- If hook and onScreenText would be similar, make the onScreenText shorter, more visual, or more curiosity-driven.
+- Do not repeat the same "why" explanation across multiple ideas.
+- Each "why" should explain the specific psychology of that exact idea.
 Every generated idea must include:
 
 - A scroll-stopping hook.
@@ -872,8 +1055,7 @@ Output STRICTLY valid JSON with this shape:
       "pillar": "Performance" | "Story" | "BTS" | "Education" | "Community" | "Visual" | "Humour" | "Other",
       "content_type": "performance" | "story" | "bts" | "education" | "community" | "visual" | "humour" | "other",
       "hook": "A first spoken line or scroll-stopping opening phrase. It must NOT repeat the title wording.",
-"onScreenText": "Short text overlay for the video. This should be different from the hook and should feel native to TikTok/Reels.",
-"concept": "A short summary of the idea itself, distinct from the hook",
+"onScreenText": "Short text overlay for the video. Must be different from the hook. Should use curiosity, identity, tension, relatability, POV, or found-early psychology.","concept": "A short summary of the idea itself, distinct from the hook",
       "execution": "What the artist actually films or shows, step by step if needed",
       "suggested_caption": "A short human caption",
       "cta": "A natural CTA",
@@ -887,8 +1069,7 @@ Audience stage guidance:
 If the artist is early-stage (under 250, 250–1k, or 1k–3k):
 - Avoid CTAs that assume an existing fanbase.
 - Avoid ideas that rely on audience participation or existing community engagement.
-- Focus on discovery-based hooks, emotional relatability, identity-building, storytelling, curiosity, and "found early" framing.
-- Include stronger on-screen text ideas and cold-audience hooks.
+- Focus on discovery-based hooks, song moments, lyrics, sound, visual identity, curiosity, and "found early" framing.- Include stronger on-screen text ideas and cold-audience hooks.
 - Prioritise content that earns first attention rather than deep engagement.
 
 If the artist is 3k+:
@@ -910,8 +1091,30 @@ Rules:
 - Do not repeat the exact same phrase across title, hook, and concept.
 - "concept" should explain the idea, not restate the title.
 - Titles should read like clear card labels, not like full spoken sentences unless that is genuinely the best fit.
+- Do not overuse the "story" pillar. Unless the user specifically asks for storytelling, no more than 20% of ideas should use pillar: "Story".
+- If the user has selected specific content formats, respect those selected formats over generic storytelling.
+- Every idea should answer: "How does this make someone want to hear, save, remember, or understand the music?"s
+At least 80% of generated ideas must use different content frameworks from one another.
 
+Do not create multiple versions of:
+- story behind the song
+- lyric explanation
+- POV meaning
+- generic BTS
+
+If two ideas use the same framework, they must be substantially different.
 `.trim()
+
+const selectedFrameworks = [...CONTENT_FRAMEWORKS]
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 12)
+
+const selectedTextOnScreenExamples = Object.entries(TEXT_ON_SCREEN_LIBRARY)
+  .flatMap(([category, examples]) =>
+    examples.map(example => ({ category, example }))
+  )
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 12)  
 
   const userPrompt = `
 Artist: ${artistName}
@@ -966,11 +1169,45 @@ Plan parameters:
 - Avoid list (do not repeat or closely paraphrase):
 ${(avoidTitles || []).slice(0, 40).map(t => `- ${t}`).join('\n') || 'None'}
 
+Creative formats available for this generation:
+${selectedFrameworks.map(x => `- ${x}`).join('\n')}
+
+Text-on-screen inspiration library:
+${selectedTextOnScreenExamples
+  .map(item => `- ${item.category}: ${item.example}`)
+  .join('\n')}
+
+Use these as inspiration for style, psychology, and structure.
+Do not copy them word-for-word unless the wording perfectly fits.
+Create fresh text-on-screen lines that feel native to TikTok/Reels.
+Text-on-screen should usually create curiosity, identity, tension, relatability, or "found early" energy.
+
+Rules for using creative formats:
+- Use these formats as the main creative menu for this batch.
+- Do not default to generic storytelling unless the selected format clearly needs it.
+- Most ideas should be built around the song audio, lyrics, performance, hook, chorus, verse, release, or listening experience.
+- If a format is not story-based, do not turn it into a story-based idea.
+- At least 80% of ideas should use a different creative format.
+
+Before creating the calendar, internally identify:
+- the main theme of the song or campaign
+- the emotional experiences inside that theme
+- the audience situations those experiences connect to
+- the best content formats for a small independent artist
+
+Then turn those into practical content ideas.
+
+- Keep the calendar music-first.
+- At least 70% of ideas should directly feature the song, lyric, performance, sound, visual world, release, or listening experience.
+- Storytelling angles are allowed, but they must connect clearly back to the music.
+- Avoid standalone motivational, lifestyle, or personality posts unless they clearly lead back to the song or artist world.
+
 Design a content calendar that:
 - Spreads posts across the weeks.
 - Uses a mix of the allowed platforms.
 - Feels coherent with one artist identity.
 - Can be realistically executed by a busy independent artist.
+
 
 You MUST:
 - Return at least ${targetCandidateCount} items.
@@ -1075,7 +1312,10 @@ ${
     const rawHook = rawItem.hook?.trim() || ''
     const titleLower = title.trim().toLowerCase()
     const hookLower = rawHook.trim().toLowerCase()
-
+const safeOnScreenText =
+  onScreenText && onScreenText.toLowerCase() !== rawHook.toLowerCase()
+    ? onScreenText
+    : title
     const hook =
       rawHook && rawHook !== title && hookLower !== titleLower
         ? rawHook
@@ -1101,7 +1341,7 @@ ${
         title,
         platform,
         contentType,
-        onScreenText,
+        onScreenText: safeOnScreenText,
         hook,
         concept,
         execution,
@@ -1197,7 +1437,10 @@ while (completedItems.length < totalSlots && safety < 30) {
   safety += 1
 }
 
-    return NextResponse.json({ items: completedItems }, { status: 200 })
+    return NextResponse.json(
+  { items: completedItems.slice(0, totalSlots) },
+  { status: 200 }
+)
   } catch (e: unknown) {
     console.error('[calendar-api] unexpected error', e)
 

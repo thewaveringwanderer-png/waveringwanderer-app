@@ -120,20 +120,70 @@ const ALL_PLATFORMS: Array<{ key: string; label: string }> = [
   { key: 'x', label: 'X / Twitter' },
 ]
 
-const ALL_CONTENT_TYPES: Array<{ key: string; label: string }> = [
-  { key: 'performance', label: 'Performance' },
-  { key: 'story', label: 'Story' },
-  { key: 'bts', label: 'BTS' },
-  { key: 'community', label: 'Community' },
-  { key: 'education', label: 'Education' },
-  { key: 'visual', label: 'Visual' },
-  { key: 'humour', label: 'Humour' },
+const ALL_CONTENT_TYPES = [
+ {
+  key: 'performance',
+  label: 'Performance',
+  description: 'Rap or sing to camera'
+},
+{
+  key: 'pov',
+  label: 'POV',
+  description: 'Relatable emotional content'
+},
+{
+  key: 'lyrics',
+  label: 'Lyrics',
+  description: 'Lyrics on screen'
+},
+{
+  key: 'slideshow',
+  label: 'Slideshows',
+  description: 'Photo and text posts'
+},
+{
+  key: 'cinematic',
+  label: 'Cinematic',
+  description: 'Visual storytelling'
+},
+{
+  key: 'bts',
+  label: 'Studio / BTS',
+  description: 'Creative process'
+},
+{
+  key: 'discovery',
+  label: 'Discovery',
+  description: 'Find new listeners'
+},
+{
+  key: 'community',
+  label: 'Community',
+  description: 'Build connection'
+},
+{
+  key: 'humour',
+  label: 'Humour',
+  description: 'Funny music content'
+}
 ]
 
 const PERFORMANCE_STYLE_EXAMPLES = [
-  'I rap to camera over beats, no instruments. I make thoughtful content about my life and music, sometimes with a bit of comedy. I usually film at home, outside, or around London while working my bar job.',
-  'I sing and play piano, mostly filming at home or in the studio. I mix live performance clips with behind-the-scenes songwriting content, and I am currently building towards my next single release.',
-  'I am in a band and we film rehearsal clips, live shows, and studio sessions. We want ideas that help promote new releases, keep older songs moving, and show our personality outside of just performances.',
+  'I rap to camera over beats, use lyrics on screen, and make POV-style videos. I mostly film at home, outside, or around my city. I want content that helps people discover my music, not just my personality.',
+
+  'I sing to camera and sometimes perform acoustic versions of my songs. I use simple text overlays, emotional visuals, and short performance clips. I want ideas that connect people to the music and make them want to listen to the full song.',
+
+  'I make slideshow posts using selfies, camera roll photos, and text on screen. I do not enjoy filming lots of videos, so I need simple content ideas that still help promote my music and grow my audience.',
+
+  'I post studio clips, recording sessions, and snippets of unfinished songs. I like showing the creative process and bringing people into the journey behind the music.',
+
+  'I perform live regularly and have footage from gigs, rehearsals, and soundchecks. I want content that helps turn live moments into posts that attract new listeners and keep momentum going.',
+
+  'I create cinematic music content using outdoor locations, visual storytelling, and strong aesthetics. I want ideas that feel artistic and emotional while still keeping the music as the focus.',
+
+  'I use lip syncing, facial expressions, and acting to bring lyrics to life. I want creative POV content that makes people relate to the song and then check out the full track.',
+
+  'I am a small independent artist with limited time. Most of my content is filmed on my phone using simple performance clips, lyrics on screen, and text overlays. I need ideas that are realistic to make consistently.'
 ]
 
 
@@ -711,7 +761,7 @@ const [lyricsFocus, setLyricsFocus] = useState<LyricsFocus>('general')
 const [focusMode, setFocusMode] = useState<CalendarFocus>('general')
 const [releaseContext, setReleaseContext] = useState('')
 const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['tiktok', 'instagram', 'youtube'])
-const [contentTypes, setContentTypes] = useState<string[]>(['performance', 'story', 'bts'])
+const [contentTypes, setContentTypes] = useState<string[]>(['performance', 'pov', 'lyrics'])
 const [ideaCount, setIdeaCount] = useState<IdeaCount>(5)
 useEffect(() => {
   if (mounted && tier === 'free' && ideaCount !== 7) {
@@ -1808,7 +1858,10 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
 >
      <div className="space-y-3">
   <div className="flex items-center gap-2">
-    <p className={labelClass}>How you create and post content</p>
+    <p className={labelClass}>How do you usually create content?</p>
+    <p className="text-[11px] text-white/50">
+  The better this answer, the better your ideas. Tell WW how you actually make music content.
+</p>
 
     <span className="rounded-full border border-ww-violet/30 bg-ww-violet/10 px-2 py-0.5 text-[7px] uppercase tracking-wide text-ww-violet">
       Recommended
@@ -1827,22 +1880,18 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
 
   {showPerformanceStyleHelp ? (
   <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-[11px] leading-relaxed text-white/72">
-    This helps avoid generic ideas. The more specific you are here, the better your results will be.
+    This helps WW create ideas that fit how you actually make music content, instead of giving generic marketing suggestions.
     <br />
     <br />
-    Describe how you actually create and post content. Include useful details like whether you sing,
-    rap, play instruments, produce in a DAW, perform live, use lyric overlays, make thoughtful content,
-    show your daily life, or sometimes add humour.
+    Include things like: rapping or singing to camera, lip syncing, lyrics on screen, POV acting, studio clips, live footage, slideshow posts, outdoor visuals, mirror/car videos, or simple text-on-screen ideas.
     <br />
     <br />
-    You can also include what is going on in your life or career right now — for example whether you are
-    going to the studio, promoting a new song, pushing an older release, rehearsing for live shows,
-    working a full-time job, balancing parenting, low on money, or in a big momentum-building phase.
+    You can also mention your current reality: promoting a new song, pushing an older release, working full-time, parenting, low budget, limited time, or building momentum.
   </div>
 ) : null}
     <input
       className={selectClass}
-      placeholder="e.g. I sing to camera with piano at home, and post thoughtful behind-the-scenes clips"
+      placeholder="e.g. I rap to camera over beats, use lyrics on screen, film outside/at home, post POV-style clips and simple performance videos."
       value={performanceStyle}
       onChange={e => setPerformanceStyle(e.target.value)}
     />
