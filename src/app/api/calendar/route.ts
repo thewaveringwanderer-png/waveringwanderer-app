@@ -52,6 +52,106 @@ const CONTENT_FRAMEWORKS = [
 "One lyric repeated visually",
 ]
 
+const TEXT_ON_SCREEN_FRAMEWORKS = [
+  // Underdog artist
+
+  "I'm a small artist so if you're seeing this your algorithm is built different",
+
+  "Not trending yet. Let's see if the algorithm made a mistake.",
+
+  "Before this song blows up, I want to know who found it first.",
+
+  // Music-first POV
+
+  "POV: you finally found music that says what you're too proud to admit",
+
+  "POV: this song found you exactly when you needed it",
+
+  "POV: you're tired of fake motivational music",
+
+  // Emotional POV
+
+  "POV: you're exhausted but life keeps asking for more",
+
+  "POV: you're finally winning but the person you wanted to tell isn't here",
+
+  "POV: you're trying to move forward but your mind keeps looking back",
+
+  // Relatable thoughts
+
+  "Some people confuse motion with progress",
+
+  "Being busy and moving forward are not the same thing",
+
+  "Nobody talks about how lonely growth can be",
+
+  // Curiosity
+
+  "The lyric everyone ignores is actually the whole song",
+
+  "This line changes the meaning of everything",
+
+  "The second bar hits harder than the first",
+
+  // Found early
+
+  "You'll either hear this now or six months from now",
+
+  "The algorithm sent you here early",
+
+  "Future fans are hearing this late",
+
+  // Identity
+
+  "Hip-hop for people who overthink everything",
+
+  "Music for people who feel too much",
+
+  "For the people carrying more than they tell anyone",
+
+  "POV: you're building a life nobody can see yet",
+"POV: you keep acting calm but your mind never stops",
+"POV: you needed music that sounded like pressure",
+"POV: you're tired but quitting would hurt more",
+"POV: you're trying to become someone your old self needed",
+
+"Small artist. Real song. Right algorithm.",
+"Not famous yet, so finding this means something.",
+"This song has no label push, just a reason to exist.",
+"If this reached you, maybe the algorithm finally did its job.",
+"Before this has numbers, tell me if it feels real.",
+
+"Music for people who overthink in silence.",
+"Rap for people who feel everything but say little.",
+"For anyone carrying pressure like it's normal.",
+"For people who are healing and hungry at the same time.",
+"For the ones trying to make pain useful.",
+
+"This is what pressure sounds like.",
+"This is what growth feels like when nobody claps yet.",
+"This is what trying not to quit sounds like.",
+"This sounds like being tired but still dangerous.",
+"This one is for the part of you that refuses to fold.",
+
+"Nobody talks about the lonely part of levelling up.",
+"Sometimes the dream costs more than you expected.",
+"Being busy is not the same as becoming better.",
+"Some wins feel empty when certain people are missing.",
+"Some songs are really survival notes.",
+
+"Go ahead and scroll, this is just music for people who needed a reason.",
+"Keep scrolling, this is only for people who think too much.",
+"Keep scrolling unless you needed this exact feeling today.",
+"This probably will not trend, but it might find the right person.",
+"Not viral. Just honest.",
+
+"The hook is cool, but the second line tells the truth.",
+"This lyric sounded normal until life got real.",
+"The line I almost deleted says the most.",
+"This bar is for anyone pretending they are fine.",
+"This lyric aged better than I expected."
+]
+
 const TEXT_ON_SCREEN_LIBRARY = {
   foundEarly: [
     "If you're seeing this before I blow up, you're officially early.",
@@ -109,6 +209,7 @@ type CalendarRequest = {
   weeks?: number
   postsPerWeek?: number
   platforms?: string[]
+  contentTypes?: string[]
   lyrics?: string
   lyricsFocus?: string
   avoidTitles?: string[]
@@ -185,6 +286,108 @@ concept?: string
 
 type CalendarResponse = {
   items: AiCalendarItem[]
+}
+
+type LyricMoment = {
+  lyric: string
+  theme: string
+  pov: string
+  textOnScreen: string
+  why: string
+}
+
+type LyricAnalysisResponse = {
+  moments: LyricMoment[]
+}
+
+async function analyseLyricsForContent(args: {
+  lyrics: string
+  lyricsFocus?: string
+  artistName: string
+  genre: string
+  audience: string
+}) {
+  const { lyrics, lyricsFocus, artistName, genre, audience } = args
+
+  if (!openai || !lyrics.trim()) {
+    return []
+  }
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4.1-mini',
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: `
+You are a music-content strategist.
+
+Analyse lyrics and identify the strongest moments for short-form social content.
+
+Return ONLY valid JSON:
+
+{
+  "moments": [
+    {
+      "lyric": "specific lyric or phrase from the song",
+      "theme": "emotional theme",
+      "pov": "relatable POV angle",
+      "textOnScreen": "strong TikTok/Reels text overlay",
+      "why": "why this lyric moment works for content"
+    }
+  ]
+}
+
+Rules:
+- Choose the lyric moments yourself.
+- Do not say "pick a lyric", "choose a verse", "select a line", or "use a lyric from the song".
+- Prioritise lyrics that are emotional, quotable, relatable, visually interesting, or easy to perform.
+- Focus on moments that could make someone want to listen to the full song.
+- Keep each field concise and useful.
+`.trim(),
+        },
+        {
+          role: 'user',
+          content: `
+Artist: ${artistName}
+Genre / lane: ${genre || 'Not specified'}
+Audience: ${audience || 'Not specified'}
+Lyric focus: ${lyricsFocus || 'general'}
+
+Lyrics:
+${lyrics.slice(0, 4000)}
+
+Identify 8-12 strong lyric moments for social media content.
+`.trim(),
+        },
+      ],
+      temperature: 0.8,
+      presence_penalty: 0.4,
+      frequency_penalty: 0.2,
+    })
+
+    const raw = completion.choices[0]?.message?.content?.trim()
+    if (!raw) return []
+
+    const parsed = JSON.parse(raw) as LyricAnalysisResponse
+
+    if (!Array.isArray(parsed.moments)) {
+      return []
+    }
+
+    return parsed.moments
+      .filter(moment =>
+        moment?.lyric &&
+        moment?.theme &&
+        moment?.pov &&
+        moment?.textOnScreen
+      )
+      .slice(0, 12)
+  } catch (e) {
+    console.error('[calendar-api] lyric analysis failed', e)
+    return []
+  }
 }
 
 function addDaysIso(startIso: string, n: number) {
@@ -305,7 +508,7 @@ usedConcepts = [],
     idea: 'Perform one emotionally strong lyric directly to camera while the text appears on screen.',
     hook: 'POV: this lyric hits harder than you expected.',
     onScreenText: 'This line was written for the overthinkers.',
-    execution: 'Film a simple close-up performance with the song playing. Add the strongest lyric as text on screen.',
+   execution: 'Film a simple close-up performance with the song playing. Use the highest-scoring lyric moment from the lyric analysis as large readable text on screen.',
     cta: 'Save this if the lyric hit you.',
     why: [
       'Combines direct performance with a lyric people can instantly understand.',
@@ -333,7 +536,7 @@ usedConcepts = [],
     idea: 'Pair one lyric with a simple visual that makes the emotion easier to feel.',
     hook: 'This one line explains the whole song.',
     onScreenText: 'One lyric. The whole feeling.',
-    execution: 'Film a quiet visual like walking outside, sitting by a window, or looking away from camera while the lyric appears.',
+    execution: 'Use one lyric moment from the lyric analysis and pair it with a quiet visual like walking outside, sitting by a window, or looking away from camera.',
     cta: 'Which line should I post next?',
     why: [
       'Gives the audience one clear lyric to remember.',
@@ -820,6 +1023,7 @@ export async function POST(req: Request) {
     weeks = 4,
     postsPerWeek = 4,
     platforms = ['instagram', 'tiktok', 'youtube'],
+    contentTypes = ['performance', 'pov', 'lyrics'],
     avoidTitles = [],
     contextSource = 'manual',
     selectedCampaignId = null,
@@ -923,6 +1127,42 @@ Old release focus:
 - Good old-release ideas can include: lyric reframes, meaning/story posts, performance revisits, alternate visual cuts, acoustic/live reintroductions, fan-comment reactions, “still relevant” angles, and personal reflections on the song after time has passed.
 `.trim()
       : ''
+
+ const lyricMoments = lyrics.trim()
+  ? await analyseLyricsForContent({
+      lyrics,
+      lyricsFocus,
+      artistName,
+      genre,
+      audience,
+    })
+  : []
+
+const lyricMomentsBlock = lyricMoments.length
+  ? lyricMoments
+      .map((moment, index) => {
+        return `
+${index + 1}.
+Lyric:
+"${moment.lyric}"
+
+Theme:
+${moment.theme}
+
+POV angle:
+${moment.pov}
+
+Suggested text on screen:
+${moment.textOnScreen}
+
+Why it works:
+${moment.why}
+`.trim()
+      })
+      .join('\n\n')
+  : 'No lyric moments identified.'     
+
+  
   const systemPrompt = `
 You are an expert music marketing strategist and content calendar architect.
 You design practical, shootable content plans that respect an artist's reality
@@ -981,6 +1221,66 @@ ${ideaDepthGuidance}
 - If hook and onScreenText would be similar, make the onScreenText shorter, more visual, or more curiosity-driven.
 - Do not repeat the same "why" explanation across multiple ideas.
 - Each "why" should explain the specific psychology of that exact idea.
+- If lyrics are provided, analyse them before generating ideas.
+- Identify the strongest emotional lines, phrases, themes, or moments in the lyrics.
+- Do NOT tell the user to "choose a verse" or "select a lyric" if usable lyrics were already provided.
+- Instead, recommend specific lyrical moments or emotional sections to build content around.
+- The idea should name or reference the chosen lyric moment clearly.
+- Prioritise lyric moments that are relatable, emotionally specific, quotable, or visually easy to turn into content.
+- Never say "select a line", "pick a lyric", "choose a verse", or "use a lyric from your song" when lyrics have been provided.
+- If lyrics are provided, YOU must choose the strongest lyric moment yourself.
+TEXT ON SCREEN PRIORITY RULES
+
+For at least 70% of generated ideas:
+
+The on-screen text MUST be built from one of these categories:
+
+- POV
+- Found Early
+- Underdog Artist
+- Identity Statement
+- Emotional Experience
+- Relatable Observation
+- Contrarian Take
+
+Bad examples:
+- "New song out now"
+- "Watch until the end"
+- "Studio session"
+- "Rap performance"
+- Descriptions of the video
+
+Good examples:
+- "I'm a small artist so if you're seeing this your algorithm is built different"
+- "POV: you're finally winning but the person you wanted to tell isn't here"
+- "Nobody talks about how lonely growth can be"
+- "You'll either hear this now or six months from now"
+- "Hip-hop for people who overthink everything"
+
+The text-on-screen should feel more important than the hook.
+
+A viewer should stop scrolling because of the on-screen text even with the audio muted.
+
+Avoid generic summaries of the content.
+Avoid simply describing the video.
+The text on screen should be capable of stopping a scroll by itself.
+At least 70% of ideas should use one of these text-on-screen categories:
+
+- POV
+- Found early
+- Underdog artist
+- Identity statement
+- Emotional experience
+If lyrics are provided:
+
+- Never tell the artist to pick a lyric.
+- Never tell the artist to choose a verse.
+- Never tell the artist to select a line.
+- You must identify the lyric yourself.
+- Quote the lyric directly in the idea.
+- Build the hook, on-screen text and execution around that specific lyric.
+- Quote or paraphrase the specific lyric moment in the idea, hook, on-screen text, or execution.
+- Lyric-based ideas should say exactly what part of the lyrics to use, not ask the user to decide.
 Every generated idea must include:
 
 - A scroll-stopping hook.
@@ -1052,8 +1352,8 @@ Output STRICTLY valid JSON with this shape:
       "platform": "instagram" | "tiktok" | "youtube" | "facebook" | "x",
             "title": "Short internal card title that labels the idea clearly",
       "short_label": "Very short label",
-      "pillar": "Performance" | "Story" | "BTS" | "Education" | "Community" | "Visual" | "Humour" | "Other",
-      "content_type": "performance" | "story" | "bts" | "education" | "community" | "visual" | "humour" | "other",
+      "pillar": "Performance" | "POV" | "Lyrics" | "Slideshow" | "Cinematic" | "BTS" | "Discovery" | "Community" | "Humour",
+      "content_type": "performance" | "pov" | "lyrics" | "slideshow" | "cinematic" | "bts" | "discovery" | "community" | "humour",
       "hook": "A first spoken line or scroll-stopping opening phrase. It must NOT repeat the title wording.",
 "onScreenText": "Short text overlay for the video. Must be different from the hook. Should use curiosity, identity, tension, relatability, POV, or found-early psychology.","concept": "A short summary of the idea itself, distinct from the hook",
       "execution": "What the artist actually films or shows, step by step if needed",
@@ -1093,7 +1393,7 @@ Rules:
 - Titles should read like clear card labels, not like full spoken sentences unless that is genuinely the best fit.
 - Do not overuse the "story" pillar. Unless the user specifically asks for storytelling, no more than 20% of ideas should use pillar: "Story".
 - If the user has selected specific content formats, respect those selected formats over generic storytelling.
-- Every idea should answer: "How does this make someone want to hear, save, remember, or understand the music?"s
+- Every idea should answer: "How does this make someone want to hear, save, remember, or understand the music?"
 At least 80% of generated ideas must use different content frameworks from one another.
 
 Do not create multiple versions of:
@@ -1105,9 +1405,14 @@ Do not create multiple versions of:
 If two ideas use the same framework, they must be substantially different.
 `.trim()
 
+const selectedTextOnScreenFrameworks = [...TEXT_ON_SCREEN_FRAMEWORKS]
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 15)
+
 const selectedFrameworks = [...CONTENT_FRAMEWORKS]
   .sort(() => Math.random() - 0.5)
   .slice(0, 12)
+  
 
 const selectedTextOnScreenExamples = Object.entries(TEXT_ON_SCREEN_LIBRARY)
   .flatMap(([category, examples]) =>
@@ -1143,6 +1448,8 @@ ${campaignContextBlock}
 Release strategy context:
 ${releaseStrategyContextBlock}
 
+
+
 ${oldReleaseGuidance || ''}
 
 Artist setup guardrails:
@@ -1158,14 +1465,29 @@ Energy pattern (Mon..Sun):
 ${Array.isArray(energyPattern) && energyPattern.length ? energyPattern.join(', ') : 'Not provided'}
 Session novelty key: ${noveltySeed || 'default'}
 
-Lyrics context (optional):
-${lyrics ? `Focus: ${lyricsFocus || 'general'}\nLyrics:\n${lyrics.slice(0, 4000)}` : 'No lyrics provided.'}
+Lyrics context:
+${lyrics
+  ? `Focus: ${lyricsFocus || 'general'}
+
+Use these lyrics as source material.
+
+Lyrics:
+${lyrics.slice(0, 4000)}
+
+Pre-analysed strongest lyric moments:
+${lyricMomentsBlock}`
+  : 'No lyrics provided.'}
+
+Text-on-screen inspiration:
+
+${selectedTextOnScreenFrameworks.join('\n')}
 
 Plan parameters:
 - Start date: ${startDate}
 - Number of weeks: ${weeks}
 - Approx posts per week: ${postsPerWeek}
 - Allowed platforms: ${platforms.join(', ')}
+- Selected content types: ${contentTypes.join(', ')}
 - Avoid list (do not repeat or closely paraphrase):
 ${(avoidTitles || []).slice(0, 40).map(t => `- ${t}`).join('\n') || 'None'}
 
@@ -1188,6 +1510,17 @@ Rules for using creative formats:
 - Most ideas should be built around the song audio, lyrics, performance, hook, chorus, verse, release, or listening experience.
 - If a format is not story-based, do not turn it into a story-based idea.
 - At least 80% of ideas should use a different creative format.
+Selected content type rules:
+- The user selected these content types: ${contentTypes.join(', ')}
+- Prioritise these selected content types strongly.
+- Do not generate BTS, visual, community, humour, or discovery ideas unless they are selected.
+- If the user selected performance, POV, and lyrics, every idea should mainly be performance, POV, lyric-led, or a direct combination of those.
+- The "pillar" and "content_type" should match one of the selected content types whenever possible.
+- Use ONLY these exact content_type values: ${contentTypes.join(', ')}
+- Do not invent new content_type values.
+- Do not use "idea", "other", "visual", "education", or "story" unless selected.
+- If an idea is lyric-led, use content_type: "lyrics".
+- If an idea is POV-led, use content_type: "pov".
 
 Before creating the calendar, internally identify:
 - the main theme of the song or campaign
@@ -1201,6 +1534,58 @@ Then turn those into practical content ideas.
 - At least 70% of ideas should directly feature the song, lyric, performance, sound, visual world, release, or listening experience.
 - Storytelling angles are allowed, but they must connect clearly back to the music.
 - Avoid standalone motivational, lifestyle, or personality posts unless they clearly lead back to the song or artist world.
+Lyric analysis instruction:
+If pre-analysed lyric moments are available, use them as the main source for lyric-based ideas.
+Do not ask the user to choose a verse, pick a line, select a lyric, or choose a bar.
+For each lyric-based idea, clearly name or quote the lyric moment being used.
+The result should feel like WW has analysed the song and found strong content angles for the artist.
+
+Text-on-screen rules:
+
+- Treat text on screen as the primary scroll-stopper.
+- Text on screen should usually be stronger than the spoken hook.
+- Prefer:
+  - POV
+  - Found early
+  - Underdog artist
+  - Identity statements
+  - Emotional experiences
+  - Relatable observations
+- Avoid simply describing the video.
+- Avoid generic summaries.
+- Good text on screen should make someone stop scrolling even without audio.
+- At least 70% of ideas should use one of the text-on-screen inspiration examples as a starting point and improve upon it.
+When generating onScreenText:
+
+- Do NOT describe the video.
+- Do NOT summarise the content.
+- Do NOT simply repeat the lyric.
+
+Instead create:
+
+- a belief
+- a POV
+- a thought
+- an observation
+- an identity statement
+- an underdog angle
+- a found-early angle
+
+The best onScreenText should feel like something a viewer would repost, save, or send to a friend.
+
+Bad:
+- "Studio session"
+- "New song"
+- "Performance clip"
+- "Watch until the end"
+
+Good:
+- "Nobody talks about how lonely growth can be"
+- "You'll either hear this now or six months from now"
+- "Music for people who feel too much"
+- "POV: you're exhausted but life keeps asking for more"
+
+The onScreenText should usually be stronger than the hook.
 
 Design a content calendar that:
 - Spreads posts across the weeks.
@@ -1289,7 +1674,10 @@ ${
     }
 
     const safePlatforms = Array.isArray(platforms) && platforms.length ? platforms : ['instagram']
-
+const safeContentTypes =
+  Array.isArray(contentTypes) && contentTypes.length
+    ? contentTypes
+    : ['performance', 'pov', 'lyrics']
    const candidateItems = (parsed.items as CalendarItem[]).map((item, index) => {
     const rawItem = item as any
     const fallbackPlatform = safePlatforms[0] || 'instagram'
@@ -1299,7 +1687,27 @@ ${
         : fallbackPlatform
 
     const date = rawItem.date || addDaysIso(startDate, index)
-    const contentType = (rawItem.content_type || 'other').toLowerCase().trim()
+    const rawContentType =
+  typeof rawItem.content_type === 'string'
+    ? rawItem.content_type.toLowerCase().trim()
+    : typeof rawItem.format === 'string'
+    ? rawItem.format.toLowerCase().trim()
+    : ''
+
+const normalisedContentType =
+  rawContentType === 'lyric' ? 'lyrics' :
+  rawContentType === 'lyrical' ? 'lyrics' :
+  rawContentType === 'lyric-led' ? 'lyrics' :
+  rawContentType === 'lyric_led' ? 'lyrics' :
+  rawContentType === 'p.o.v' ? 'pov' :
+  rawContentType === 'p.o.v.' ? 'pov' :
+  rawContentType === 'point-of-view' ? 'pov' :
+  rawContentType === 'point_of_view' ? 'pov' :
+  rawContentType
+
+const contentType = safeContentTypes.includes(normalisedContentType)
+  ? normalisedContentType
+  : safeContentTypes[index % safeContentTypes.length]
     const why = Array.isArray(rawItem.why) ? rawItem.why.filter(Boolean).slice(0, 2) : []
 
     const title = rawItem.title?.trim() || `Idea ${index + 1}`
@@ -1367,47 +1775,219 @@ const safeOnScreenText =
 
 const trimmedItems = candidateItems.slice(0, totalSlots)
 
-const completedItems = [...trimmedItems]
 
-let safety = 0
-while (completedItems.length < totalSlots && safety < 30) {
-  const fallbackCandidate = buildFallbackItem({
-    startDate,
-    index: completedItems.length,
-    platforms: safePlatforms,
-    artistName,
-    goal,
-    genre,
-    focusMode,
-    releaseContext,
-    ideaDepth,
-    contextSource,
-    campaignContext,
-    releaseStrategyContext,
-    usedTitles: completedItems.map(item => item.title),
-    usedConcepts: completedItems.map(item => item.structured?.concept || item.idea),
-  })
+let completedItems = [...trimmedItems]
 
-  const candidateShape = {
-    title: fallbackCandidate.title,
-    hook: fallbackCandidate.structured?.hook || '',
-    concept: fallbackCandidate.structured?.concept || fallbackCandidate.idea,
-    execution: fallbackCandidate.structured?.execution || fallbackCandidate.angle,
+if (completedItems.length < totalSlots) {
+  const missingCount = totalSlots - completedItems.length
+
+  const existingIdeasForAvoidList = completedItems
+    .map((item, index) => {
+      return `${index + 1}. ${item.title} — ${item.structured?.hook || item.idea}`
+    })
+    .join('\n')
+
+  try {
+    const replacementCompletion = await openai.chat.completions.create({
+      model: 'gpt-4.1-mini',
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt,
+        },
+        {
+          role: 'user',
+          content: `
+The previous generation only returned ${completedItems.length} usable ideas, but the user requested ${totalSlots}.
+
+Generate exactly ${missingCount} additional ideas.
+
+Avoid repeating or closely copying these existing ideas:
+${existingIdeasForAvoidList || 'None'}
+
+Creative formats available:
+${selectedFrameworks.map(x => `- ${x}`).join('\n')}
+
+Text-on-screen inspiration:
+${selectedTextOnScreenExamples
+  .map(item => `- ${item.category}: ${item.example}`)
+  .join('\n')}
+Pre-analysed lyric moments:
+${lyricMomentsBlock}
+When generating onScreenText:
+
+- Do NOT describe the video.
+- Do NOT summarise the content.
+- Do NOT simply repeat the lyric.
+
+Instead create:
+
+- a belief
+- a POV
+- a thought
+- an observation
+- an identity statement
+- an underdog angle
+- a found-early angle
+
+The best onScreenText should feel like something a viewer would repost.
+
+Prioritise:
+
+- POV
+- Found Early
+- Underdog Artist
+- Identity Statement
+- Emotional Experience
+
+Avoid generic overlays such as:
+
+- "New song"
+- "Studio session"
+- "Performance clip"
+- "Watch until the end"
+Rules:
+- Return exactly ${missingCount} items.
+- The user selected these content types: ${contentTypes.join(', ')}
+- Stay inside the selected content types.
+- Do not generate BTS, visual, community, humour, or discovery ideas unless selected.
+- If selected types are performance, POV, and lyrics, generate only performance, POV, lyric-led, or hybrid ideas.
+- If lyric moments are available, use specific lyric moments from the analysis.
+- Do not say "pick a lyric", "choose a verse", "select a line", or "use a lyric from your song".
+- Quote or clearly reference the lyric moment used.
+- Keep the music central.
+- Do not use generic fallback ideas.
+- Do not repeat the same hook, on-screen text, concept, execution, or why.
+- Hook and onScreenText must be different.
+- Use music-first formats like performance, lyrics, POV, lip sync, slideshow, visual metaphor, discovery, hook preview, or song audio moments.
+- Return only valid JSON with the same shape: { "items": [...] }.
+`.trim(),
+        },
+      ],
+      temperature: 1.05,
+      presence_penalty: 0.8,
+      frequency_penalty: 0.5,
+    })
+
+    const replacementRaw = replacementCompletion.choices[0]?.message?.content?.trim()
+
+    if (replacementRaw) {
+      const replacementParsed = JSON.parse(replacementRaw) as CalendarResponse
+
+      if (Array.isArray(replacementParsed.items)) {
+        const replacementItems = (replacementParsed.items as CalendarItem[])
+          .map((item, index) => {
+            const rawItem = item as any
+            const fallbackPlatform = safePlatforms[0] || 'instagram'
+            const platform =
+              rawItem.platform && safePlatforms.includes(rawItem.platform)
+                ? rawItem.platform
+                : fallbackPlatform
+
+            const date = rawItem.date || addDaysIso(startDate, completedItems.length + index)
+            const rawContentType =
+  typeof rawItem.content_type === 'string'
+    ? rawItem.content_type.toLowerCase().trim()
+    : typeof rawItem.format === 'string'
+    ? rawItem.format.toLowerCase().trim()
+    : ''
+
+const normalisedContentType =
+  rawContentType === 'lyric' ? 'lyrics' :
+  rawContentType === 'lyrical' ? 'lyrics' :
+  rawContentType === 'lyric-led' ? 'lyrics' :
+  rawContentType === 'lyric_led' ? 'lyrics' :
+  rawContentType === 'p.o.v' ? 'pov' :
+  rawContentType === 'p.o.v.' ? 'pov' :
+  rawContentType === 'point-of-view' ? 'pov' :
+  rawContentType === 'point_of_view' ? 'pov' :
+  rawContentType
+
+const contentType = safeContentTypes.includes(normalisedContentType)
+  ? normalisedContentType
+  : safeContentTypes[index % safeContentTypes.length]
+            const why = Array.isArray(rawItem.why)
+              ? rawItem.why.filter(Boolean).slice(0, 2)
+              : []
+
+            const title = rawItem.title?.trim() || `Idea ${completedItems.length + index + 1}`
+            const concept = rawItem.concept?.trim() || rawItem.execution?.trim() || ''
+            const execution = rawItem.execution?.trim() || rawItem.concept?.trim() || ''
+
+            const rawHook = rawItem.hook?.trim() || ''
+            const onScreenText =
+              (rawItem as any).on_screen_text?.trim() ||
+              (rawItem as any).onScreenText?.trim() ||
+              ''
+
+            const safeOnScreenText =
+              onScreenText && onScreenText.toLowerCase() !== rawHook.toLowerCase()
+                ? onScreenText
+                : title
+
+            const titleLower = title.trim().toLowerCase()
+            const hookLower = rawHook.trim().toLowerCase()
+
+            const hook =
+              rawHook && rawHook !== title && hookLower !== titleLower
+                ? rawHook
+                : concept && concept.trim().toLowerCase() !== titleLower
+                ? concept
+                : ''
+
+            const cta = rawItem.cta?.trim() || 'Listen if this found you at the right time.'
+            const pillar = rawItem.pillar?.trim() || 'Other'
+
+            return {
+              date,
+              platform,
+              title,
+              short_label: rawItem.short_label?.trim() || title,
+              pillar,
+              format: contentType,
+              idea: concept,
+              suggested_caption: rawItem.suggested_caption?.trim() || '',
+              angle: execution,
+              cta,
+              structured: {
+                title,
+                platform,
+                contentType,
+                onScreenText: safeOnScreenText,
+                hook,
+                concept,
+                execution,
+                cta,
+                why: why.length
+                  ? why
+                  : ['This gives new listeners a clear reason to connect with the song.'],
+              },
+            }
+          })
+          .filter(item => {
+            const hasTitle = !!item.title?.trim()
+            const hasSomeUsableContent =
+              !!item.structured?.concept?.trim() ||
+              !!item.structured?.execution?.trim() ||
+              !!item.idea?.trim()
+
+            return hasTitle && hasSomeUsableContent
+          })
+
+        completedItems = [...completedItems, ...replacementItems].slice(0, totalSlots)
+      }
+    }
+  } catch (e) {
+    console.error('[calendar-api] replacement generation failed', e)
   }
+}
 
-  const acceptedShapes = completedItems.map(existing => ({
-    title: existing.title,
-    hook: existing.structured?.hook || '',
-    concept: existing.structured?.concept || existing.idea,
-    execution: existing.structured?.execution || existing.angle,
-  }))
-
-  if (!isNearDuplicateIdea(candidateShape, acceptedShapes)) {
-    completedItems.push(fallbackCandidate)
-  } else {
-    const variedFallback = buildFallbackItem({
+while (completedItems.length < totalSlots) {
+  completedItems.push(
+    buildFallbackItem({
       startDate,
-      index: completedItems.length + safety + 3,
+      index: completedItems.length,
       platforms: safePlatforms,
       artistName,
       goal,
@@ -1418,43 +1998,48 @@ while (completedItems.length < totalSlots && safety < 30) {
       contextSource,
       campaignContext,
       releaseStrategyContext,
-      usedTitles: completedItems.map(item => item.title),
-      usedConcepts: completedItems.map(item => item.structured?.concept || item.idea),
+      usedTitles: completedItems.map(i => i.title),
+      usedConcepts: completedItems.map(i => i.idea),
     })
-
-    const variedShape = {
-      title: variedFallback.title,
-      hook: variedFallback.structured?.hook || '',
-      concept: variedFallback.structured?.concept || variedFallback.idea,
-      execution: variedFallback.structured?.execution || variedFallback.angle,
-    }
-
-    if (!isNearDuplicateIdea(variedShape, acceptedShapes)) {
-      completedItems.push(variedFallback)
-    }
-  }
-
-  safety += 1
+  )
 }
+
+console.log('candidateItems', candidateItems.length)
+console.log('completedItems', completedItems.length)
+console.log('totalSlots', totalSlots)
 
     return NextResponse.json(
   { items: completedItems.slice(0, totalSlots) },
   { status: 200 }
 )
   } catch (e: unknown) {
-    console.error('[calendar-api] unexpected error', e)
+  console.error('[calendar-api] unexpected error', e)
 
-    return NextResponse.json(
-      {
-        ...fallbackCalendar({ startDate, totalSlots, platforms, artistName, goal }),
-        _fallback: true,
-        _fallbackReason: e instanceof Error ? e.message : 'unknown_error',
-      },
-      { status: 200 }
-    )
-  }
+
+  return NextResponse.json(
+    {
+      ...fallbackCalendar({
+        startDate,
+        totalSlots,
+        platforms,
+        artistName,
+        goal,
+        genre,
+        focusMode,
+        releaseContext,
+        ideaDepth,
+        contextSource,
+        campaignContext,
+        releaseStrategyContext,
+      }),
+      _fallback: true,
+      _fallbackReason:
+        e instanceof Error ? e.message : 'unknown_error',
+    },
+    { status: 200 }
+  )
 }
-
+}
 export function GET() {
   return NextResponse.json({ ok: true, route: 'calendar' })
 }

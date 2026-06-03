@@ -353,7 +353,7 @@ const [mounted, setMounted] = useState(false)
 useEffect(() => setMounted(true), [])
 
 const safeTier = mounted ? tier : 'free'
-const isProLocked = safeTier !== 'creator'
+const isCreatorLocked = safeTier !== 'creator'
 const isPdfLocked = safeTier === 'free'
 
 const [currentTrendSessionId, setCurrentTrendSessionId] = useState<string | null>(null)
@@ -557,7 +557,7 @@ const peerGeneratingMessage = useGeneratingMessages(peerLoading, PEER_GENERATING
 
   // ---------- Trend Finder ----------
   async function handleGenerateTrends() {
-    if (isProLocked) {
+    if (isCreatorLocked) {
   toast.error('Trends is available on Pro.')
   return
 }
@@ -953,8 +953,8 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
 
   // ---------- Peer Radar ----------
   async function handleRunPeerRadar() {
-      if (isProLocked) {
-    toast.error('Peer Radar is available on Pro.')
+      if (isCreatorLocked) {
+    toast.error('Peer Radar is available on Creator.')
     return
   }
 
@@ -1241,7 +1241,7 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
     <button
       type="button"
       onClick={handleGenerateTrends}
-      disabled={trendLoading || isProLocked}
+      disabled={trendLoading || isCreatorLocked}
       className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-ww-violet text-white font-semibold text-sm transition-all hover:shadow-[0_0_20px_rgba(186,85,211,0.7)] active:scale-95 disabled:opacity-60"
     >
       {trendLoading ? (
@@ -1257,9 +1257,9 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
       )}
     </button>
 
-    {isProLocked ? (
+    {isCreatorLocked ? (
       <LimitReachedPill
-        message="Trends is available on Pro."
+        message="Trends is available on Creator."
         onUpgrade={() => router.push('/pricing')}
       />
     ) : null}
@@ -1717,7 +1717,7 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
                 <button
                   type="button"
                   onClick={handleRunPeerRadar}
-                  disabled={peerLoading || isProLocked}
+                  disabled={peerLoading || isCreatorLocked}
                   className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-ww-violet text-white font-semibold text-sm transition-all hover:shadow-[0_0_20px_rgba(186,85,211,0.7)] active:scale-95 disabled:opacity-60"
                 >
                   {peerLoading ? (
@@ -1732,7 +1732,7 @@ if (error) throw new Error(error.message || 'Could not send all ideas')
                     </>
                   )}
                 </button>
-                {isProLocked ? (
+                {isCreatorLocked ? (
   <LimitReachedPill
     message="Peer Radar is available on Pro."
     onUpgrade={() => router.push('/pricing')}

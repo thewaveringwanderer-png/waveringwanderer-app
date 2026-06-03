@@ -346,35 +346,66 @@ function parseIdeaCardCaptionBlock(caption: string | null | undefined) {
 function contentTypeLabel(value: string | null | undefined) {
   const v = safeString(value).toLowerCase().trim()
 
+  if (v.includes('performance')) return 'Performance'
+
   if (
-    v.includes('performance')
-  ) return 'Performance'
+    v.includes('pov') ||
+    v.includes('point-of-view') ||
+    v.includes('point of view')
+  ) {
+    return 'POV'
+  }
+
   if (
-    v.includes('story') ||
-    v.includes('talking') ||
-    v.includes('camera')
-  ) return 'Story'
+    v.includes('lyric') ||
+    v.includes('lyrics')
+  ) {
+    return 'Lyrics'
+  }
+
+  if (
+    v.includes('slideshow') ||
+    v.includes('carousel')
+  ) {
+    return 'Slideshow'
+  }
+
+  if (
+    v.includes('cinematic')
+  ) {
+    return 'Cinematic'
+  }
+
   if (
     v.includes('bts') ||
-    v.includes('behind')
-  ) return 'BTS'
+    v.includes('behind') ||
+    v.includes('studio')
+  ) {
+    return 'Studio / BTS'
+  }
+
+  if (
+    v.includes('discovery') ||
+    v.includes('found early') ||
+    v.includes('underdog')
+  ) {
+    return 'Discovery'
+  }
+
   if (
     v.includes('community') ||
     v.includes('audience')
-  ) return 'Community'
-  if (
-    v.includes('education') ||
-    v.includes('breakdown')
-  ) return 'Education'
-  if (
-    v.includes('visual') ||
-    v.includes('cinematic')
-  ) return 'Visual'
+  ) {
+    return 'Community'
+  }
+
   if (
     v.includes('humour') ||
     v.includes('humor') ||
     v.includes('funny')
-  ) return 'Humour'
+  ) {
+    return 'Humour'
+  }
 
   return 'Idea'
 }
@@ -532,9 +563,8 @@ const whyLines =
 
 const formatLabel = contentTypeLabel(
   safeString(structured?.contentType).trim() ||
-    safeString(item.metadata?.api?.pillar).trim() ||
-    parsed.format ||
-    safeString(item.metadata?.api?.format).trim()
+  parsed.format ||
+  safeString(item.metadata?.api?.format).trim()
 )
 
 const sourceTag = sourceLabel(item)
@@ -1200,7 +1230,7 @@ monthlyListeners,
           lyricsFocus,
           platforms: selectedPlatforms.length ? selectedPlatforms : ['instagram'],
           ideaCount: tier === 'free' ? 7 : ideaCount,
-          contentTypes: contentTypes.length ? contentTypes : ['performance', 'story'],
+          contentTypes: contentTypes.length ? contentTypes : ['performance', 'pov', 'lyrics'],
           avoidTitles,
           noveltySeed,
           contextSource,
