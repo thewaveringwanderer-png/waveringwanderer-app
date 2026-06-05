@@ -266,10 +266,7 @@ const usage = useMemo(() => (mounted ? getUsage(profile) : {}), [mounted, profil
 const usedIdentityGenerations = Number((usage as any)?.['identity_generate_uses'] ?? 0)
 
 const identityLocked =
-  mounted && (
-    isIdeaFactory ||
-    (isFree && usedIdentityGenerations >= 1)
-  )
+  mounted && isIdeaFactory
 const freeLimitReached = Boolean(identityLocked || identityFreeLimitReached)
 
 
@@ -1428,40 +1425,6 @@ if (!hasIdentityAccess) {
   )
 }
 
-if (effectiveTier() === 'idea_factory') {
-  return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
-      <Toaster position="top-center" richColors />
-
-      <div className="max-w-xl w-full rounded-3xl border border-white/10 bg-black/70 p-8 text-center shadow-[0_0_40px_rgba(186,85,211,0.12)]">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-ww-violet/15 border border-ww-violet/30 mb-5">
-          <Palette className="w-8 h-8 text-ww-violet" />
-        </div>
-
-        <p className="text-xs uppercase tracking-[0.25em] text-white/45 mb-3">
-          Creator Feature
-        </p>
-
-        <h1 className="text-3xl font-bold mb-3">
-          Identity Kit is part of Creator
-        </h1>
-
-        <p className="text-white/65 leading-relaxed mb-8">
-          Idea Factory gives you content ideas only. Upgrade to Creator to unlock Identity Kit, campaigns, Momentum Board, and the full WW workflow.
-        </p>
-
-        <button
-          type="button"
-          onClick={() => router.push('/pricing')}
-          className="inline-flex items-center justify-center h-11 px-6 rounded-full bg-ww-violet text-white font-semibold shadow-[0_0_18px_rgba(186,85,211,0.7)] hover:shadow-[0_0_26px_rgba(186,85,211,0.95)] transition"
-        >
-          Upgrade to Creator
-        </button>
-      </div>
-    </main>
-  )
-}
-
   return (
   <main className="min-h-screen bg-black text-white" style={{ overflowAnchor: 'none' as any }}>
     <Toaster position="top-center" richColors />
@@ -1907,10 +1870,6 @@ if (effectiveTier() === 'idea_factory') {
           <button
   type="button"
   onClick={() => {
-  if (effectiveTier() === 'idea_factory') {
-    router.push('/pricing')
-    return
-  }
 
   if (freeLimitReached) {
     router.push('/pricing')
@@ -1923,9 +1882,7 @@ if (effectiveTier() === 'idea_factory') {
   className={primaryBtn + ' w-full justify-center'}
 >
   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-  {effectiveTier() === 'idea_factory'
-  ? 'Unlock the full WW system'
-  : freeLimitReached
+  {freeLimitReached
   ? 'Unlock the full WW system'
   : submitting
   ? 'Generating…'

@@ -1,7 +1,9 @@
 // src/app/api/calendar/route.ts
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
-
+import {
+  TEXT_ON_SCREEN_HOOKS,
+} from '@/lib/ideaFactoryHookLibrary'
 const apiKey = process.env.OPENAI_API_KEY
 const openai = apiKey ? new OpenAI({ apiKey }) : null
 
@@ -52,107 +54,46 @@ const CONTENT_FRAMEWORKS = [
 "One lyric repeated visually",
 ]
 
-const TEXT_ON_SCREEN_FRAMEWORKS = [
-  // Underdog artist
-
-  "I'm a small artist so if you're seeing this your algorithm is built different",
-
-  "Not trending yet. Let's see if the algorithm made a mistake.",
-
-  "Before this song blows up, I want to know who found it first.",
-
-  // Music-first POV
-
-  "POV: you finally found music that says what you're too proud to admit",
-
-  "POV: this song found you exactly when you needed it",
-
-  "POV: you're tired of fake motivational music",
-
-  // Emotional POV
-
-  "POV: you're exhausted but life keeps asking for more",
-
-  "POV: you're finally winning but the person you wanted to tell isn't here",
-
-  "POV: you're trying to move forward but your mind keeps looking back",
-
-  // Relatable thoughts
-
-  "Some people confuse motion with progress",
-
-  "Being busy and moving forward are not the same thing",
-
-  "Nobody talks about how lonely growth can be",
-
-  // Curiosity
-
-  "The lyric everyone ignores is actually the whole song",
-
-  "This line changes the meaning of everything",
-
-  "The second bar hits harder than the first",
-
-  // Found early
-
-  "You'll either hear this now or six months from now",
-
-  "The algorithm sent you here early",
-
-  "Future fans are hearing this late",
-
-  // Identity
-
-  "Hip-hop for people who overthink everything",
-
-  "Music for people who feel too much",
-
-  "For the people carrying more than they tell anyone",
-
-  "POV: you're building a life nobody can see yet",
-"POV: you keep acting calm but your mind never stops",
-"POV: you needed music that sounded like pressure",
-"POV: you're tired but quitting would hurt more",
-"POV: you're trying to become someone your old self needed",
-
-"Small artist. Real song. Right algorithm.",
-"Not famous yet, so finding this means something.",
-"This song has no label push, just a reason to exist.",
-"If this reached you, maybe the algorithm finally did its job.",
-"Before this has numbers, tell me if it feels real.",
-
-"Music for people who overthink in silence.",
-"Rap for people who feel everything but say little.",
-"For anyone carrying pressure like it's normal.",
-"For people who are healing and hungry at the same time.",
-"For the ones trying to make pain useful.",
-
-"This is what pressure sounds like.",
-"This is what growth feels like when nobody claps yet.",
-"This is what trying not to quit sounds like.",
-"This sounds like being tired but still dangerous.",
-"This one is for the part of you that refuses to fold.",
-
-"Nobody talks about the lonely part of levelling up.",
-"Sometimes the dream costs more than you expected.",
-"Being busy is not the same as becoming better.",
-"Some wins feel empty when certain people are missing.",
-"Some songs are really survival notes.",
-
-"Go ahead and scroll, this is just music for people who needed a reason.",
-"Keep scrolling, this is only for people who think too much.",
-"Keep scrolling unless you needed this exact feeling today.",
-"This probably will not trend, but it might find the right person.",
-"Not viral. Just honest.",
-
-"The hook is cool, but the second line tells the truth.",
-"This lyric sounded normal until life got real.",
-"The line I almost deleted says the most.",
-"This bar is for anyone pretending they are fine.",
-"This lyric aged better than I expected."
-]
+const TEXT_ON_SCREEN_FRAMEWORKS = []
 
 const TEXT_ON_SCREEN_LIBRARY = {
+
+  fanCulture: [
+  "The crowd knew this part before the drop arrived.",
+  "This section gets louder every week.",
+  "The reactions keep getting bigger.",
+  "The room knew exactly what was coming.",
+  "The fans turned this into their moment.",
+  "I wasn't expecting this response.",
+  "The comments understood this immediately.",
+  "This became bigger than I planned.",
+  "The crowd always waits for this bit.",
+  "Some songs create their own community."
+],
+liveEnergy: [
+  "The silence before the drop is always my favourite part.",
+  "The room changed when this started.",
+  "Everyone felt it at the same time.",
+  "This sounds different when the crowd joins in.",
+  "The build-up hits harder live.",
+  "This is why live music still wins.",
+  "The anticipation is half the experience.",
+  "The energy changed instantly.",
+  "You can feel the room holding its breath.",
+  "Some moments only make sense live."
+],
+celebration: [
+  "Some songs are made for forgetting tomorrow.",
+  "This is what freedom sounds like.",
+  "The best nights usually start like this.",
+  "This belongs on loud speakers.",
+  "The goal was simple: make people move.",
+  "Nobody stands still for this one.",
+  "The energy speaks for itself.",
+  "This was never meant to be listened to quietly.",
+  "The night starts here.",
+  "Sometimes music should just feel good."
+],
   foundEarly: [
     "If you're seeing this before I blow up, you're officially early.",
     "My music isn't trending yet, so your algorithm might know something I don't.",
@@ -879,6 +820,270 @@ function extractReleaseStrategyContextBlock(
   return lines.join('\n')
 }
 
+function shuffleArray<T>(items: T[]) {
+  return [...items].sort(() => Math.random() - 0.5)
+}
+
+function getTextOnScreenBuckets(args: {
+  totalSlots: number
+  genre: string
+  artistType: string
+  audience: string
+}) {
+  const { totalSlots, genre, artistType, audience } = args
+
+  const bucketNames = Object.keys(TEXT_ON_SCREEN_HOOKS)
+  let weightedBuckets = [...bucketNames]
+
+  const genreText = genre.toLowerCase()
+  const artistTypeText = artistType.toLowerCase()
+  const audienceText = audience.toLowerCase()
+
+  const isDanceOrDj =
+    artistTypeText.includes('dj') ||
+    genreText.includes('house') ||
+    genreText.includes('edm') ||
+    genreText.includes('dance') ||
+    audienceText.includes('party') ||
+    audienceText.includes('club') ||
+    audienceText.includes('festival') ||
+    audienceText.includes('nightlife')
+
+  if (isDanceOrDj) {
+    weightedBuckets = weightedBuckets.filter(
+      bucket =>
+        ![
+          'foundEarly',
+          'underdogArtist',
+          'emotionalPov',
+          'mentalNoise',
+          'successCost',
+        ].includes(bucket)
+    )
+
+    weightedBuckets.push(
+      'fanCulture',
+      'fanCulture',
+      'liveEnergy',
+      'liveEnergy',
+      'celebration',
+      'celebration'
+    )
+  }
+
+  const buckets: string[] = []
+
+  while (buckets.length < totalSlots) {
+    buckets.push(...shuffleArray(weightedBuckets))
+  }
+
+  return buckets.slice(0, totalSlots)
+}
+
+function allTextOnScreenHooks() {
+  return Object.values(TEXT_ON_SCREEN_HOOKS).flat()
+}
+
+function pickReplacementOnScreenText(args: {
+  hook: string
+  title: string
+  concept: string
+  index: number
+}) {
+  const { hook, title, concept, index } = args
+
+  const pool = allTextOnScreenHooks()
+
+  const blocked = [
+    normalizeForComparison(hook),
+    normalizeForComparison(title),
+    normalizeForComparison(concept),
+  ].filter(Boolean)
+
+  const candidates = pool.filter(line => {
+    const normalised = normalizeForComparison(line)
+
+    if (!normalised) return false
+    if (blocked.includes(normalised)) return false
+
+    const hookSimilarity = jaccardSimilarity(
+      significantWords(line),
+      significantWords(hook)
+    )
+
+    return hookSimilarity < 0.45
+  })
+
+  return candidates[index % candidates.length] || pool[index % pool.length] || title
+}
+
+function violatesArtistType(item: AiCalendarItem, artistType: string, genre: string) {
+  const text = [
+    item.title,
+    item.hook,
+    item.concept,
+    item.execution,
+    item.onScreenText,
+    item.on_screen_text,
+  ]
+    .map(safeString)
+    .join(' ')
+    .toLowerCase()
+
+  const artist = artistType.toLowerCase()
+  const lane = genre.toLowerCase()
+
+  const isDjOrDance =
+    artist.includes('dj') ||
+    artist.includes('producer') ||
+    lane.includes('house') ||
+    lane.includes('edm') ||
+    lane.includes('dance') ||
+    lane.includes('electronic')
+
+
+  if (!isDjOrDance) return false
+
+  const artistTypeLower = artistType.toLowerCase()
+
+  const banned = [
+    'rap',
+    'rapping',
+    'verse',
+    'bar',
+    'bars',
+    'sing',
+    'singing',
+    'vocal take',
+    'chorus',
+    'acoustic',
+    'lyric sheet',
+    'handwritten lyric',
+    'bedroom mirror',
+    'verse',
+'rap',
+'rapper',
+'sing',
+'singing',
+'vocal',
+'chorus',
+'lyrics',
+'lyric',
+'bars',
+'acoustic',
+'bedroom',
+'street walk',
+'walking alone',
+'perform the verse',
+'perform a verse',
+  ]
+
+  const djRequiredTerms = [
+  'dj',
+  'set',
+  'crowd',
+  'drop',
+  'transition',
+  'booth',
+  'soundcheck',
+  'remix',
+  'beat',
+  'festival',
+  'club',
+  'dance',
+  'bass',
+  'build-up',
+  'buildup',
+]
+
+if (artistTypeLower.includes('dj')) {
+  const hasDjContext = djRequiredTerms.some(term => text.includes(term))
+  if (!hasDjContext) return true
+}
+
+  return banned.some(word => text.includes(word))
+
+  
+}
+
+function isWeakOnScreenText(args: {
+  onScreenText: string
+  hook: string
+  title: string
+}) {
+  const { onScreenText, hook, title } = args
+
+  const normalisedText = normalizeForComparison(onScreenText)
+  const normalisedHook = normalizeForComparison(hook)
+  const normalisedTitle = normalizeForComparison(title)
+
+  if (!normalisedText) return true
+  if (normalisedText === normalisedHook) return true
+  if (normalisedText === normalisedTitle) return true
+
+  const weakPhrases = [
+    'new song',
+    'studio session',
+    'performance clip',
+    'watch until the end',
+    'listen now',
+    'out now',
+    'rap performance',
+    'lyrics on screen',
+    'music video',
+    'key lyric',
+'raw verse',
+'city backdrop',
+'street session',
+'verse flow',
+'chorus hook',
+'lyric highlight',
+'focus on',
+'perform a',
+'rap a',
+'showcase',
+'behind the scenes',
+  ]
+
+  if (weakPhrases.some(phrase => normalisedText.includes(phrase))) {
+    return true
+  }
+
+  const similarity = jaccardSimilarity(
+    significantWords(onScreenText),
+    significantWords(hook)
+  )
+
+  return similarity >= 0.55
+}
+
+function improveOnScreenText(args: {
+  onScreenText: string
+  hook: string
+  title: string
+  concept: string
+  index: number
+}) {
+  const { onScreenText, hook, title, concept, index } = args
+
+  if (
+    isWeakOnScreenText({
+      onScreenText,
+      hook,
+      title,
+    })
+  ) {
+    return pickReplacementOnScreenText({
+      hook,
+      title,
+      concept,
+      index,
+    })
+  }
+
+  return onScreenText
+}
+
 function normalizeForComparison(value: string) {
   return safeString(value)
     .toLowerCase()
@@ -1168,6 +1373,35 @@ You are an expert music marketing strategist and content calendar architect.
 You design practical, shootable content plans that respect an artist's reality
 (time, energy, budget) while still pushing growth.
 
+SPECIFICITY RULE
+
+The concept must contain at least one tangible thing.
+
+Examples:
+
+Good:
+- Rap the verse you wrote during a lunch break while sitting in your work uniform.
+- Perform the line you nearly deleted while showing the notebook page it came from.
+- Walk through your city at night delivering the verse about feeling behind in life.
+- Perform the hook while showing old screenshots from when nobody was listening.
+
+Bad:
+- Perform a verse about personal growth.
+- Highlight emotional resilience.
+- Showcase transformation through music.
+- Reflect on success and struggle.
+
+Every concept should contain:
+- a moment
+OR
+- a place
+OR
+- an object
+OR
+- a specific lyric
+
+If none exist, rewrite the idea.
+
 Rules:
 ${ideaDepthGuidance}
 - Mix music-first content pillars: performance, lyrics, sound, visual world, behind-the-scenes, discovery, community.- Avoid near-duplicates. Each slot should feel distinct but on-brand.
@@ -1216,6 +1450,48 @@ ${ideaDepthGuidance}
 - A good idea should make someone more likely to listen, save the song, remember the lyric, or understand the artist world.
 - Do not make the artist famous for personality alone; use personality as a bridge into the music.
 - "hook" and "onScreenText" must never be identical.
+- Hook and onScreenText should express the same emotional idea in different forms.
+- Hook = what the artist says, captions, or opens with.
+- onScreenText = what the viewer reads first while scrolling.
+- Do not copy the hook into onScreenText.
+- If the hook is a sentence, onScreenText should be shorter and more poster-like.
+- If the hook is direct, onScreenText should be more emotional, identity-led, or curiosity-led.
+
+Look for emotional territory that is unique to the song.
+
+Examples:
+
+A heartbreak song:
+- missing someone
+- regret
+- jealousy
+- wanting closure
+
+A success song:
+- confidence
+- validation
+- proving people wrong
+- enjoying the moment
+
+A party song:
+- freedom
+- excitement
+- chaos
+- attraction
+
+Do not force every song into themes of pressure, growth, healing, or perseverance.
+
+Example:
+Hook: "Ever feel like quitting, but it hurts more to stop?"
+onScreenText: "For people who are tired but not finished"
+
+Example:
+Hook: "If you're hearing this before I blow up, you're early."
+onScreenText: "Small artist. Real song. Right algorithm."
+
+Example:
+Hook: "This line hits different when you're walking through the streets alone."
+onScreenText: "Nobody talks about how lonely growth can be"
 - The hook should feel like the first spoken line, caption lead, or opening thought.
 - The onScreenText should feel like short overlay text that visually frames the video.
 - If hook and onScreenText would be similar, make the onScreenText shorter, more visual, or more curiosity-driven.
@@ -1231,17 +1507,61 @@ ${ideaDepthGuidance}
 - If lyrics are provided, YOU must choose the strongest lyric moment yourself.
 TEXT ON SCREEN PRIORITY RULES
 
-For at least 70% of generated ideas:
+Some genres naturally lean toward different emotional territories.
 
-The on-screen text MUST be built from one of these categories:
+House / EDM:
+- excitement
+- anticipation
+- freedom
+- movement
+- nightlife
+- celebration
+- connection
+- euphoria
 
-- POV
+Pop:
+- attraction
+- romance
+- confidence
+- fun
+- nostalgia
+
+Hip-Hop:
+- ambition
+- confidence
+- struggle
+- identity
+- success
+- loyalty
+
+Do not default every genre toward introspection or emotional healing.
+
+Balance ideas across multiple emotional territories.
+
+Avoid repeatedly generating:
+- lonely growth
+- carrying pressure
+- overthinking
+- tired but determined
+- becoming a better version of yourself
+
+unless these themes are clearly present in the supplied lyrics or context.
+
+No single category should dominate more than 25% of the batch.
+
+Spread ideas across:
 - Found Early
 - Underdog Artist
-- Identity Statement
-- Emotional Experience
-- Relatable Observation
-- Contrarian Take
+- Identity
+- Relatable Truth
+- Emotional POV
+- Growth
+- Transformation
+- Self Doubt
+- Success Cost
+- Mental Noise
+- Lyric Lead In
+- Contrarian
 
 Bad examples:
 - "New song out now"
@@ -1258,6 +1578,9 @@ Good examples:
 - "Hip-hop for people who overthink everything"
 
 The text-on-screen should feel more important than the hook.
+Do not make onScreenText sound like a content label, format, or execution instruction.
+Bad: "Raw verse outside", "Lyric highlight", "City backdrop", "Rap performance"
+Good: "For people carrying pressure like it’s normal", "Nobody sees the version of you that almost quit"
 
 A viewer should stop scrolling because of the on-screen text even with the audio muted.
 
@@ -1266,11 +1589,18 @@ Avoid simply describing the video.
 The text on screen should be capable of stopping a scroll by itself.
 At least 70% of ideas should use one of these text-on-screen categories:
 
-- POV
-- Found early
-- Underdog artist
+At least 70% of ideas should use one of:
+
 - Identity statement
 - Emotional experience
+- Relatable truth
+- Contrarian
+- Community
+- Fan culture
+- Performance energy
+- Audience reaction
+- Release moment
+s
 If lyrics are provided:
 
 - Never tell the artist to pick a lyric.
@@ -1281,6 +1611,55 @@ If lyrics are provided:
 - Build the hook, on-screen text and execution around that specific lyric.
 - Quote or paraphrase the specific lyric moment in the idea, hook, on-screen text, or execution.
 - Lyric-based ideas should say exactly what part of the lyrics to use, not ask the user to decide.
+
+CONCEPT GENERATION RULES
+
+If multiple ideas in the batch communicate the same underlying emotional message, replace some of them with ideas from different emotional territories.
+
+Example:
+
+Bad:
+- pressure
+- pressure
+- pressure
+- growth
+- growth
+
+Good:
+- confidence
+- nostalgia
+- attraction
+- ambition
+- pressure
+- freedom
+- humour
+
+Every idea must describe a specific post.
+
+Do not generate themes.
+
+Do not generate categories.
+
+Do not generate creative briefs.
+
+Do not write:
+- "Highlight a lyric about success"
+- "Share a POV about pressure"
+- "Focus on emotional growth"
+- "Explore the hidden cost of success"
+
+Instead write the actual post:
+
+Good:
+- "Rap the line about success scars directly to camera while walking through your city at golden hour."
+- "Show the lyric you nearly removed from the song and explain why it stayed."
+- "Perform the chorus in one take and add text explaining why it still affects you."
+- "Tell the story behind the one lyric listeners quote back to you most."
+
+The reader should instantly know exactly what content they would film.
+
+If the idea could be mistaken for a theme rather than a post, rewrite it.
+
 Every generated idea must include:
 
 - A scroll-stopping hook.
@@ -1288,6 +1667,28 @@ Every generated idea must include:
 - On-screen text appropriate for short-form platforms.
 - A clear emotional or curiosity trigger.
 - Hooks should feel modern, conversational, and platform-native.
+Hooks should sound like something an artist would genuinely say.
+
+Avoid creator language:
+
+- Check this out
+- Watch this
+- Listen to this
+- Here's my song
+- New music
+- New post
+- Rap performance
+
+Prefer artist language:
+
+- I almost cut this verse.
+- This line aged differently than I expected.
+- I didn't realise what I meant when I wrote this.
+- This part still feels uncomfortable to perform.
+- I wrote this at my lowest.
+- This lyric hits differently now.
+
+The hook should feel human, not generated.
 - Avoid generic engagement bait.
 - Avoid repetitive CTAs.
 Strong hooks often use:
@@ -1309,6 +1710,23 @@ Avoid:
 - hooks that assume a large fanbase
 - ideas requiring an already engaged audience
 
+CONTENT ANGLE should describe a specific content concept.
+
+CONTENT ANGLE should never be:
+- a topic
+- a theme
+- a feeling
+- a category
+
+CONTENT ANGLE should be:
+- a post
+- a scene
+- a performance
+- a slideshow
+- a visual execution
+
+The artist should be able to read CONTENT ANGLE and immediately know what they are filming.
+
 Every generated content idea MUST include the following sections in this exact order:
 
 CONTENT ANGLE:
@@ -1320,6 +1738,37 @@ CTA:
 WHY THIS WORKS:
 BEST FOR:
 
+Each idea must feel like a real content post an artist would actually film.
+
+Do not describe topics.
+
+Do not describe themes.
+
+Do not describe categories.
+
+Instead describe a specific piece of content.
+
+Bad:
+"Highlight a lyric about success."
+
+Bad:
+"Share a POV about internal struggles."
+
+Bad:
+"Focus on emotional cost."
+
+Good:
+"Rap the line that made you realise success can feel lonely."
+
+Good:
+"Perform the verse while walking through your city at night explaining why you almost quit."
+
+Good:
+"Show the lyric you nearly removed from the song and explain why it stayed."
+
+Good:
+"Tell the story behind the one line listeners quote back to you most."
+
 Guidelines:
 - Hooks must feel scroll-stopping, modern, emotionally intelligent, and platform-native.
 - On-screen text should feel short-form optimised and easy to overlay onto TikTok/Instagram videos.
@@ -1330,6 +1779,61 @@ Guidelines:
 - Avoid assuming the artist already has a large audience.
 - WHY THIS WORKS should briefly explain the psychology behind the idea.
 - BEST FOR should explain what type of artist or growth stage the idea suits best.
+
+HOOK RULES:
+
+The hook must be:
+
+- spoken
+- caption-like
+- thought-like
+
+The hook must NEVER describe the filming.
+
+Bad:
+"Film a contemplative walk outside"
+
+Bad:
+"Record yourself performing outside"
+
+Bad:
+"Show a close-up rap performance"
+
+Good:
+"I didn't realise how much this line meant until now."
+
+Good:
+"This verse got me through a rough month."
+
+Good:
+"I almost removed this from the song."
+
+VIDEO EXECUTION RULES:
+
+The execution should contain the majority of the specificity.
+
+The concept should explain the post.
+
+The execution should explain exactly how to film it.
+
+Bad concept:
+"Highlight a lyric about pressure."
+
+Good concept:
+"Perform the lyric about carrying pressure like it's normal."
+
+Bad execution:
+"Use a performance clip."
+
+Good execution:
+"Film yourself walking through your city at dusk while delivering the lyric directly to camera. Add the selected lyric as large text on screen."
+
+Execution describes what is filmed.
+
+Hooks describe what is felt.
+
+Never copy execution wording into the hook.
+Never copy hook wording into execution.
 
 Format every section clearly using labels and spacing.
 
@@ -1353,6 +1857,7 @@ Output STRICTLY valid JSON with this shape:
             "title": "Short internal card title that labels the idea clearly",
       "short_label": "Very short label",
       "pillar": "Performance" | "POV" | "Lyrics" | "Slideshow" | "Cinematic" | "BTS" | "Discovery" | "Community" | "Humour",
+      Never use "Idea" as pillar.
       "content_type": "performance" | "pov" | "lyrics" | "slideshow" | "cinematic" | "bts" | "discovery" | "community" | "humour",
       "hook": "A first spoken line or scroll-stopping opening phrase. It must NOT repeat the title wording.",
 "onScreenText": "Short text overlay for the video. Must be different from the hook. Should use curiosity, identity, tension, relatability, POV, or found-early psychology.","concept": "A short summary of the idea itself, distinct from the hook",
@@ -1373,9 +1878,42 @@ If the artist is early-stage (under 250, 250–1k, or 1k–3k):
 - Prioritise content that earns first attention rather than deep engagement.
 
 If the artist is 3k+:
-- Introduce more engagement-focused CTAs.
-- Include community participation ideas.
-- Encourage repeatable audience interaction formats.
+
+- Reduce use of "found early" positioning.
+- Reduce use of "small artist" positioning.
+- Reduce use of "before this blows up" positioning.
+- Reduce use of "nobody knows this song" positioning.
+- Reduce use of underdog narratives.
+
+Prioritise:
+- fan culture
+- audience reactions
+- community moments
+- social proof
+- live footage
+- performance energy
+- release promotion
+- audience participation
+- repeat listener behaviour
+- fan identity
+
+For artists at 10k+ followers or 10k+ monthly listeners:
+
+Avoid:
+- "before this blows up"
+- "you're early"
+- "small artist"
+- "nobody knows this song"
+- "future fans"
+- "algorithm found you first"
+
+Treat the artist as established enough to generate:
+- crowd moments
+- fan moments
+- live clips
+- event footage
+- release momentum content
+- community content
 
 Rules:
 - Return ONLY JSON
@@ -1395,6 +1933,92 @@ Rules:
 - If the user has selected specific content formats, respect those selected formats over generic storytelling.
 - Every idea should answer: "How does this make someone want to hear, save, remember, or understand the music?"
 At least 80% of generated ideas must use different content frameworks from one another.
+Do not use "idea" as a content_type or format. The content_type must be one of the selected content types only. Never use "idea" as a content_type.
+LYRIC SAFETY RULES
+
+If lyrics are NOT provided:
+
+- Do not reference lyrics.
+- Do not reference verses.
+- Do not reference song lines.
+- Do not reference handwritten notes.
+- Do not reference lyric breakdowns.
+- Do not reference lyric explanations.
+- Do not suggest choosing a lyric.
+- Do not suggest showing lyrics on screen.
+
+Treat the song as having no accessible lyric content.
+
+AUDIENCE OVERRIDE RULE
+
+The audience description should heavily influence emotional direction.
+
+If audience includes:
+
+- party
+- nightlife
+- dance
+- club
+- festival
+- energy
+- workout
+- hype
+
+Prefer:
+
+- excitement
+- anticipation
+- celebration
+- movement
+- confidence
+- freedom
+- escapism
+
+Avoid:
+
+- sadness
+- healing
+- loneliness
+- nostalgia
+- regret
+- emotional recovery
+
+unless explicitly supplied by lyrics or artist context.
+
+DISCOVERY FRAMEWORK RESTRICTIONS
+
+If artist has:
+
+- 10,000+ monthly listeners
+OR
+- 10,000+ followers
+
+Do NOT use:
+
+- found early
+- before this blows up
+- algorithm found you first
+- nobody knows this song
+- hidden gem
+- undiscovered artist
+- future fans
+- small artist positioning
+
+These frameworks are prohibited.
+
+CONTENT DECISION ORDER
+
+When generating ideas decide in this order:
+
+1. Artist Type
+2. Genre
+3. Audience
+4. Goal
+5. Lyrics
+
+Everything else is secondary.
+
+Never generate content that conflicts with Artist Type, Genre, or Audience.
 
 Do not create multiple versions of:
 - story behind the song
@@ -1402,12 +2026,32 @@ Do not create multiple versions of:
 - POV meaning
 - generic BTS
 
+Across the batch:
+- Do not use the same text-on-screen structure twice.
+- Do not use more than one "found early" style hook unless discovery is selected.
+- Vary between POV, identity, relatable truth, lyric lead-in, underdog, and contrarian framing.
+- If using a library pattern, adapt it so it does not appear copied.
+
 If two ideas use the same framework, they must be substantially different.
 `.trim()
 
-const selectedTextOnScreenFrameworks = [...TEXT_ON_SCREEN_FRAMEWORKS]
-  .sort(() => Math.random() - 0.5)
-  .slice(0, 15)
+const selectedTextOnScreenBuckets = getTextOnScreenBuckets({
+  totalSlots,
+  genre,
+  artistType,
+  audience,
+})
+
+const selectedTextOnScreenFrameworks = selectedTextOnScreenBuckets
+  .map((bucket, index) => {
+    const hooks =
+      TEXT_ON_SCREEN_HOOKS[bucket as keyof typeof TEXT_ON_SCREEN_HOOKS] || []
+
+    const hook = hooks[index % hooks.length]
+
+    return `${index + 1}. ${bucket}: ${hook}`
+  })
+  .join('\n')
 
 const selectedFrameworks = [...CONTENT_FRAMEWORKS]
   .sort(() => Math.random() - 0.5)
@@ -1421,9 +2065,49 @@ const selectedTextOnScreenExamples = Object.entries(TEXT_ON_SCREEN_LIBRARY)
   .sort(() => Math.random() - 0.5)
   .slice(0, 12)  
 
+const selectedContentTypesText = contentTypes.join(', ').toLowerCase()
+
+const artistTypeRules = `
+Artist type rules:
+- Selected artist type: ${artistType || 'Not specified'}
+- Selected genre/lane: ${genre || 'Not specified'}
+- Selected audience: ${audience || 'Not specified'}
+- Selected content types: ${contentTypes.join(', ')}
+
+Hard rules:
+- Artist type is the highest-priority constraint.
+- Do not generate ideas that conflict with the selected artist type.
+- Do not mention lyrics, verses, bars, choruses, handwritten lyrics, or lyric explanations unless lyrics content is selected OR lyrics are provided.
+- Do not borrow rapper/singer formats for DJs, producers, or instrumentalists.
+
+Rapper:
+- Use bars, verses, direct-to-camera rap, punchlines, performance, lyrical meaning, identity, and location-based delivery.
+
+Singer:
+- Use vocal moments, chorus, melody, acoustic/live takes, emotional vocal delivery, demos, and performance.
+
+Producer:
+- Use beat-making, sound design, sample flips, studio process, beat drops, arrangement, before/after beat moments, and production breakdowns.
+
+DJ:
+- Use drops, transitions, crowd reactions, live footage, soundchecks, backstage, club/festival energy, DJ booth footage, audience anticipation, set moments, and replayable live clips.
+- Avoid singing, rapping, verses, bars, choruses, lyric sheets, acoustic takes, and bedroom confession-style content.
+- Emotional framing should come through energy, anticipation, release, celebration, movement, crowd connection, atmosphere, or nightlife.
+
+Band:
+- Use rehearsal clips, live performance, group chemistry, instruments, crowd moments, behind-the-scenes, and song sections.
+
+Instrumentalist:
+- Use playing technique, live takes, solos, tone, practice clips, musical skill, and arrangement details.
+
+Songwriter:
+- Use writing process, lyric meaning, voice notes, demos, unfinished ideas, and before/after song development.
+`
+
   const userPrompt = `
 Artist: ${artistName}
 ${contextBlock}
+${artistTypeRules}
 Tone: ${tone}
 Idea depth: ${ideaDepth}
 Depth interpretation:
@@ -1434,6 +2118,8 @@ ${
     ? '- The user wants ideas that feel a bit more directed and intentional, especially in how the content is filmed or staged, without becoming overwhelming.'
     : '- The user wants a middle ground: clear, usable, and moderately developed ideas.'
 }
+
+
 
 Focus mode: ${focusMode}
 Release/gig context: ${releaseContext || 'None'}
@@ -1465,6 +2151,35 @@ Energy pattern (Mon..Sun):
 ${Array.isArray(energyPattern) && energyPattern.length ? energyPattern.join(', ') : 'Not provided'}
 Session novelty key: ${noveltySeed || 'default'}
 
+Title should feel like a TikTok creator naming the concept.
+
+Maximum 5 words.
+
+Avoid:
+- Rap Moment
+- Visualizer
+- Lyric Post
+- Performance Clip
+- Content Piece
+
+Examples:
+
+The Verse I Almost Cut
+
+Before The Numbers Come
+
+Still Posting Anyway
+
+This One Hurt To Write
+
+Pressure Doesn't Leave
+
+The Quietest Line
+
+Not Finished Yet
+
+Calm Outside, Chaos Inside
+
 Lyrics context:
 ${lyrics
   ? `Focus: ${lyricsFocus || 'general'}
@@ -1478,9 +2193,150 @@ Pre-analysed strongest lyric moments:
 ${lyricMomentsBlock}`
   : 'No lyrics provided.'}
 
-Text-on-screen inspiration:
+Text-on-screen inspiration by idea slot:
 
-${selectedTextOnScreenFrameworks.join('\n')}
+${selectedTextOnScreenFrameworks}
+
+IMPORTANT:
+
+The frameworks above are inspiration only.
+
+Do NOT copy them directly.
+Do NOT lightly rewrite them.
+Do NOT repeat them word-for-word.
+
+Create a completely new variation that expresses the same emotional idea using different language.
+
+Bad:
+"Some wins feel empty when certain people are missing."
+
+Good:
+"The people you wanted to celebrate with aren't here."
+
+Good:
+"Achievement feels different when you can't share it."
+
+Good:
+"Sometimes the silence after a win is the loudest part."
+
+Rules:
+- Treat each numbered line as inspiration for the matching idea number.
+- Idea 1 should use inspiration line 1.
+- Idea 2 should use inspiration line 2.
+- Idea 3 should use inspiration line 3.
+- Continue this pattern across the batch.
+- Use the category and emotional pattern, but do not copy the wording exactly.
+- Remix the structure to fit the artist, genre, audience, song theme, and specific idea.
+- Do not repeatedly use the same inspiration category.
+- Avoid generating multiple ideas that communicate the same core message in different wording.
+
+Available emotional territories:
+
+- Identity
+- Relatable Truth
+- Contrarian
+- Community
+- Fan Culture
+- Audience Reaction
+- Live Energy
+- Celebration
+- Confidence
+- Ambition
+- Attraction
+- Curiosity
+- Discovery
+- Emotional POV
+- Transformation
+- Growth
+- Lyric Lead In
+
+Artist type adaptation:
+
+If artistType is DJ, producer, electronic artist, house artist, EDM artist, dance artist, or if the audience contains terms such as festival, party, club, nightlife, rave, high energy, dance music fans:
+
+- Prioritise energy, anticipation, crowd reaction, live moments, festival culture, movement, release, celebration, connection, and atmosphere.
+- Prioritise content built around drops, transitions, audience reactions, live footage, soundchecks, backstage moments, DJ preparation, crowd anticipation, and shared experiences.
+- Avoid therapy-style messaging, mental health framing, overthinking themes, emotional exhaustion themes, loneliness themes, self-doubt themes, and "music for people who feel too much" style concepts unless explicitly supported by the artist context.
+- Do not assume introspective or vulnerable messaging simply because emotional buckets exist in the library.
+- For DJs and dance artists, emotion should usually be expressed through energy, atmosphere, anticipation, release, nostalgia, community, celebration, or crowd experience rather than personal vulnerability.
+- Do not generate verse, chorus, lyric, singing, rap, acoustic, bar, vocal, or walking-alone performance ideas.
+- Focus on drops, transitions, crowd reactions, live set moments, booth footage, soundcheck, track selection, build-up, remix, edits, energy shifts, and fan/community reaction.
+- If selected content type is POV, reinterpret it as DJ POV: booth perspective, crowd perspective, pre-drop tension, post-set reflection, or fan reaction — not emotional monologue.
+When selecting emotional territories:
+
+Choose emotional territories that fit:
+
+1. Genre
+2. Artist type
+3. Audience
+4. Goal
+
+in that order.
+
+Example:
+
+David Guetta
+Genre: House
+Audience: Party people
+Goal: Convert
+
+Strong territories:
+- excitement
+- anticipation
+- freedom
+- nightlife
+- celebration
+- crowd energy
+
+Weak territories:
+- loneliness
+- healing
+- overthinking
+- pressure
+- self doubt
+
+Territory selection must respect artist type and audience.
+
+Do not select Mental Noise, Self Doubt, Success Cost, Lonely Growth, Underdog Artist, or similar introspective territories for DJs, EDM artists, house artists, dance artists, festival-focused artists, or high-energy audiences unless the user explicitly provides context supporting those themes.
+
+unless explicitly provided by lyrics.
+
+IMPORTANT:
+
+Do not over-index on:
+- pressure
+- overthinking
+- loneliness
+- growth
+- self doubt
+
+These are only some of many possible emotional territories.
+
+Also generate ideas around:
+- confidence
+- attraction
+- romance
+- obsession
+- ambition
+- revenge
+- freedom
+- nostalgia
+- friendship
+- celebration
+- chaos
+- humour
+- curiosity
+- temptation
+- escapism
+- loyalty
+- risk
+- adventure
+- desire
+- transformation
+- gratitude
+- rebellion
+
+The emotional distribution should reflect the actual song and artist context, not default to personal-growth content.
 
 Plan parameters:
 - Start date: ${startDate}
@@ -1488,6 +2344,12 @@ Plan parameters:
 - Approx posts per week: ${postsPerWeek}
 - Allowed platforms: ${platforms.join(', ')}
 - Selected content types: ${contentTypes.join(', ')}
+- Treat selected content types as hard constraints, not suggestions.
+- Do not generate content outside these selected types.
+- If "lyrics" is not selected and no lyrics are provided, avoid lyric-led ideas entirely.
+- If "performance" is not selected, avoid performance-led ideas.
+- If "pov" is not selected, avoid POV-led ideas.
+- If "community" is not selected, avoid fan/community participation ideas.
 - Avoid list (do not repeat or closely paraphrase):
 ${(avoidTitles || []).slice(0, 40).map(t => `- ${t}`).join('\n') || 'None'}
 
@@ -1498,6 +2360,35 @@ Text-on-screen inspiration library:
 ${selectedTextOnScreenExamples
   .map(item => `- ${item.category}: ${item.example}`)
   .join('\n')}
+
+  IMPORTANT:
+
+The examples above are reference material only.
+
+Never copy them directly.
+Never make minor wording changes.
+Never substitute a few words.
+
+Understand the psychology behind the example and create a completely new expression.
+
+Example:
+
+Reference:
+"Nobody talks about how lonely growth can be"
+
+Bad:
+"People don't discuss how lonely success feels"
+
+Good:
+"The higher you climb, the fewer people understand the view"
+
+Good:
+"Progress gets quieter the further you go"
+
+Good:
+"Sometimes growth feels like outgrowing rooms"
+
+Every on-screen text should feel newly written.
 
 Use these as inspiration for style, psychology, and structure.
 Do not copy them word-for-word unless the wording perfectly fits.
@@ -1593,6 +2484,19 @@ Design a content calendar that:
 - Feels coherent with one artist identity.
 - Can be realistically executed by a busy independent artist.
 
+FINAL SELF-CHECK:
+
+Before outputting an idea ask:
+
+1. Does this sound like an artist?
+2. Does this sound like a template?
+3. Have I already generated something similar?
+4. Is the hook different from the on-screen text?
+5. Is the hook different from the execution?
+6. Would somebody actually post this?
+7. Does this batch explore at least 4 different emotional territories?
+
+If any answer fails, rewrite the idea.
 
 You MUST:
 - Return at least ${targetCandidateCount} items.
@@ -1674,65 +2578,116 @@ ${
     }
 
     const safePlatforms = Array.isArray(platforms) && platforms.length ? platforms : ['instagram']
+const allowedContentTypes = [
+  'performance',
+  'pov',
+  'lyrics',
+  'slideshows',
+  'cinematic',
+  'studio / bts',
+  'discovery',
+  'community',
+  'humour',
+]
+
 const safeContentTypes =
   Array.isArray(contentTypes) && contentTypes.length
     ? contentTypes
+        .map((type: string) => type.toLowerCase().trim())
+        .filter((type: string) => allowedContentTypes.includes(type))
     : ['performance', 'pov', 'lyrics']
-   const candidateItems = (parsed.items as CalendarItem[]).map((item, index) => {
+   const candidateItems = (parsed.items as CalendarItem[])
+  .map((item, index) => {
     const rawItem = item as any
     const fallbackPlatform = safePlatforms[0] || 'instagram'
+
     const platform =
       rawItem.platform && safePlatforms.includes(rawItem.platform)
         ? rawItem.platform
         : fallbackPlatform
 
     const date = rawItem.date || addDaysIso(startDate, index)
+
     const rawContentType =
-  typeof rawItem.content_type === 'string'
-    ? rawItem.content_type.toLowerCase().trim()
-    : typeof rawItem.format === 'string'
-    ? rawItem.format.toLowerCase().trim()
-    : ''
+      typeof rawItem.content_type === 'string'
+        ? rawItem.content_type.toLowerCase().trim()
+        : typeof rawItem.format === 'string'
+        ? rawItem.format.toLowerCase().trim()
+        : ''
 
-const normalisedContentType =
-  rawContentType === 'lyric' ? 'lyrics' :
-  rawContentType === 'lyrical' ? 'lyrics' :
-  rawContentType === 'lyric-led' ? 'lyrics' :
-  rawContentType === 'lyric_led' ? 'lyrics' :
-  rawContentType === 'p.o.v' ? 'pov' :
-  rawContentType === 'p.o.v.' ? 'pov' :
-  rawContentType === 'point-of-view' ? 'pov' :
-  rawContentType === 'point_of_view' ? 'pov' :
-  rawContentType
+    const normalisedContentType =
+      rawContentType === 'lyric' ? 'lyrics' :
+      rawContentType === 'lyrical' ? 'lyrics' :
+      rawContentType === 'lyric-led' ? 'lyrics' :
+      rawContentType === 'lyric_led' ? 'lyrics' :
+      rawContentType === 'p.o.v' ? 'pov' :
+      rawContentType === 'p.o.v.' ? 'pov' :
+      rawContentType === 'point-of-view' ? 'pov' :
+      rawContentType === 'point_of_view' ? 'pov' :
+      rawContentType
 
-const contentType = safeContentTypes.includes(normalisedContentType)
-  ? normalisedContentType
-  : safeContentTypes[index % safeContentTypes.length]
-    const why = Array.isArray(rawItem.why) ? rawItem.why.filter(Boolean).slice(0, 2) : []
+      const blockedContentTypes = ['idea']
+
+const contentType =
+  safeContentTypes.includes(normalisedContentType) &&
+  !blockedContentTypes.includes(normalisedContentType)
+    ? normalisedContentType
+    : safeContentTypes[index % safeContentTypes.length]
+
+
+    const why = Array.isArray(rawItem.why)
+      ? rawItem.why.filter(Boolean).slice(0, 2)
+      : []
 
     const title = rawItem.title?.trim() || `Idea ${index + 1}`
     const concept = rawItem.concept?.trim() || rawItem.execution?.trim() || ''
     const execution = rawItem.execution?.trim() || rawItem.concept?.trim() || ''
+
     const onScreenText =
-  (rawItem as any).on_screen_text?.trim() ||
-  (rawItem as any).onScreenText?.trim() ||
-  ''
+      rawItem.on_screen_text?.trim() ||
+      rawItem.onScreenText?.trim() ||
+      ''
+
     const rawHook = rawItem.hook?.trim() || ''
-    const titleLower = title.trim().toLowerCase()
-    const hookLower = rawHook.trim().toLowerCase()
-const safeOnScreenText =
-  onScreenText && onScreenText.toLowerCase() !== rawHook.toLowerCase()
-    ? onScreenText
-    : title
+
     const hook =
-      rawHook && rawHook !== title && hookLower !== titleLower
+      rawHook &&
+      normalizeForComparison(rawHook) !== normalizeForComparison(title) &&
+      normalizeForComparison(rawHook) !== normalizeForComparison(concept) &&
+      normalizeForComparison(rawHook) !== normalizeForComparison(execution)
         ? rawHook
-        : concept && concept.trim().toLowerCase() !== titleLower
-        ? concept
-        : ''
+        : pickReplacementOnScreenText({
+            hook: title,
+            title,
+            concept,
+            index,
+          })
+
+    const safeOnScreenText = improveOnScreenText({
+      onScreenText,
+      hook,
+      title,
+      concept,
+      index,
+    })
 
     const cta = rawItem.cta?.trim() || 'What do you think?'
-    const pillar = rawItem.pillar?.trim() || 'Other'
+    const allowedPillars = [
+  'Performance',
+  'POV',
+  'Lyrics',
+  'Slideshow',
+  'Cinematic',
+  'BTS',
+  'Discovery',
+  'Community',
+  'Humour',
+]
+
+const rawPillar = rawItem.pillar?.trim() || ''
+const pillar = allowedPillars.includes(rawPillar)
+  ? rawPillar
+  : contentType.charAt(0).toUpperCase() + contentType.slice(1)
 
     return {
       date,
@@ -1766,7 +2721,11 @@ const safeOnScreenText =
       !!item.structured?.execution?.trim() ||
       !!item.idea?.trim()
 
-    return hasTitle && hasSomeUsableContent
+    if (!hasTitle || !hasSomeUsableContent) return false
+
+    if (violatesArtistType(item as any, artistType, genre)) return false
+
+    return true
   })
 
 
@@ -1803,16 +2762,54 @@ The previous generation only returned ${completedItems.length} usable ideas, but
 
 Generate exactly ${missingCount} additional ideas.
 
+Each idea must feel like a real content post an artist would actually film.
+
+Do not describe topics.
+
+Do not describe themes.
+
+Do not describe categories.
+
+Instead describe a specific piece of content.
+
+Bad:
+"Highlight a lyric about success."
+
+Bad:
+"Share a POV about internal struggles."
+
+Bad:
+"Focus on emotional cost."
+
+Good:
+"Rap the line that made you realise success can feel lonely."
+
+Good:
+"Perform the verse while walking through your city at night explaining why you almost quit."
+
+Good:
+"Show the lyric you nearly removed from the song and explain why it stayed."
+
+Good:
+"Tell the story behind the one line listeners quote back to you most."
+
 Avoid repeating or closely copying these existing ideas:
 ${existingIdeasForAvoidList || 'None'}
 
 Creative formats available:
 ${selectedFrameworks.map(x => `- ${x}`).join('\n')}
 
-Text-on-screen inspiration:
-${selectedTextOnScreenExamples
-  .map(item => `- ${item.category}: ${item.example}`)
-  .join('\n')}
+Text-on-screen inspiration by missing idea slot:
+
+${selectedTextOnScreenFrameworks}
+
+Rules:
+- Use these as category/pattern inspiration only.
+- Do not copy them word-for-word.
+- Do not repeatedly use the same inspiration category.
+- Hook and onScreenText must be different.
+- onScreenText should be shorter, sharper, and more repostable than the hook.
+
 Pre-analysed lyric moments:
 ${lyricMomentsBlock}
 When generating onScreenText:
@@ -1860,6 +2857,9 @@ Rules:
 - Do not use generic fallback ideas.
 - Do not repeat the same hook, on-screen text, concept, execution, or why.
 - Hook and onScreenText must be different.
+- Hook and onScreenText should say the same emotional idea in different wording.
+- Do not copy/paste the hook into onScreenText.
+- onScreenText should be shorter, sharper, and more repostable than the hook.
 - Use music-first formats like performance, lyrics, POV, lip sync, slideshow, visual metaphor, discovery, hook preview, or song audio moments.
 - Return only valid JSON with the same shape: { "items": [...] }.
 `.trim(),
@@ -1921,10 +2921,13 @@ const contentType = safeContentTypes.includes(normalisedContentType)
               (rawItem as any).onScreenText?.trim() ||
               ''
 
-            const safeOnScreenText =
-              onScreenText && onScreenText.toLowerCase() !== rawHook.toLowerCase()
-                ? onScreenText
-                : title
+            const safeOnScreenText = improveOnScreenText({
+  onScreenText,
+  hook: rawHook,
+  title,
+  concept,
+  index,
+})
 
             const titleLower = title.trim().toLowerCase()
             const hookLower = rawHook.trim().toLowerCase()
@@ -1937,7 +2940,22 @@ const contentType = safeContentTypes.includes(normalisedContentType)
                 : ''
 
             const cta = rawItem.cta?.trim() || 'Listen if this found you at the right time.'
-            const pillar = rawItem.pillar?.trim() || 'Other'
+            const allowedPillars = [
+  'Performance',
+  'POV',
+  'Lyrics',
+  'Slideshow',
+  'Cinematic',
+  'BTS',
+  'Discovery',
+  'Community',
+  'Humour',
+]
+
+const rawPillar = rawItem.pillar?.trim() || ''
+const pillar = allowedPillars.includes(rawPillar)
+  ? rawPillar
+  : contentType.charAt(0).toUpperCase() + contentType.slice(1)
 
             return {
               date,
@@ -1972,7 +2990,11 @@ const contentType = safeContentTypes.includes(normalisedContentType)
               !!item.structured?.execution?.trim() ||
               !!item.idea?.trim()
 
-            return hasTitle && hasSomeUsableContent
+            return (
+  hasTitle &&
+  hasSomeUsableContent &&
+  !violatesArtistType(item, artistType, genre)
+)
           })
 
         completedItems = [...completedItems, ...replacementItems].slice(0, totalSlots)
