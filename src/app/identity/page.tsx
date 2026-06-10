@@ -1264,6 +1264,32 @@ function isHexColor(value?: string) {
   return /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(value.trim())
 }
 
+const COLOUR_NAME_MAP: Record<string, string> = {
+  'deep navy': '#07111F',
+  'navy': '#0B1026',
+  'charcoal grey': '#1F1F24',
+  'charcoal gray': '#1F1F24',
+  'warm beige': '#C9A982',
+  'earthy green': '#556B4E',
+  'electric blue': '#2F7DFF',
+  'golden yellow': '#F2C94C',
+  'black': '#050505',
+  'white': '#F5F5F5',
+  'red': '#D72638',
+  'purple': '#8B5CF6',
+  'pink': '#EC4899',
+  'orange': '#F97316',
+  'green': '#22C55E',
+  'blue': '#3B82F6',
+}
+
+function resolveColour(value?: string) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  if (isHexColor(raw)) return raw
+  return COLOUR_NAME_MAP[raw.toLowerCase()] || ''
+}
+
 function ColorSwatch({
   value,
   label,
@@ -1272,7 +1298,8 @@ function ColorSwatch({
   label?: string
 }) {
   const hex = value?.trim?.() || ''
-  const isHex = isHexColor(hex)
+  const resolved = resolveColour(hex)
+const isHex = !!resolved
 
   return (
     <div className="space-y-2">
@@ -1280,7 +1307,7 @@ function ColorSwatch({
         className="h-14 rounded-xl border border-white/10 shadow-inner"
         style={{
           background: isHex
-            ? hex
+            ? resolved
             : 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))',
         }}
       />

@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
@@ -184,6 +184,28 @@ const PERFORMANCE_STYLE_EXAMPLES = [
   'I use lip syncing, facial expressions, and acting to bring lyrics to life. I want creative POV content that makes people relate to the song and then check out the full track.',
 
   'I am a small independent artist with limited time. Most of my content is filmed on my phone using simple performance clips, lyrics on screen, and text overlays. I need ideas that are realistic to make consistently.'
+]
+
+const CONTENT_STYLE_OPTIONS = [
+  'Direct performance',
+  'Behind the scenes',
+  'Live footage',
+  'Storytelling',
+  'Text-on-screen',
+  'Camera roll / slideshow',
+  'Talking to camera',
+  'Visual / cinematic',
+]
+
+const CONTENT_ENERGY_OPTIONS = [
+  'Balanced',
+  'High energy',
+  'Confident',
+  'Funny / playful',
+  'Raw / emotional',
+  'Reflective',
+  'Hype / performance',
+  'Chill / casual',
 ]
 
 
@@ -780,6 +802,8 @@ const outputInnerCardClass =
 const [genre, setGenre] = useState('')
 const [artistType, setArtistType] = useState('other')
 const [performanceStyle, setPerformanceStyle] = useState('')
+const [contentStyles, setContentStyles] = useState<string[]>([])
+const [contentEnergy, setContentEnergy] = useState('Balanced')
 const [audience, setAudience] = useState('')
 const [audienceSize, setAudienceSize] = useState('')
 const [monthlyListeners, setMonthlyListeners] = useState('')
@@ -798,6 +822,7 @@ useEffect(() => {
     setIdeaCount(7)
   }
 }, [mounted, tier, ideaCount])
+const [selectedContentStyles, setSelectedContentStyles] = useState<string[]>([])
 const [showPerformanceStyleHelp, setShowPerformanceStyleHelp] = useState(false)
 const [showAdvancedInputs, setShowAdvancedInputs] = useState(false)
 const [sortMode, setSortMode] = useState<'newest' | 'platform' | 'content_type' | 'source'>('newest')
@@ -860,7 +885,7 @@ useEffect(() => {
   campaignSynopsis,
   artistNameFromCampaign,
 ])
-
+const examplesRef = useRef<HTMLDivElement>(null)
   // ---------- Hydrate profile fields ----------
   useEffect(() => {
     if (profile.artistName && !artistName) setArtistName(profile.artistName)
@@ -1111,6 +1136,10 @@ const generatingMessage = useGeneratingMessages(generating)
     setContentTypes(prev => toggleInArray(prev, key))
   }
 
+  function toggleContentStyle(value: string) {
+  setContentStyles(prev => toggleInArray(prev, value))
+}
+
 function applyCampaignContext(row: CampaignContextLite) {
   const inp = row.inputs || {}
   const concepts = row.concepts?.concepts || row.concepts || []
@@ -1184,6 +1213,16 @@ if (isCalendarLocked) {
   return
 }
 
+if (!performanceStyle.trim()) {
+  toast.error('Tell WW how you usually create content before generating ideas.')
+  return
+}
+
+if (selectedContentStyles.length === 0) {
+  toast.error('Choose at least one content style.')
+  return
+}
+
     void save({ artistName, genre, audience, goal, tone })
     setGenerating(true)
 
@@ -1220,6 +1259,8 @@ monthlyListeners,
           genre,
           artistType,
           performanceStyle,
+          contentStyles: selectedContentStyles,
+contentEnergy,
           audience,
           goal,
           tone,
@@ -1308,6 +1349,8 @@ releaseStrategyContext:
   genre,
   artistType,
   performanceStyle,
+  contentStyles: selectedContentStyles,
+contentEnergy,
   audience,
   goal,
   tone,
@@ -1752,40 +1795,26 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
   </div>
 ) : null}
 </div>
-          <InputSection
-  title="Core brief"
-  hint="Define your artist context so the ideas feel specific to you."
+         <InputSection
+  title="Artist basics"
+  hint="Set the artist, genre, stage, and guidance level."
 >
   <div className="grid gap-3 md:grid-cols-2">
     <div className="space-y-1">
       <p className={labelClass}>Artist name</p>
-      <input
-        className={selectClass}
-        placeholder="e.g. natestapes"
-        value={artistName}
-        onChange={e => setArtistName(e.target.value)}
-      />
+      <input className={selectClass} placeholder="e.g. natestapes" value={artistName} onChange={e => setArtistName(e.target.value)} />
     </div>
 
     <div className="space-y-1">
       <p className={labelClass}>Genre / lane</p>
-      <input
-        className={selectClass}
-        placeholder="e.g. introspective UK rap"
-        value={genre}
-        onChange={e => setGenre(e.target.value)}
-      />
+      <input className={selectClass} placeholder="e.g. introspective UK rap" value={genre} onChange={e => setGenre(e.target.value)} />
     </div>
   </div>
 
   <div className="grid gap-3 md:grid-cols-2">
     <div className="space-y-1">
       <p className={labelClass}>Artist type</p>
-      <select
-        className={selectClass}
-        value={artistType}
-        onChange={e => setArtistType(e.target.value)}
-      >
+      <select className={selectClass} value={artistType} onChange={e => setArtistType(e.target.value)}>
         <option value="rapper">Rapper</option>
         <option value="singer">Singer</option>
         <option value="producer">Producer</option>
@@ -1799,11 +1828,7 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
 
     <div className="space-y-1">
       <p className={labelClass}>Guidance level</p>
-      <select
-        className={selectClass}
-        value={ideaDepth}
-        onChange={e => setIdeaDepth(e.target.value as IdeaDepth)}
-      >
+      <select className={selectClass} value={ideaDepth} onChange={e => setIdeaDepth(e.target.value as IdeaDepth)}>
         <option value="simple">Simple</option>
         <option value="balanced">Balanced</option>
         <option value="detailed">Detailed</option>
@@ -1811,153 +1836,171 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
     </div>
   </div>
 
+  <div className="grid gap-3 md:grid-cols-2">
+    <div className="space-y-1">
+      <p className={labelClass}>Current audience size</p>
+      <select className={selectClass} value={audienceSize} onChange={e => setAudienceSize(e.target.value)}>
+        <option value="">Select audience stage...</option>
+        <option value="under_250">Under 250 followers</option>
+        <option value="250_1k">250–1k followers</option>
+        <option value="1k_3k">1k–3k followers</option>
+        <option value="3k_6k">3k–6k followers</option>
+        <option value="6k_10k">6k–10k followers</option>
+        <option value="10k_plus">10k+ followers</option>
+      </select>
+    </div>
+
+    <div className="space-y-1">
+      <p className={labelClass}>Spotify monthly listeners</p>
+      <select className={selectClass} value={monthlyListeners} onChange={e => setMonthlyListeners(e.target.value)}>
+        <option value="">Select monthly listeners...</option>
+        <option value="under_100">Under 100</option>
+        <option value="100_500">100–500</option>
+        <option value="500_1k">500–1k</option>
+        <option value="1k_5k">1k–5k</option>
+        <option value="5k_10k">5k–10k</option>
+        <option value="10k_plus">10k+</option>
+      </select>
+    </div>
+  </div>
+</InputSection>
+
+<InputSection
+  title="Audience and direction"
+  hint="Tell WW who the content is for and what it should achieve."
+>
   <div className="space-y-1">
     <p className={labelClass}>Audience</p>
-    <input
-      className={selectClass}
-      placeholder="Who are you talking to?"
-      value={audience}
-      onChange={e => setAudience(e.target.value)}
-    />
+    <input className={selectClass} placeholder="Who are you talking to?" value={audience} onChange={e => setAudience(e.target.value)} />
   </div>
-
-  <div className="grid gap-3 md:grid-cols-2">
-  <div className="space-y-1">
-    <p className={labelClass}>Current audience size</p>
-
-    <select
-      className={selectClass}
-      value={audienceSize}
-      onChange={e => setAudienceSize(e.target.value)}
-    >
-      <option value="">Select audience stage...</option>
-      <option value="under_250">Under 250 followers</option>
-      <option value="250_1k">250–1k followers</option>
-      <option value="1k_3k">1k–3k followers</option>
-      <option value="3k_6k">3k–6k followers</option>
-      <option value="6k_10k">6k–10k followers</option>
-      <option value="10k_plus">10k+ followers</option>
-    </select>
-
-    <p className="text-[11px] leading-relaxed text-white/45">
-      This helps WW tailor ideas to your current stage of growth.
-    </p>
-  </div>
-
-  <div className="space-y-1">
-    <p className={labelClass}>Spotify monthly listeners (optional)</p>
-
-    <select
-      className={selectClass}
-      value={monthlyListeners}
-      onChange={e => setMonthlyListeners(e.target.value)}
-    >
-      <option value="">Select monthly listeners...</option>
-      <option value="under_100">Under 100</option>
-      <option value="100_500">100–500</option>
-      <option value="500_1k">500–1k</option>
-      <option value="1k_5k">1k–5k</option>
-      <option value="5k_10k">5k–10k</option>
-      <option value="10k_plus">10k+</option>
-    </select>
-
-    <p className="text-[11px] leading-relaxed text-white/45">
-      Optional — helps contextualise your current reach.
-    </p>
-  </div>
-</div>
 
   <div className="space-y-1">
     <p className={labelClass}>Goal</p>
-    <input
-      className={selectClass}
-      placeholder="Grow, deepen, convert, test a concept…"
-      value={goal}
-      onChange={e => setGoal(e.target.value)}
-    />
+    <input className={selectClass} placeholder="Grow, deepen, convert, test a concept…" value={goal} onChange={e => setGoal(e.target.value)} />
   </div>
 
- 
+  <div className="space-y-1">
+    <p className={labelClass}>Content energy</p>
+    <select className={selectClass} value={contentEnergy} onChange={e => setContentEnergy(e.target.value)}>
+      {CONTENT_ENERGY_OPTIONS.map(option => (
+        <option key={option} value={option}>{option}</option>
+      ))}
+    </select>
+  </div>
+</InputSection>
 
-  <div
-  className={`rounded-2xl border ${
-    !performanceStyle.trim()
-      ? 'border-ww-violet/25 bg-ww-violet/[0.04]'
-      : 'border-white/8 bg-black/35'
-  } p-3 space-y-3 transition`}
+
+          <InputSection
+  title="Creation style"
+  hint="Tell WW how you realistically make content so the ideas stay usable."
 >
-     <div className="space-y-3">
-  <div className="flex items-center gap-2">
-    <p className={labelClass}>How do you usually create content?</p>
-    <p className="text-[11px] text-white/50">
-  The better this answer, the better your ideas. Tell WW how you actually make music content.
-</p>
+  <div
+    className={`rounded-2xl border ${
+      !performanceStyle.trim()
+        ? 'border-ww-violet/25 bg-ww-violet/[0.04]'
+        : 'border-white/8 bg-black/35'
+    } p-3 space-y-3 transition`}
+  >
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <p className={labelClass}>How do you usually create content?</p>
+        <p className="mt-1 text-xs text-white/45">
+          The better this answer, the better your ideas. Tell WW how you actually make music content.
+        </p>
+      </div>
+      <span className="rounded-full border border-ww-violet/40 bg-ww-violet/15 px-2 py-1 text-[9px] uppercase tracking-[0.16em] text-ww-lilac">
+        Required
+      </span>
+    </div>
 
-    <span className="rounded-full border border-ww-violet/30 bg-ww-violet/10 px-2 py-0.5 text-[7px] uppercase tracking-wide text-ww-violet">
-      Recommended
-    </span>
-
-    <button
-      type="button"
-      onClick={() => setShowPerformanceStyleHelp(prev => !prev)}
-      className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/15 text-[11px] text-white/60 transition hover:border-ww-violet/50 hover:text-white"
-      aria-label="How you actually make content help"
-      aria-expanded={showPerformanceStyleHelp}
-    >
-      ?
-    </button>
-  </div>
-
-  {showPerformanceStyleHelp ? (
-  <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-[11px] leading-relaxed text-white/72">
-    This helps WW create ideas that fit how you actually make music content, instead of giving generic marketing suggestions.
-    <br />
-    <br />
-    Include things like: rapping or singing to camera, lip syncing, lyrics on screen, POV acting, studio clips, live footage, slideshow posts, outdoor visuals, mirror/car videos, or simple text-on-screen ideas.
-    <br />
-    <br />
-    You can also mention your current reality: promoting a new song, pushing an older release, working full-time, parenting, low budget, limited time, or building momentum.
-  </div>
-) : null}
     <input
       className={selectClass}
-      placeholder="e.g. I rap to camera over beats, use lyrics on screen, film outside/at home, post POV-style clips and simple performance videos."
+      placeholder="e.g. I rap to camera over beats, use lyrics on screen, film clips outside..."
       value={performanceStyle}
       onChange={e => setPerformanceStyle(e.target.value)}
     />
 
-    <div className="relative">
-  <div className="-mx-1 overflow-x-auto pb-1 pr-10">
-    <div className="flex w-max gap-2 px-1">
-      {PERFORMANCE_STYLE_EXAMPLES.map(example => (
+   <div className="relative">
+  <button
+    type="button"
+    onClick={() =>
+      examplesRef.current?.scrollBy({
+        left: -400,
+        behavior: 'smooth',
+      })
+    }
+    className="hidden md:flex absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/90 p-2 text-white/70 backdrop-blur transition hover:border-ww-violet/40 hover:text-white"
+  >
+    ←
+  </button>
+
+  <button
+    type="button"
+    onClick={() =>
+      examplesRef.current?.scrollBy({
+        left: 400,
+        behavior: 'smooth',
+      })
+    }
+    className="hidden md:flex absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/90 p-2 text-white/70 backdrop-blur transition hover:border-ww-violet/40 hover:text-white"
+  >
+    →
+  </button>
+
+  <div
+    ref={examplesRef}
+    className="flex gap-3 overflow-x-auto pb-3 px-10 scrollbar-hide"
+  >
+    {PERFORMANCE_STYLE_EXAMPLES.map(example => (
+      <button
+        key={example}
+        type="button"
+        onClick={() => setPerformanceStyle(example)}
+        className="min-w-[360px] max-w-[360px] flex-shrink-0 rounded-xl border border-white/8 bg-white/[0.03] p-4 text-left text-xs leading-relaxed text-white/70 transition hover:border-ww-violet/40 hover:bg-ww-violet/10"
+      >
+        {example}
+      </button>
+    ))}
+  </div>
+</div>
+<div className="space-y-3">
+  <div>
+    <p className={labelClass}>Content style</p>
+    <p className="mt-1 text-xs text-white/45">
+      Choose how you realistically want to make these ideas.
+    </p>
+  </div>
+
+  <div className="flex flex-wrap gap-2">
+    {CONTENT_STYLE_OPTIONS.map(option => {
+      const active = selectedContentStyles.includes(option)
+
+      return (
         <button
-          key={example}
+          key={option}
           type="button"
-          onClick={() => setPerformanceStyle(example)}
-          className="max-w-[320px] shrink-0 rounded-2xl border border-white/8 bg-black/35 px-3 py-2 text-left text-[11px] leading-relaxed text-white/68 transition hover:border-ww-violet/40 hover:bg-ww-violet/10 hover:text-white"
+          onClick={() =>
+            setSelectedContentStyles(current =>
+              active
+                ? current.filter(item => item !== option)
+                : [...current, option]
+            )
+          }
+          className={`rounded-full px-4 py-2 text-xs transition ${
+            active
+              ? 'bg-ww-violet text-white shadow-[0_0_20px_rgba(168,85,247,0.45)]'
+              : 'border border-white/10 bg-white/[0.03] text-white/65 hover:border-ww-violet/40 hover:text-white'
+          }`}
         >
-          {example}
+          {option}
         </button>
-      ))}
-    </div>
-  </div>
-
-  <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-black/80 px-2 py-1 text-xs text-white/55">
-    &gt;
+      )
+    })}
   </div>
 </div>
-  </div>
-</div>
-
-
-
-  <div className="space-y-1">
+    <div className="space-y-1">
     <p className={labelClass}>Focus mode</p>
-    <select
-      className={selectClass}
-      value={focusMode}
-      onChange={e => setFocusMode(e.target.value as CalendarFocus)}
-    >
+    <select className={selectClass} value={focusMode} onChange={e => setFocusMode(e.target.value as CalendarFocus)}>
       <option value="general">General content</option>
       <option value="release">Upcoming release</option>
       <option value="old_release">Old release</option>
@@ -1965,92 +2008,8 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
       <option value="growth">Growth sprint</option>
     </select>
   </div>
+  </div>
 </InputSection>
-
-          <InputSection
-            title="Content settings"
-            hint="Choose platforms, content types, and how many ideas to generate."
-          >
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wide text-white/50">Platforms</p>
-              <div className="flex flex-wrap gap-2">
-                {ALL_PLATFORMS.map(p => {
-                  const active = selectedPlatforms.includes(p.key)
-                  return (
-                    <button
-                      key={p.key}
-                      type="button"
-                      onClick={() => togglePlatform(p.key)}
-                      className={`px-3 h-9 rounded-full border text-xs transition ${
-                        active
-                          ? 'border-ww-violet bg-ww-violet/20 text-white shadow-[0_0_14px_rgba(186,85,211,0.5)]'
-                          : 'border-white/15 text-white/70 hover:border-ww-violet/70 hover:text-white'
-                      }`}
-                    >
-                      {p.label}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wide text-white/50">Content types</p>
-              <div className="flex flex-wrap gap-2">
-                {ALL_CONTENT_TYPES.map(t => {
-                  const active = contentTypes.includes(t.key)
-                  return (
-                    <button
-                      key={t.key}
-                      type="button"
-                      onClick={() => toggleContentType(t.key)}
-                      className={`px-3 h-9 rounded-full border text-xs transition ${
-                        active
-                          ? 'border-ww-violet bg-ww-violet/20 text-white shadow-[0_0_14px_rgba(186,85,211,0.5)]'
-                          : 'border-white/15 text-white/70 hover:border-ww-violet/70 hover:text-white'
-                      }`}
-                    >
-                      {t.label}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wide text-white/50">Idea count</p>
-              <div className="flex flex-wrap gap-2">
-                {[3, 5, 7, 10].map((n) => {
-  const active = ideaCount === n
-  const disabled = tier === 'free' && n !== 7
-
-  return (
-    <button
-      key={n}
-      type="button"
-      disabled={disabled}
-      onClick={() => {
-        if (disabled) return
-        setIdeaCount(n as IdeaCount)
-      }}
-      className={`px-3 h-9 rounded-full border text-xs transition ${
-        disabled
-          ? 'opacity-40 cursor-not-allowed text-white/35 border-white/10'
-          : active
-          ? 'border-ww-violet bg-ww-violet/20 text-white shadow-[0_0_12px_rgba(186,85,211,0.4)]'
-          : 'border-white/15 text-white/70 hover:border-ww-violet'
-      }`}
-      title={disabled ? 'Upgrade to Idea Factory or Creator' : undefined}
-    >
-      {n} ideas
-{mounted && disabled ? ' · Upgrade' : ''}
-    </button>
-  )
-})}
-
-              </div>
-            </div>
-          </InputSection>
 
          <div className="rounded-2xl border border-white/8 bg-black/35 p-4 transition">
   <button
