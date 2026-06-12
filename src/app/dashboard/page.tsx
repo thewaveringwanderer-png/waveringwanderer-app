@@ -227,7 +227,7 @@ useEffect(() => {
       title: 'Identity Kit & Campaigns',
       desc: 'Generate a pro brand kit, save versions, and spin up shootable campaign concepts.',
       icon: <Palette className="w-5 h-5" />,
-      badge: 'Beta',
+      badge: 'V.1',
       tone: 'violet',
     },
     {
@@ -235,7 +235,7 @@ useEffect(() => {
       title: 'Idea Factory',
       desc: 'Plan monthly/weekly posts, auto-generate ideas from your kit or an upcoming release.',
       icon: <Brain className="w-5 h-5" />,
-      badge: 'Beta',
+      badge: 'V.1',
       tone: 'violet',
     },
     {
@@ -243,7 +243,7 @@ useEffect(() => {
       title: 'Captions & Hashtags',
       desc: 'Platform-ready copy in your tone of voice with smart hashtag sets.',
       icon: <Type className="w-5 h-5" />,
-      badge: 'Beta',
+      badge: 'V.1',
       tone: 'violet',
     },
 
@@ -252,7 +252,7 @@ useEffect(() => {
       title: 'Release Strategy',
       desc: 'Turn a single, EP, or album into a structured pre-, launch-, and post-campaign plan.',
       icon: <Rocket className="w-5 h-5" />,
-      badge: 'Beta',
+      badge: 'V.1',
       tone: 'violet',
     },
     {
@@ -260,7 +260,7 @@ useEffect(() => {
       title: 'Momentum Board',
       desc: 'Drag content ideas from every tool into one lane and move them from idea to planned, scheduled, and posted.',
       icon: <Compass className="w-5 h-5" />,
-      badge: 'Beta',
+      badge: 'V.1',
       tone: 'blue',
     },
     {

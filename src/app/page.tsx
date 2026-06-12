@@ -43,7 +43,7 @@ const revealProps = {
   <div className="absolute h-44 w-48 rounded-full bg-ww-violet/20 blur-[50px] animate-ww-pulse" />
   <img
     src="/logo/helm.png"
-    alt="Wavering Wanderers"
+    alt="Wavering Wandererss"
    className="
 relative
 w-64 md:w-72
@@ -55,19 +55,19 @@ animate-ww-helm
 </div>
 
             <h1 className="mt-6 text-[1.85rem] sm:text-4xl md:text-5xl font-bold leading-[1.06] tracking-tight">
-  Operate like a{" "}
+  The operating system for{" "}
   <span className="whitespace-nowrap bg-gradient-to-r from-white via-ww-soft-violet to-ww-violet bg-clip-text text-transparent">
-    professional artist
+    independent artists
   </span>
   
 </h1>
 
             <p className="mt-6 text-base md:text-xl text-white/70 leading-relaxed max-w-3xl mx-auto">
-  Wavering Wanderers turns one song into weeks of content with{" "}
-  <span className="text-ww-violet/75 font-medium">clarity</span>,{" "}
-  <span className="text-ww-amber/75 font-medium">consistency</span> and{" "}
-  <span className="text-ww-blue/75 font-medium">momentum</span>
-  {" "}— so you spend less time marketing and more time making music.
+  Wavering Wanderers helps you{" "}
+  <span className="text-ww-violet/75 font-medium">plan releases</span>,{" "}
+  <span className="text-ww-amber/75 font-medium">create content</span> and{" "}
+  <span className="text-ww-blue/75 font-medium">build momentum</span>
+  {" "}— without spending every spare hour marketing yourself.
 </p>
 
             <div className="mt-10 flex flex-row flex-wrap items-center justify-center gap-3">
@@ -206,9 +206,9 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
                   <p className="text-sm uppercase tracking-[0.2em] text-ww-violet/70">Start here</p>
                 </div>
 
-                <h3 className="mt-5 text-2xl font-semibold text-white">🎨 Identity Kit</h3>
+                <h3 className="mt-5 text-2xl font-semibold text-white">🎨 Stop second-guessing your direction</h3>
                 <p className="mt-3 text-white/70 leading-relaxed">
-                  Get clear on your sound, story, and direction so your content, visuals, and messaging all come from the same place.
+                  Get clear on your sound, story and audience so every piece of content feels connected.
                 </p>
               </div>
 
@@ -221,9 +221,9 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
                 </div>
 
                
-                <h3 className="mt-5 text-2xl font-semibold text-white">🧠 Idea Factory</h3>
+                <h3 className="mt-5 text-2xl font-semibold text-white">🧠 Never wonder what to post again</h3>
                 <p className="mt-3 text-white/70 leading-relaxed">
-                  Turn your music into content people actually want to watch with creative ideas, strong angles, and trend-led concepts that still fit your brand.
+                  Turn your music into content ideas, hooks and campaigns built around your goals.
                 </p>
               </div>
 
@@ -235,9 +235,9 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
                   <p className="text-sm uppercase tracking-[0.2em] text-ww-blue/70">Command centre</p>
                 </div>
 
-                <h3 className="mt-5 text-2xl font-semibold text-white">🧭 Momentum Board</h3>
+                <h3 className="mt-5 text-2xl font-semibold text-white">🧭 Stay organised when life gets busy</h3>
                 <p className="mt-3 text-white/75 leading-relaxed">
-                  Pull it all together in one place. Save your best ideas, organise your rollout, and keep track of what’s actually moving.
+                  Keep your best ideas, releases and content plans in one place so momentum doesn't disappear.
                 </p>
               </div>
             </div>
@@ -311,7 +311,7 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
   <div className="max-w-3xl mx-auto text-center">
 
             <h2 className="text-2xl md:text-3xl font-bold">
-  Built by someone living the problem.
+  Built for artists balancing music with real life.
 </h2>
 
 <p className="mt-4 text-white/70 leading-relaxed">
@@ -385,6 +385,38 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
         </div>
       </div>
     ))}
+  </div>
+</motion.section>
+
+<motion.section className="mx-auto max-w-6xl px-4 py-16 border-t border-white/10">
+  <div className="text-center mb-10">
+    <h2 className="text-3xl font-bold text-white">
+      Built with artists, not just for artists
+    </h2>
+
+    <p className="mt-3 text-white/70 max-w-2xl mx-auto">
+      Wavering Wanderers is currently in its test user programme.
+      Every piece of feedback helps shape the platform and make it
+      more useful for independent artists.
+    </p>
+  </div>
+
+  <div className="max-w-3xl mx-auto rounded-3xl border border-ww-violet/30 bg-black/70 p-8 shadow-[0_0_24px_rgba(186,85,211,0.2)]">
+    <p className="text-lg text-white leading-relaxed">
+      "It gave me one fresh idea... then another one.
+      I spend half my day worrying about promo, so that's crazy.
+      A lot of people could really use this."
+    </p>
+
+    <div className="mt-6">
+      <p className="text-white font-semibold">
+        JustYB, Independent Artist
+      </p>
+
+      <p className="text-white/60 text-sm">
+        Early Test User
+      </p>
+    </div>
   </div>
 </motion.section>
 
