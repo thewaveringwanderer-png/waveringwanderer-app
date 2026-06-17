@@ -2,7 +2,6 @@ export const TEXT_ON_SCREEN_HOOKS = {
   foundEarly: [
     "Small artist. Real song. Right algorithm.",
     "No label push. Just a song that needs ears.",
-    "Not viral yet. Just honest enough to matter.",
     "Before the numbers arrive, tell me if this feels real.",
     "Found before the crowd caught up.",
     "The algorithm does get it right sometimes.",
@@ -30,12 +29,9 @@ export const TEXT_ON_SCREEN_HOOKS = {
     "POV: you're trying to move forward but your mind keeps looking back.",
     "POV: you're finally winning but it still feels lonely.",
     "POV: nobody knows how much this dream is costing you.",
-    "POV: you're becoming someone your old self needed.",
     "POV: you needed music that sounded like pressure.",
-    "POV: you're healing and hungry at the same time.",
     "POV: you look calm because explaining it would take too long.",
     "POV: you’re not okay, but you’re still showing up.",
-    "POV: life keeps testing the version of you that wants better.",
     "POV: you’re proud of yourself and exhausted at the same time.",
     "POV: you’re trying to build while healing from what broke you.",
     "POV: you’re tired of surviving, but not ready to give up.",
@@ -46,14 +42,10 @@ export const TEXT_ON_SCREEN_HOOKS = {
   ],
 
   identity: [
-    "Music for people who overthink everything.",
+    
     "Rap for people who feel too much but say too little.",
     "For the ones carrying pressure like it's normal.",
-    "For people who are tired but not finished.",
-    "For anyone pretending they're fine.",
-    "This is for deep thinkers with heavy hearts.",
     "Music for people building something nobody sees yet.",
-    "For the people who turn pain into progress.",
     "This one is for anyone who refuses to fold.",
     "For people who needed a reason to keep going.",
     "For the ones who feel everything quietly.",
@@ -69,65 +61,32 @@ export const TEXT_ON_SCREEN_HOOKS = {
   ],
 
   relatableTruths: [
-    "Nobody talks about how lonely growth can be.",
+    
     "Being busy is not the same as moving forward.",
     "Sometimes the dream costs more than you expected.",
     "Some songs are really survival notes.",
-    "Some wins feel empty when certain people are missing.",
     "The hardest part is staying consistent when nobody claps yet.",
     "Some people confuse silence with peace.",
     "Growth looks calm until you're the one going through it.",
     "The pressure gets quiet, but it does not disappear.",
-    "Sometimes trying not to quit is the whole story.",
     "The dream sounds better before you see the cost.",
     "Not every strong person feels strong.",
     "Progress can look boring while it’s happening.",
     "Sometimes discipline is just pain with direction.",
     "You can be grateful and still be tired.",
-    "The hardest battles are the ones nobody can see.",
     "Some chapters only make sense after you survive them.",
     "Nobody sees the version of you that almost gave up.",
     "Sometimes you’re not unmotivated — you’re just drained.",
-    "Healing and ambition are a heavy combination.",
   ],
-
-  growth: [
-  "The version of you from last year would be proud.",
-  "Growth changes you before anybody notices.",
-  "You don't realise how far you've come until you look back.",
-  "Some progress is invisible until it's undeniable.",
-  "The climb feels different when you're living it.",
-  "Becoming who you needed takes time.",
-  "Growth often feels like losing comfort.",
-  "You're further than your doubts admit.",
-  "Some chapters only make sense afterwards.",
-  "The person you're becoming would thank you.",
-],
 
 transformation: [
   "You survived things that used to break you.",
   "You're becoming someone your old self needed.",
   "The old version of me wouldn't recognise this life.",
   "Healing changed more than I expected.",
-  "Some pain turns into perspective.",
-  "You don't stay the same after certain years.",
   "Growth leaves versions of you behind.",
-  "This song came from a different version of me.",
   "The struggle shaped more than the success.",
   "You become what you repeatedly survive.",
-],
-
-selfDoubt: [
-  "Confidence is quieter than people think.",
-  "Some days the doubt gets loud.",
-  "You can believe and question yourself simultaneously.",
-  "Nobody talks about the second-guessing.",
-  "Even progress can feel uncertain.",
-  "Sometimes the hardest battle is your own mind.",
-  "Doubt doesn't disappear when things improve.",
-  "The dream gets bigger, so do the questions.",
-  "Not every confident person feels confident.",
-  "Some days belief feels like work.",
 ],
 
 successCost: [
@@ -144,16 +103,12 @@ successCost: [
 ],
 
 mentalNoise: [
-  "The loudest battles happen silently.",
-  "Your mind doesn't always know how to rest.",
   "Some thoughts never fully clock out.",
   "Calm outside doesn't mean calm inside.",
   "The overthinking never got the memo.",
   "Some pressure becomes background noise.",
-  "Peace feels unfamiliar sometimes.",
   "Your brain keeps working after the day ends.",
   "Not every storm looks dramatic.",
-  "Some noise only you can hear.",
 ],
 
   lyricLeadIns: [
@@ -224,4 +179,173 @@ mentalNoise: [
     "They said nobody wants to think while listening.",
     "They said this was too real to work online.",
   ],
+    viewerInvolvement: [
+    "If you're seeing this, you're officially part of the first wave.",
+    "Your algorithm just handed you something before everyone else found it.",
+    "You found this early enough to say you were here first.",
+    "If this reaches you now, you're not late — you're early.",
+    "This is the part where a few people find it before the crowd arrives.",
+    "You just found a song small enough to still feel personal.",
+    "If this ends up growing, remember you saw it here first.",
+    "You are now legally allowed to say you discovered this early.",
+    "Only a few people know this exists right now.",
+    "This is your sign to stop scrolling and claim early fan status.",
+  ],
+
+  commentBaitButHuman: [
+    "Tell me what this sounds like to you.",
+    "Be honest — what genre would you call this?",
+    "If this made you feel something, tell me where you're listening from.",
+    "If this lyric hit you, I want to know which line did it.",
+    "Would you play this in the car or skip it?",
+    "What would you call this sound?",
+    "If this was on your playlist, where would it fit?",
+    "Does this feel like night music or morning music?",
+    "If you found this randomly, would you stay?",
+    "What part would you replay?",
+  ],
+
+  antiMarketing: [
+    "I'm too tired to sell this properly, but this part means a lot.",
+    "Not even going to pretend I know how to market this song.",
+    "This is not a polished ad. I just want the right ears on it.",
+    "I almost didn't post this because promo feels awkward.",
+    "Trying to promote music without sounding cringe is harder than making it.",
+    "No big campaign. Just a song I care about.",
+    "I don't know if this is how you're supposed to promote music.",
+    "This is me trying to show the song without begging people to listen.",
+    "I would rather let the song speak than over-explain it.",
+    "If this only reaches one person who gets it, that's enough.",
+  ],
+
+  humourDiscovery: [
+    "Your algorithm finally clocked in today.",
+    "You scrolled too slow and now you're part of the rollout.",
+    "This is either your new favourite song or a weird interruption.",
+    "The algorithm said you needed a small artist today.",
+    "Accidentally discovering small artists is character development.",
+    "If you stayed longer than 3 seconds, you're basically involved now.",
+    "This song has no marketing budget so I'm relying on vibes.",
+    "I asked the algorithm for help and it sent me you.",
+    "If this flops, at least we were all here together.",
+    "This post is held together by hope and one good hook.",
+  ],
+
+  artistStruggle: [
+  "Spent 4 months making this. The algorithm gets 4 seconds.",
+  "Writing the song was easier than posting it.",
+  "I can write verses. Marketing still scares me.",
+  "The song took weeks. The caption took longer.",
+  "Nobody tells you the hard part is getting people to listen.",
+  "Made this instead of sleeping.",
+  "I've replayed this song 500 times. Curious what you hear.",
+  "I nearly didn't post this.",
+  "This song sat in my notes for months.",
+  "The overthinking almost won."
+],
+
+  viewerDiscovery: [
+  "Your algorithm finally clocked in.",
+  "You found this before everyone else did.",
+  "Congratulations. You're early.",
+  "The algorithm accidentally did its job.",
+  "One day this video will be embarrassing to repost.",
+  "You're looking at the before picture.",
+  "This might be the smallest crowd this song ever sees.",
+  "Caught us before the screenshots start.",
+  "You just discovered an artist in the wild.",
+  "The algorithm handed you a side quest."
+],
+
+ identityHooks: [
+  "Music for people who still listen properly.",
+  "For people who care about lyrics more than trends.",
+  "This isn't background music.",
+  "Some songs are meant to be felt, not skimmed.",
+  "For people who miss when music had something to say.",
+  "Music for overthinkers.",
+  "Built for deep thinkers and long walks.",
+  "For listeners, not scrollers.",
+  "This song won't be for everyone.",
+  "Maybe that's the point."
+],
+
+curiosityHooks: [
+  "The last line changes everything.",
+  "Wait for the second half.",
+  "This wasn't supposed to make the final version.",
+  "The weirdest part became the best part.",
+  "I didn't realise what this line meant until later.",
+  "This verse nearly got deleted.",
+  "The ending hits harder than the beginning.",
+  "One lyric changed the whole song.",
+  "I wrote this by accident.",
+  "Tell me if I'm hearing this wrong."
+],
+
+audienceChallenge: [
+  "Tell me if this deserves a skip.",
+  "What genre is this actually?",
+  "Name someone doing this better.",
+  "Would you save this or scroll?",
+  "Be honest. Is this hard or am I biased?",
+  "I genuinely don't know who this song is for.",
+  "Convince me this isn't the best part.",
+  "Am I hearing this wrong?",
+  "Would this survive your playlist purge?",
+  "What's the first thing this reminds you of?"
+],
+
+musicCulture: [
+  "Every genre has one artist you're supposed to like.",
+  "The best song on the album is rarely the single.",
+  "Music fans hear details nobody else notices.",
+  "People judge genres before they hear the song.",
+  "Your favourite song probably wasn't the biggest one.",
+  "The replay button tells the truth.",
+  "The comments section knows before the charts do.",
+  "Some songs are made for headphones only.",
+],
+
+hotTakes: [
+  "Most artists release the wrong song first.",
+  "Good music gets buried every day.",
+  "Being relatable is overrated.",
+  "Most playlists are too safe.",
+  "The algorithm isn't the reason people skipped it.",
+  "Artists spend too much time promoting average songs.",
+  "The best music advice is usually boring.",
+  "Viral doesn't automatically mean good.",
+],
+
+artistHumour: [
+  "Checking Spotify again like it owes me money.",
+  "Me pretending one stream wasn't my own phone.",
+  "Spent six months making this and three hours choosing the cover.",
+  "Refreshing stats won't change them but here we are.",
+  "Release day is just controlled panic.",
+  "The song is finished. The overthinking isn't.",
+  "Me explaining the song badly after spending months writing it.",
+],
+
+fanCulture: [
+  "Every fanbase has one song they defend with their life.",
+  "Music fans remember lyrics better than birthdays.",
+  "The best songs usually find the right people slowly.",
+  "Every listener has one song they refuse to skip.",
+  "That feeling when a song becomes part of your personality.",
+  "The replay button is the real review section.",
+],
+
+musicObservations: [
+  "The weirdest thing about release day is nobody else knows it's release day.",
+  "The caption usually takes longer than people think.",
+  "People discover songs in completely random ways.",
+  "A song can change your life without changing the charts.",
+  "Most listeners never know how many versions existed first.",
+  "The smallest moments usually become the favourite parts.",
+],
+
+
+
 }

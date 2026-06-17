@@ -120,53 +120,6 @@ const ALL_PLATFORMS: Array<{ key: string; label: string }> = [
   { key: 'x', label: 'X / Twitter' },
 ]
 
-const ALL_CONTENT_TYPES = [
- {
-  key: 'performance',
-  label: 'Performance',
-  description: 'Rap or sing to camera'
-},
-{
-  key: 'pov',
-  label: 'POV',
-  description: 'Relatable emotional content'
-},
-{
-  key: 'lyrics',
-  label: 'Lyrics',
-  description: 'Lyrics on screen'
-},
-{
-  key: 'slideshow',
-  label: 'Slideshows',
-  description: 'Photo and text posts'
-},
-{
-  key: 'cinematic',
-  label: 'Cinematic',
-  description: 'Visual storytelling'
-},
-{
-  key: 'bts',
-  label: 'Studio / BTS',
-  description: 'Creative process'
-},
-{
-  key: 'discovery',
-  label: 'Discovery',
-  description: 'Find new listeners'
-},
-{
-  key: 'community',
-  label: 'Community',
-  description: 'Build connection'
-},
-{
-  key: 'humour',
-  label: 'Humour',
-  description: 'Funny music content'
-}
-]
 
 const PERFORMANCE_STYLE_EXAMPLES = [
   'I rap to camera over beats, use lyrics on screen, and make POV-style videos. I mostly film at home, outside, or around my city. I want content that helps people discover my music, not just my personality.',
@@ -320,12 +273,12 @@ function pickTitle(it: ApiCalendarItem) {
   const shortLabel = safeString(it.short_label).trim()
   if (shortLabel) return shortLabel
 
-  const pillar = safeString(it.pillar).trim()
-  const format = safeString(it.format).trim()
+  const contentType =
+  safeString((it as any).content_type).trim() ||
+  safeString((it as any).structured?.contentType).trim() ||
+  safeString(it.format).trim()
 
-  if (pillar && format) return `${pillar} • ${format}`
-  if (pillar) return pillar
-  if (format) return format
+return contentType || 'Content'
 
   return 'Content idea'
 }
@@ -583,11 +536,10 @@ const whyLines =
 
 
 
-const formatLabel = contentTypeLabel(
+const formatLabel =
+  safeString(item.metadata?.api?.content_type).trim() ||
   safeString(structured?.contentType).trim() ||
-  parsed.format ||
-  safeString(item.metadata?.api?.format).trim()
-)
+  'Content'
 
 const sourceTag = sourceLabel(item)
 
@@ -603,29 +555,13 @@ const searchParams = useSearchParams()
         </div>
       ) : null}
 
-      
-
-      <div className="flex items-start justify-between gap-3">
-  <div className="inline-flex items-center gap-2 flex-wrap pr-16">
-    <span className="text-[10px] uppercase tracking-wide text-white/45">
-      {platformLabel(item.platform)}
-    </span>
-
-    <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide whitespace-nowrap ${sourceBadgeClass(sourceTag)}`}
-    >
-      {sourceTag}
-    </span>
-  </div>
-</div>
-
 <div className="absolute top-3 right-3">
   <span className="inline-flex items-center rounded-full border border-ww-violet/25 bg-ww-violet/10 px-2.5 py-1 text-[11px] text-ww-violet whitespace-nowrap">
     {formatLabel}
   </span>
 </div>
 
-      <div className="mt-3 space-y-3">
+      <div className="flex-1 space-y-4 pt-8">
         <h3 className="text-lg md:text-xl font-semibold leading-snug text-white pr-6">
           {title}
         </h3>
@@ -815,7 +751,7 @@ const [lyricsFocus, setLyricsFocus] = useState<LyricsFocus>('general')
 const [focusMode, setFocusMode] = useState<CalendarFocus>('general')
 const [releaseContext, setReleaseContext] = useState('')
 const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['tiktok', 'instagram', 'youtube'])
-const [contentTypes, setContentTypes] = useState<string[]>(['performance', 'pov', 'lyrics'])
+const [contentTypes, setContentTypes] = useState<string[]>([])
 const [ideaCount, setIdeaCount] = useState<IdeaCount>(5)
 useEffect(() => {
   if (mounted && tier === 'free' && ideaCount !== 7) {
@@ -1074,14 +1010,14 @@ useEffect(() => {
   sorted.sort((a, b) => {
     const aType = contentTypeLabel(
       safeString(getStructuredIdea(a)?.contentType).trim() ||
-        safeString(a.metadata?.api?.pillar).trim() ||
-        safeString(a.metadata?.api?.format).trim()
+        safeString(a.metadata?.api?.content_type).trim() ||
+safeString(a.metadata?.api?.format).trim()
     )
 
     const bType = contentTypeLabel(
       safeString(getStructuredIdea(b)?.contentType).trim() ||
-        safeString(b.metadata?.api?.pillar).trim() ||
-        safeString(b.metadata?.api?.format).trim()
+        safeString(b.metadata?.api?.content_type).trim() ||
+safeString(b.metadata?.api?.format).trim()
     )
 
     return aType.localeCompare(bType)
@@ -1223,6 +1159,11 @@ if (selectedContentStyles.length === 0) {
   return
 }
 
+if (selectedContentStyles.length > 2) {
+  toast.error('Choose a maximum of 2 content styles.')
+  return
+}
+
     void save({ artistName, genre, audience, goal, tone })
     setGenerating(true)
 
@@ -1271,7 +1212,7 @@ contentEnergy,
           lyricsFocus,
           platforms: selectedPlatforms.length ? selectedPlatforms : ['instagram'],
           ideaCount: tier === 'free' ? 7 : ideaCount,
-          contentTypes: contentTypes.length ? contentTypes : ['performance', 'pov', 'lyrics'],
+          contentTypes: selectedContentStyles,
           avoidTitles,
           noveltySeed,
           contextSource,
@@ -1343,7 +1284,7 @@ releaseStrategyContext:
       ? savedReleaseStrategies.find(row => row.id === selectedReleaseStrategyId)?.title || null
       : null,
   ideaCount,
-  contentTypes,
+  contentTypes: selectedContentStyles,
   focusMode,
   artistName,
   genre,
@@ -1358,8 +1299,9 @@ contentEnergy,
   releaseContext: releaseContext || null,
   api: {
     short_label: safeString(it.short_label),
-    pillar: safeString(it.pillar),
-    format: safeString(it.format),
+    content_type: safeString((it as any).content_type),
+pillar: safeString((it as any).content_type),
+format: safeString((it as any).content_type),
     idea: safeString(it.idea),
     angle: safeString(it.angle),
     cta: safeString(it.cta),
@@ -1967,8 +1909,8 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
   <div>
     <p className={labelClass}>Content style</p>
     <p className="mt-1 text-xs text-white/45">
-      Choose how you realistically want to make these ideas.
-    </p>
+  Choose up to 2 content styles so WW can generate a stronger, more focused mix of ideas.
+</p>
   </div>
 
   <div className="flex flex-wrap gap-2">
@@ -1979,13 +1921,18 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
         <button
           key={option}
           type="button"
-          onClick={() =>
-            setSelectedContentStyles(current =>
-              active
-                ? current.filter(item => item !== option)
-                : [...current, option]
-            )
-          }
+          onClick={() => {
+  if (!active && selectedContentStyles.length >= 2) {
+    toast.info('Choose up to 2 content styles for a stronger mix.')
+    return
+  }
+
+  setSelectedContentStyles(current =>
+    active
+      ? current.filter(item => item !== option)
+      : [...current, option]
+  )
+}}
           className={`rounded-full px-4 py-2 text-xs transition ${
             active
               ? 'bg-ww-violet text-white shadow-[0_0_20px_rgba(168,85,247,0.45)]'

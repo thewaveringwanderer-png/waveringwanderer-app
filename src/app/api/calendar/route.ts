@@ -137,6 +137,49 @@ celebration: [
     "Building a music career one lunch break at a time.",
     "Still not famous, still posting.",
   ],
+
+viewerFocusedText: [
+  "If this reaches the right person, it's worth posting.",
+  "Maybe this song finds who it's supposed to find.",
+  "For anyone feeling this right now.",
+  "One listener > a thousand empty views.",
+  "Some songs take time to find their people.",
+  "Not everything needs to go viral.",
+  "Music before marketing.",
+  "This one's for the overthinkers.",
+  "If this resonates, stay a while.",
+  "Let's see if the algorithm understands this one."
+],
+
+debateStarters: [
+  "What's the most overrated music advice?",
+  "What's a song everyone loves that you don't?",
+  "Be honest, is this the best part of the song?",
+  "What makes you replay a song?",
+  "Lyrics or production?",
+],
+
+fanPsychology: [
+  "The replay button says more than the comments.",
+  "Music fans decide in seconds but stay for years.",
+  "Most favourite songs start as growers.",
+  "The songs you replay become part of your identity.",
+],
+
+unexpectedObservations: [
+  "The caption took longer than the song.",
+  "Nobody else knows it's release day.",
+  "The best line nearly got deleted.",
+  "Most listeners never hear version one.",
+],
+
+artistReality: [
+  "Making music and promoting music are two different jobs.",
+  "The song was easier than the caption.",
+  "Most artists spend more time worrying than creating.",
+  "Release day lasts 24 hours. The overthinking lasts weeks.",
+]
+
 }
 
 type CalendarRequest = {
@@ -312,6 +355,8 @@ Identify 8-12 strong lyric moments for social media content.
     if (!raw) return []
 
     const parsed = JSON.parse(raw) as LyricAnalysisResponse
+    
+    
 
     if (!Array.isArray(parsed.moments)) {
       return []
@@ -329,6 +374,34 @@ Identify 8-12 strong lyric moments for social media content.
     console.error('[calendar-api] lyric analysis failed', e)
     return []
   }
+}
+
+
+function normalizeContentType(type: string) {
+  const value = type.toLowerCase().trim()
+
+  if (value === 'behind the scenes') return 'bts'
+  if (value === 'bts') return 'bts'
+  if (value === 'studio / bts') return 'bts'
+
+  if (value === 'text on screen') return 'text-on-screen'
+  if (value === 'text-on-screen') return 'text-on-screen'
+
+  if (value === 'camera roll / slideshow') return 'slideshow'
+  if (value === 'slideshow') return 'slideshow'
+
+
+  if (value === 'talking to camera') return 'talking-to-camera'
+  if (value === 'direct performance') return 'direct-performance'
+  if (value === 'live footage') return 'live-footage'
+  if (value === 'storytelling') return 'storytelling'
+
+  if (value === 'visual / cinematic') return 'visual-cinematic'
+if (value === 'visual') return 'visual-cinematic'
+if (value === 'cinematic') return 'visual-cinematic'
+if (value === 'visual-cinematic') return 'visual-cinematic'
+
+  return value
 }
 
 function addDaysIso(startIso: string, n: number) {
@@ -350,6 +423,7 @@ function fallbackCalendar(args: {
   contextSource?: 'manual' | 'campaign' | 'release_strategy'
   campaignContext?: CalendarRequest['campaignContext']
   releaseStrategyContext?: CalendarRequest['releaseStrategyContext']
+  contentTypes?: string[]
 }) {
   const {
     startDate,
@@ -364,6 +438,7 @@ function fallbackCalendar(args: {
     contextSource = 'manual',
     campaignContext = null,
     releaseStrategyContext = null,
+    contentTypes = [],
   } = args
 
   const items: CalendarItem[] = []
@@ -372,6 +447,7 @@ function fallbackCalendar(args: {
     items.push(
       buildFallbackItem({
         startDate,
+        contentTypes,
         index: i,
         platforms,
         artistName,
@@ -403,6 +479,8 @@ function buildFallbackItem(args: {
   contextSource?: 'manual' | 'campaign' | 'release_strategy'
   campaignContext?: CalendarRequest['campaignContext']
   releaseStrategyContext?: CalendarRequest['releaseStrategyContext']
+  contentTypes?: string[]
+  
   usedTitles?: string[]
 usedConcepts?: string[]
 }): CalendarItem {
@@ -421,6 +499,7 @@ usedConcepts?: string[]
     releaseStrategyContext = null,
     usedTitles = [],
 usedConcepts = [],
+contentTypes = [],
   } = args
 
   const date = addDaysIso(startDate, index)
@@ -472,8 +551,8 @@ usedConcepts = [],
   },
   {
     title: 'One lyric, one visual',
-    pillar: 'Lyrics',
-    format: 'lyrics',
+    pillar: 'Text-on-screen',
+    format: 'Text-on-screen',
     idea: 'Pair one lyric with a simple visual that makes the emotion easier to feel.',
     hook: 'This one line explains the whole song.',
     onScreenText: 'One lyric. The whole feeling.',
@@ -501,7 +580,7 @@ usedConcepts = [],
   {
     title: 'Silent acting to the song',
     pillar: 'Visual',
-    format: 'visual',
+    format: 'visual-cinematic',
     idea: 'Act out the feeling of the lyric without lip syncing, using facial expression and body language.',
     hook: 'POV: you felt the lyric before you understood it.',
     onScreenText: 'When the song says what you could not.',
@@ -528,7 +607,7 @@ usedConcepts = [],
   },
   {
     title: 'Camera roll music visualiser',
-    pillar: 'Visual',
+    pillar: 'visual-cinematic',
     format: 'visual',
     idea: 'Use camera roll clips that match the mood of the song and turn them into a simple visualiser.',
     hook: 'This is what the song feels like in my head.',
@@ -542,8 +621,8 @@ usedConcepts = [],
   },
   {
     title: 'Small artist underdog post',
-    pillar: 'Discovery',
-    format: 'discovery',
+    pillar: 'text-on-screen',
+    format: 'text-on-screen',
     idea: 'Use the small-artist angle to make viewers feel like their support actually matters.',
     hook: "I'm a small artist, so if this reached you, your algorithm is built different.",
     onScreenText: 'Small artist. Real song. Right algorithm.',
@@ -683,6 +762,16 @@ let why = variant.why
   if (releaseContext && focusMode !== 'old_release' && contextSource === 'manual') {
     idea = `${idea} Use this context where helpful: ${releaseContext}.`
   }
+
+  const selectedFallbackBadges = contentTypes
+  .map(normalizeContentType)
+  .filter(Boolean)
+
+const fallbackBadge =
+  selectedFallbackBadges[index % selectedFallbackBadges.length] || 'text-on-screen'
+
+pillar = fallbackBadge
+format = fallbackBadge
 
   if (genre && format === 'story') {
     why = why.map((line, idx) =>
@@ -1228,8 +1317,8 @@ export async function POST(req: Request) {
     weeks = 4,
     postsPerWeek = 4,
     platforms = ['instagram', 'tiktok', 'youtube'],
-    contentTypes = ['performance', 'pov', 'lyrics'],
-    avoidTitles = [],
+   
+contentTypes = [],    avoidTitles = [],
     contextSource = 'manual',
     selectedCampaignId = null,
     selectedReleaseStrategyId = null,
@@ -1248,6 +1337,31 @@ export async function POST(req: Request) {
   }
 
   const totalSlots = weeks * postsPerWeek
+  console.log('[calendar-api] received contentTypes:', contentTypes)
+
+  const VALID_CONTENT_TYPES = [
+  'direct-performance',
+  'bts',
+  'live-footage',
+  'storytelling',
+  'text-on-screen',
+  'slideshow',
+  'talking-to-camera',
+  'visual-cinematic',
+]
+
+const allowedBadgeTypes = contentTypes
+  .map(normalizeContentType)
+  .filter(type => VALID_CONTENT_TYPES.includes(type))
+
+if (!allowedBadgeTypes.length) {
+  return NextResponse.json(
+    { error: 'No valid content types selected' },
+    { status: 400 }
+  )
+}
+
+const allowedBadgeSet = new Set(allowedBadgeTypes)
 
 const targetCandidateCount = Math.max(totalSlots + 10, Math.ceil(totalSlots * 2.5))
   const ideaDepthGuidance =
@@ -1301,6 +1415,7 @@ Idea depth mode: BALANCED
   contextSource,
   campaignContext,
   releaseStrategyContext,
+  contentTypes: allowedBadgeTypes,
 }),
         _fallback: true,
         _fallbackReason: 'missing_openai_key',
@@ -1308,6 +1423,8 @@ Idea depth mode: BALANCED
       { status: 200 }
     )
   }
+
+  
 
   const contextLines: string[] = []
   if (genre) contextLines.push(`Genre / lane: ${genre}`)
@@ -1507,6 +1624,131 @@ onScreenText: "Nobody talks about how lonely growth can be"
 - If lyrics are provided, YOU must choose the strongest lyric moment yourself.
 TEXT ON SCREEN PRIORITY RULES
 
+TEXT ON SCREEN QUALITY RULES
+
+SCROLL-STOPPING RULES
+
+A good text-on-screen should not simply be relatable.
+
+It should create one of:
+
+- surprise
+- curiosity
+- tension
+- contradiction
+- recognition
+- controversy
+- specificity
+- emotional punch
+
+Weak:
+
+"I've been working hard."
+
+Strong:
+
+"I've spent more hours promoting this song than making it."
+
+Weak:
+
+"Nobody talks about how lonely growth can be."
+
+Strong:
+
+"The people I wanted to impress stopped paying attention."
+
+Weak:
+
+"Trying to promote music is difficult."
+
+Strong:
+
+"I can message 100 people and still feel like nobody heard the song."
+
+Every text-on-screen should contain at least one:
+
+- unexpected detail
+- specific moment
+- contradiction
+- uncomfortable truth
+- strong opinion
+- surprising observation
+
+If the idea feels generic, add specificity.
+
+If the idea feels predictable, add contrast.
+
+If the idea feels safe, add tension.
+
+Text-on-screen ideas must not be generic music marketing advice.
+
+Avoid:
+
+- promote your song
+- show behind the scenes
+- share your process
+- tell people about the release
+- explain the meaning of the track
+
+These are topics, not content ideas.
+
+Every text-on-screen idea should begin with one of:
+
+- a belief
+- an observation
+- a confession
+- a contradiction
+- a mistake
+- a lesson learned
+- an uncomfortable truth
+- a fan insight
+- a lyric realisation
+- a personal moment
+
+Bad:
+
+"Promote your latest song"
+
+"Show the studio session"
+
+"Talk about your creative process"
+
+Good:
+
+"I spent six months fixing a song nobody noticed."
+
+"I thought finishing the song would be the hard part."
+
+"The people I wanted to impress never heard this."
+
+"I nearly deleted the line everyone quotes."
+
+"The song did better after I stopped forcing it."
+
+Every text-on-screen idea should feel like a thought, not a topic.
+
+A viewer should be able to imagine the exact first line appearing on screen.
+
+The on-screen text is the PRIMARY attention grabber.
+
+The hook is SECONDARY.
+
+The viewer should stop because of the on-screen text.
+
+The hook should then deepen, explain, challenge or personalise the idea.
+
+Think of it like:
+
+ON-SCREEN TEXT = billboard
+
+HOOK = conversation
+
+If both fields perform the same job, rewrite one.
+
+The on-screen text should usually be broader.
+
+The hook should usually be more personal.
+
 Some genres naturally lean toward different emotional territories.
 
 House / EDM:
@@ -1587,20 +1829,24 @@ A viewer should stop scrolling because of the on-screen text even with the audio
 Avoid generic summaries of the content.
 Avoid simply describing the video.
 The text on screen should be capable of stopping a scroll by itself.
-At least 70% of ideas should use one of these text-on-screen categories:
 
-At least 70% of ideas should use one of:
+HOOK FRAMEWORKS
 
-- Identity statement
-- Emotional experience
-- Relatable truth
-- Contrarian
-- Community
-- Fan culture
-- Performance energy
-- Audience reaction
-- Release moment
-s
+Prefer hooks that sound like:
+
+- Confession
+- Observation
+- Question
+- Admission
+- Story lead-in
+- Personal reaction
+- Uncomfortable truth
+- Unexpected opinion
+
+Avoid turning hooks into poster statements.
+
+Poster statements belong in on-screen text.
+
 If lyrics are provided:
 
 - Never tell the artist to pick a lyric.
@@ -1700,6 +1946,11 @@ Strong hooks often use:
 - vulnerability
 - unexpected statements
 - “found early” psychology
+- viewer involvement
+- community belonging
+- anti-marketing honesty
+- humour
+- comment prompts that feel natural, not desperate
 - transformation
 - social proof framing
 Avoid:
@@ -1709,6 +1960,31 @@ Avoid:
 - repetitive “comment below” structures
 - hooks that assume a large fanbase
 - ideas requiring an already engaged audience
+
+Modern artist promo should make the viewer feel involved, not sold to.
+
+Good text-on-screen often does one of these:
+- makes the viewer feel early
+- invites the viewer into a small community
+- asks for a genuine opinion
+- makes promotion feel self-aware
+- turns being a small artist into an advantage
+- gives the viewer a role in the song's journey
+
+Avoid text that feels too basic, watered down, or generic.
+
+Bad:
+- "Cool vibes"
+- "Hot bars"
+- "New song out now"
+- "Listen to my song"
+- "Follow for more music"
+
+Good:
+- "You found this early enough to say you were here first."
+- "Trying to promote music without sounding cringe is harder than making it."
+- "Be honest — what genre would you call this?"
+- "This song has no marketing budget so I'm relying on vibes."
 
 CONTENT ANGLE should describe a specific content concept.
 
@@ -1769,6 +2045,33 @@ Good:
 Good:
 "Tell the story behind the one line listeners quote back to you most."
 
+IMPORTANT:
+
+Do not reuse exact hook phrases.
+
+Avoid generic creator phrases such as:
+- not viral yet
+- honest enough to matter
+- algorithm finally found me
+- before everyone else finds me
+
+Every idea should come from a different emotional angle.
+
+Rotate between:
+- artist struggles
+- discovery
+- curiosity
+- identity
+- audience challenges
+- personal stories
+- contrarian opinions
+
+The hook and text-on-screen must NOT say the same thing.
+
+The hook should grab attention.
+
+The text-on-screen should deepen, challenge or expand the idea.
+
 Guidelines:
 - Hooks must feel scroll-stopping, modern, emotionally intelligent, and platform-native.
 - On-screen text should feel short-form optimised and easy to overlay onto TikTok/Instagram videos.
@@ -1782,11 +2085,32 @@ Guidelines:
 
 HOOK RULES:
 
+HOOK RULES:
+
 The hook must be:
 
 - spoken
-- caption-like
-- thought-like
+- natural
+- conversational
+- something an artist would genuinely say out loud
+
+The hook is NOT the primary scroll stopper.
+
+The hook exists to support the idea once attention has already been captured.
+
+Good hooks:
+
+- "I nearly removed this verse."
+- "This part still gets me."
+- "I didn't realise what I meant when I wrote this."
+- "Tell me if this is just me."
+- "I still think about this line."
+
+Bad hooks:
+
+- Identity statements
+- Deep observations
+-
 
 The hook must NEVER describe the filming.
 
@@ -1858,7 +2182,7 @@ Output STRICTLY valid JSON with this shape:
       "short_label": "Very short label",
       "pillar": "Performance" | "POV" | "Lyrics" | "Slideshow" | "Cinematic" | "BTS" | "Discovery" | "Community" | "Humour",
       Never use "Idea" as pillar.
-      "content_type": "performance" | "pov" | "lyrics" | "slideshow" | "cinematic" | "bts" | "discovery" | "community" | "humour",
+      "content_type": "Must be exactly one of these selected badge values only: ${allowedBadgeTypes.join(', ')}",
       "hook": "A first spoken line or scroll-stopping opening phrase. It must NOT repeat the title wording.",
 "onScreenText": "Short text overlay for the video. Must be different from the hook. Should use curiosity, identity, tension, relatability, POV, or found-early psychology.","concept": "A short summary of the idea itself, distinct from the hook",
       "execution": "What the artist actually films or shows, step by step if needed",
@@ -2058,12 +2382,44 @@ const selectedFrameworks = [...CONTENT_FRAMEWORKS]
   .slice(0, 12)
   
 
-const selectedTextOnScreenExamples = Object.entries(TEXT_ON_SCREEN_LIBRARY)
-  .flatMap(([category, examples]) =>
-    examples.map(example => ({ category, example }))
-  )
-  .sort(() => Math.random() - 0.5)
-  .slice(0, 12)  
+const pickRandomExamples = (
+  category: string,
+  count: number
+) => {
+  const examples =
+    TEXT_ON_SCREEN_LIBRARY[
+      category as keyof typeof TEXT_ON_SCREEN_LIBRARY
+    ] || []
+
+  return [...examples]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, count)
+    .map(example => ({
+      category,
+      example,
+    }))
+}
+
+const nonEmotionalCategories = [
+  'musicCulture',
+  'artistHumour',
+  'fanCulture',
+  'hotTakes',
+  'musicObservations',
+  'debateStarters',
+  'fanPsychology',
+  'unexpectedObservations',
+  'artistReality',
+]
+
+const selectedTextOnScreenExamples = [
+  ...nonEmotionalCategories
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 5)
+    .flatMap(category => pickRandomExamples(category, 2)),
+  ...pickRandomExamples('identity', 1),
+  ...pickRandomExamples('relatableTruths', 1),
+].slice(0, 12)
 
 const selectedContentTypesText = contentTypes.join(', ').toLowerCase()
 
@@ -2230,25 +2586,86 @@ Rules:
 - Do not repeatedly use the same inspiration category.
 - Avoid generating multiple ideas that communicate the same core message in different wording.
 
-Available emotional territories:
+Available content territories:
 
-- Identity
-- Relatable Truth
-- Contrarian
-- Community
-- Fan Culture
-- Audience Reaction
-- Live Energy
-- Celebration
-- Confidence
-- Ambition
-- Attraction
-- Curiosity
-- Discovery
-- Emotional POV
-- Transformation
-- Growth
-- Lyric Lead In
+FRAMEWORK DISTRIBUTION
+
+Across the batch:
+
+- At least 1 humour idea
+- At least 1 music observation
+- At least 1 fan culture idea
+- At least 1 hot take/opinion
+- At least 1 curiosity-driven idea
+- At least 1 identity idea
+
+Do not make every idea emotional.
+
+The best batches feel like a mix of:
+
+- entertaining
+- insightful
+- relatable
+- surprising
+- opinionated
+- emotional
+
+rather than one emotional theme repeated.
+
+EMOTIONAL
+- confidence
+- ambition
+- attraction
+- nostalgia
+- freedom
+- celebration
+- transformation
+- pressure
+- vulnerability
+
+OBSERVATIONAL
+- weird artist truths
+- music industry observations
+- audience behaviour
+- fan behaviour
+- genre stereotypes
+- release day realities
+
+OPINION
+- hot takes
+- unpopular opinions
+- contrarian views
+- strong preferences
+- genre debates
+
+IDENTITY
+- introvert artists
+- perfectionists
+- overthinkers
+- creatives
+- independent artists
+- niche communities
+
+HUMOUR
+- artist struggles
+- release day chaos
+- streaming realities
+- marketing frustrations
+- fan moments
+
+CURIOSITY
+- unexpected facts
+- comparisons
+- challenges
+- experiments
+- audience questions
+
+COMMUNITY
+- fan culture
+- shared experiences
+- listener identity
+- music discovery
+
 
 Artist type adaptation:
 
@@ -2346,10 +2763,6 @@ Plan parameters:
 - Selected content types: ${contentTypes.join(', ')}
 - Treat selected content types as hard constraints, not suggestions.
 - Do not generate content outside these selected types.
-- If "lyrics" is not selected and no lyrics are provided, avoid lyric-led ideas entirely.
-- If "performance" is not selected, avoid performance-led ideas.
-- If "pov" is not selected, avoid POV-led ideas.
-- If "community" is not selected, avoid fan/community participation ideas.
 - Avoid list (do not repeat or closely paraphrase):
 ${(avoidTitles || []).slice(0, 40).map(t => `- ${t}`).join('\n') || 'None'}
 
@@ -2403,15 +2816,21 @@ Rules for using creative formats:
 - At least 80% of ideas should use a different creative format.
 Selected content type rules:
 - The user selected these content types: ${contentTypes.join(', ')}
-- Prioritise these selected content types strongly.
-- Do not generate BTS, visual, community, humour, or discovery ideas unless they are selected.
-- If the user selected performance, POV, and lyrics, every idea should mainly be performance, POV, lyric-led, or a direct combination of those.
-- The "pillar" and "content_type" should match one of the selected content types whenever possible.
-- Use ONLY these exact content_type values: ${contentTypes.join(', ')}
-- Do not invent new content_type values.
-- Do not use "idea", "other", "visual", "education", or "story" unless selected.
-- If an idea is lyric-led, use content_type: "lyrics".
-- If an idea is POV-led, use content_type: "pov".
+- These are HARD constraints, not preferences.
+- Every generated item MUST use one of these selected content types only: ${contentTypes.join(', ')}
+The "content_type" must match one selected badge. The "pillar" can describe the creative angle, but the app will display content_type as the badge.
+- Use ONLY these exact content_type values: ${contentTypes.map(normalizeContentType).join(', ')}
+
+
+Selected badge rules:
+- The user selected these content badges: ${allowedBadgeTypes.join(', ')}
+- These badges are for labelling/filtering only.
+- Creative frameworks can include performance, lyric, POV, hook preview, slideshow, BTS, cinematic, or discovery angles.
+- However, every item's content_type must be exactly one of the selected badges: ${allowedBadgeTypes.join(', ')}
+- Do not invent badge values.
+- Do not use framework names as content_type values.
+- Pillar can describe the creative angle.
+- content_type must only describe the selected badge.
 
 Before creating the calendar, internally identify:
 - the main theme of the song or campaign
@@ -2436,16 +2855,26 @@ Text-on-screen rules:
 - Treat text on screen as the primary scroll-stopper.
 - Text on screen should usually be stronger than the spoken hook.
 - Prefer:
-  - POV
-  - Found early
-  - Underdog artist
+  Prefer:
   - Identity statements
-  - Emotional experiences
   - Relatable observations
+  - Contrarian beliefs
+  - Fan culture
+  - Emotional experiences
+  - Community moments
+  - Audience reactions
+  - Unexpected truths
 - Avoid simply describing the video.
 - Avoid generic summaries.
 - Good text on screen should make someone stop scrolling even without audio.
-- At least 70% of ideas should use one of the text-on-screen inspiration examples as a starting point and improve upon it.
+Use the inspiration examples to understand psychology and structure.
+
+Do not build most ideas from them.
+
+Use them only when genuinely relevant.
+
+Every batch should contain fresh observations that do not resemble the examples.
+
 When generating onScreenText:
 
 - Do NOT describe the video.
@@ -2463,6 +2892,40 @@ Instead create:
 - a found-early angle
 
 The best onScreenText should feel like something a viewer would repost, save, or send to a friend.
+
+INCLUSION RULE
+
+The viewer should feel included in the content.
+
+Do not talk only about the artist.
+
+Connect the artist experience to the viewer experience.
+
+Weak:
+
+"I nearly deleted this song."
+
+Better:
+
+"What's something you nearly gave up on too early?"
+
+Weak:
+
+"This lyric means a lot to me."
+
+Better:
+
+"Everyone has one sentence they wish they'd heard sooner."
+
+Weak:
+
+"I wrote this during a difficult time."
+
+Better:
+
+"Most people look fine right before they burn out."
+
+The viewer should see themselves inside the idea.
 
 Bad:
 - "Studio session"
@@ -2484,6 +2947,40 @@ Design a content calendar that:
 - Feels coherent with one artist identity.
 - Can be realistically executed by a busy independent artist.
 
+WOW FACTOR TEST
+
+BORING FILTER
+
+Reject ideas that:
+
+- could apply to any artist
+- sound like generic advice
+- sound like a motivational quote
+- rely on vague emotions
+- contain no surprising observation
+- contain no specific point of view
+
+If the idea feels familiar, rewrite it.
+
+At least 30% of ideas should make the user think:
+
+"I wish I had thought of that."
+
+These ideas often contain:
+
+- a surprising observation
+- a strong opinion
+- an unexpected comparison
+- a fan truth
+- a music culture insight
+- a funny reality
+- a debate starter
+- a specific artist experience
+
+Avoid making every idea emotionally deep.
+
+Interesting beats meaningful when variety is needed.
+
 FINAL SELF-CHECK:
 
 Before outputting an idea ask:
@@ -2494,9 +2991,65 @@ Before outputting an idea ask:
 4. Is the hook different from the on-screen text?
 5. Is the hook different from the execution?
 6. Would somebody actually post this?
-7. Does this batch explore at least 4 different emotional territories?
+7. Does this batch explore at least 6 different content territories?
+8. Is the content_type one of the user-selected content types only?
+9. Does the idea avoid unselected formats completely?
 
 If any answer fails, rewrite the idea.
+
+CONTENT TERRITORY BALANCE
+
+OVERUSED TERRITORIES
+
+Treat these as rare ideas, not default ideas.
+
+Across a batch, use at most one idea involving:
+
+- nobody understands the journey
+- success without someone to celebrate with
+- lonely growth
+- proving people wrong
+- almost quitting
+- exhausted but still going
+- overthinking everything
+- carrying pressure
+- feeling misunderstood
+- hidden pain behind success
+
+If one of these appears, the next ideas must come from different territories.
+
+Do not repeatedly return to these themes.
+
+These themes are valid but should feel occasional and earned, not default.
+
+No single emotional territory should dominate the batch.
+
+Maximum 25% of ideas may be based on:
+
+- struggle
+- loneliness
+- pressure
+- self doubt
+- proving people wrong
+- growth
+
+The remaining ideas should be distributed across:
+
+- humour
+- curiosity
+- observations
+- opinions
+- fan culture
+- identity
+- community
+- entertainment
+- celebration
+- confidence
+
+The goal is not to make every idea emotional.
+
+The goal is to make every idea interesting.
+
 
 You MUST:
 - Return at least ${targetCandidateCount} items.
@@ -2538,7 +3091,21 @@ ${
       console.error('[calendar-api] empty model response')
       return NextResponse.json(
         {
-          ...fallbackCalendar({ startDate, totalSlots, platforms, artistName, goal }),
+          ...fallbackCalendar({
+  startDate,
+  totalSlots,
+  platforms,
+  artistName,
+  goal,
+  genre,
+  focusMode,
+  releaseContext,
+  ideaDepth,
+  contextSource,
+  campaignContext,
+  releaseStrategyContext,
+  contentTypes: allowedBadgeTypes,
+}),
           _fallback: true,
           _fallbackReason: 'empty_model_response',
         },
@@ -2577,25 +3144,28 @@ ${
       )
     }
 
-    const safePlatforms = Array.isArray(platforms) && platforms.length ? platforms : ['instagram']
-const allowedContentTypes = [
-  'performance',
-  'pov',
-  'lyrics',
-  'slideshows',
-  'cinematic',
-  'studio / bts',
-  'discovery',
-  'community',
-  'humour',
-]
+    
 
-const safeContentTypes =
-  Array.isArray(contentTypes) && contentTypes.length
-    ? contentTypes
-        .map((type: string) => type.toLowerCase().trim())
-        .filter((type: string) => allowedContentTypes.includes(type))
-    : ['performance', 'pov', 'lyrics']
+const allowedBadgeSet = new Set(allowedBadgeTypes)
+
+parsed.items = parsed.items.map((item: any, index: number) => {
+  const normalised = normalizeContentType(item.content_type || '')
+
+  return {
+    ...item,
+    content_type: allowedBadgeSet.has(normalised)
+      ? normalised
+      : allowedBadgeTypes[index % allowedBadgeTypes.length],
+  }
+})
+
+
+    const safePlatforms = Array.isArray(platforms) && platforms.length ? platforms : ['instagram']
+
+
+const safeContentTypes = allowedBadgeTypes.length
+  ? allowedBadgeTypes
+  : ['text-on-screen']
    const candidateItems = (parsed.items as CalendarItem[])
   .map((item, index) => {
     const rawItem = item as any
@@ -2615,16 +3185,7 @@ const safeContentTypes =
         ? rawItem.format.toLowerCase().trim()
         : ''
 
-    const normalisedContentType =
-      rawContentType === 'lyric' ? 'lyrics' :
-      rawContentType === 'lyrical' ? 'lyrics' :
-      rawContentType === 'lyric-led' ? 'lyrics' :
-      rawContentType === 'lyric_led' ? 'lyrics' :
-      rawContentType === 'p.o.v' ? 'pov' :
-      rawContentType === 'p.o.v.' ? 'pov' :
-      rawContentType === 'point-of-view' ? 'pov' :
-      rawContentType === 'point_of_view' ? 'pov' :
-      rawContentType
+  const normalisedContentType = normalizeContentType(rawContentType)
 
       const blockedContentTypes = ['idea']
 
@@ -2672,22 +3233,7 @@ const contentType =
     })
 
     const cta = rawItem.cta?.trim() || 'What do you think?'
-    const allowedPillars = [
-  'Performance',
-  'POV',
-  'Lyrics',
-  'Slideshow',
-  'Cinematic',
-  'BTS',
-  'Discovery',
-  'Community',
-  'Humour',
-]
-
-const rawPillar = rawItem.pillar?.trim() || ''
-const pillar = allowedPillars.includes(rawPillar)
-  ? rawPillar
-  : contentType.charAt(0).toUpperCase() + contentType.slice(1)
+    const pillar = contentType
 
     return {
       date,
@@ -2836,7 +3382,11 @@ Prioritise:
 - Found Early
 - Underdog Artist
 - Identity Statement
-- Emotional Experience
+- Humour
+- Observation
+- Opinion
+- Curiosity
+
 
 Avoid generic overlays such as:
 
@@ -2893,16 +3443,7 @@ Rules:
     ? rawItem.format.toLowerCase().trim()
     : ''
 
-const normalisedContentType =
-  rawContentType === 'lyric' ? 'lyrics' :
-  rawContentType === 'lyrical' ? 'lyrics' :
-  rawContentType === 'lyric-led' ? 'lyrics' :
-  rawContentType === 'lyric_led' ? 'lyrics' :
-  rawContentType === 'p.o.v' ? 'pov' :
-  rawContentType === 'p.o.v.' ? 'pov' :
-  rawContentType === 'point-of-view' ? 'pov' :
-  rawContentType === 'point_of_view' ? 'pov' :
-  rawContentType
+const normalisedContentType = normalizeContentType(rawContentType)
 
 const contentType = safeContentTypes.includes(normalisedContentType)
   ? normalisedContentType
@@ -2940,22 +3481,7 @@ const contentType = safeContentTypes.includes(normalisedContentType)
                 : ''
 
             const cta = rawItem.cta?.trim() || 'Listen if this found you at the right time.'
-            const allowedPillars = [
-  'Performance',
-  'POV',
-  'Lyrics',
-  'Slideshow',
-  'Cinematic',
-  'BTS',
-  'Discovery',
-  'Community',
-  'Humour',
-]
-
-const rawPillar = rawItem.pillar?.trim() || ''
-const pillar = allowedPillars.includes(rawPillar)
-  ? rawPillar
-  : contentType.charAt(0).toUpperCase() + contentType.slice(1)
+            const pillar = contentType
 
             return {
               date,
@@ -3030,8 +3556,24 @@ console.log('candidateItems', candidateItems.length)
 console.log('completedItems', completedItems.length)
 console.log('totalSlots', totalSlots)
 
-    return NextResponse.json(
-  { items: completedItems.slice(0, totalSlots) },
+    const finalItems = completedItems.slice(0, totalSlots).map((item, index) => {
+  const contentType =
+    safeContentTypes[index % safeContentTypes.length] || 'text-on-screen'
+
+  return {
+    ...item,
+    content_type: contentType,
+    pillar: contentType,
+    format: contentType,
+    structured: {
+      ...item.structured,
+      contentType,
+    },
+  }
+})
+
+return NextResponse.json(
+  { items: finalItems },
   { status: 200 }
 )
   } catch (e: unknown) {
