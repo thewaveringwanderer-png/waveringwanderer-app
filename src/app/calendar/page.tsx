@@ -92,7 +92,7 @@ type StructuredIdea = {
   bestFor?: string
 }
 
-type ContextSourceType = 'manual' | 'campaign' | 'release_strategy'
+type ContextSourceType = 'manual' | 'identity' | 'campaign' | 'release_strategy'
 
 type CampaignContextLite = {
   id: string
@@ -762,6 +762,7 @@ const [selectedContentStyles, setSelectedContentStyles] = useState<string[]>([])
 const [showPerformanceStyleHelp, setShowPerformanceStyleHelp] = useState(false)
 const [showAdvancedInputs, setShowAdvancedInputs] = useState(false)
 const [sortMode, setSortMode] = useState<'newest' | 'platform' | 'content_type' | 'source'>('newest')
+const [identityKitContext, setIdentityKitContext] = useState<any>(null)
   // ---------- Data state ----------
   const [loadingItems, setLoadingItems] = useState(true)
   const [items, setItems] = useState<CalendarItem[]>([])
@@ -773,6 +774,7 @@ const [sortMode, setSortMode] = useState<'newest' | 'platform' | 'content_type' 
   const [deletingBatch, setDeletingBatch] = useState(false)
   const [clearingAll, setClearingAll] = useState(false)
   const [sendingVisible, setSendingVisible] = useState(false)
+
   
 
 const [contextSource, setContextSource] = useState<ContextSourceType>('manual')
@@ -780,7 +782,9 @@ const [contextSource, setContextSource] = useState<ContextSourceType>('manual')
 const [savedCampaigns, setSavedCampaigns] = useState<CampaignContextLite[]>([])
 const [selectedCampaignId, setSelectedCampaignId] = useState('')
 const [loadingCampaigns, setLoadingCampaigns] = useState(false)
-
+const [savedIdentityKits, setSavedIdentityKits] = useState<any[]>([])
+const [selectedIdentityKitId, setSelectedIdentityKitId] = useState('')
+const [loadingIdentityKits, setLoadingIdentityKits] = useState(false)
 const [savedReleaseStrategies, setSavedReleaseStrategies] = useState<ReleaseStrategyContextLite[]>([])
 const [selectedReleaseStrategyId, setSelectedReleaseStrategyId] = useState('')
 const [loadingReleaseStrategies, setLoadingReleaseStrategies] = useState(false)
@@ -796,6 +800,48 @@ const campaignName = searchParams.get('campaignName')
 const campaignHook = searchParams.get('campaignHook')
 const campaignSynopsis = searchParams.get('campaignSynopsis')
 const artistNameFromCampaign = searchParams.get('artistName')
+
+useEffect(() => {
+  let cancelled = false
+
+  ;(async () => {
+    setLoadingIdentityKits(true)
+
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError || !userData?.user) {
+        if (!cancelled) setSavedIdentityKits([])
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('identity_kits')
+        .select('*')
+        .eq('user_id', userData.user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('[idea-factory] identity kits load error', error)
+        if (!cancelled) setSavedIdentityKits([])
+        return
+      }
+
+      if (!cancelled) {
+        setSavedIdentityKits(data || [])
+      }
+    } catch (e) {
+      console.error('[idea-factory] identity kits load exception', e)
+      if (!cancelled) setSavedIdentityKits([])
+    } finally {
+      if (!cancelled) setLoadingIdentityKits(false)
+    }
+  })()
+
+  return () => {
+    cancelled = true
+  }
+}, [])
+
 useEffect(() => {
   if (from === 'identity') {
     setAudience(prev => prev || audienceFromIdentity || '')
@@ -1076,6 +1122,8 @@ const generatingMessage = useGeneratingMessages(generating)
   setContentStyles(prev => toggleInArray(prev, value))
 }
 
+
+
 function applyCampaignContext(row: CampaignContextLite) {
   const inp = row.inputs || {}
   const concepts = row.concepts?.concepts || row.concepts || []
@@ -1100,6 +1148,29 @@ function applyCampaignContext(row: CampaignContextLite) {
 
   setContextSource('campaign')
   toast.success('Campaign context applied ✅')
+}
+
+function applyIdentityKitContext(row: any) {
+  const inputs = row?.inputs || {}
+  const result = row?.result || row?.kit || row || {}
+
+  setIdentityKitContext({
+    artistName: row?.artist_name || row?.artistName || inputs?.artistName || artistName,
+    genre: row?.genre || inputs?.genre || genre,
+    brandWords: inputs?.brandWords || '',
+    audience: result?.audience?.persona || result?.artistSnapshot?.audiencePromise || audience,
+    creativeWorld: result?.artistSnapshot?.visualShorthand || '',
+    identityAnchors: result?.identityAnchors || [],
+    strategicFoundations: result?.strategicFoundations || {},
+    artistSnapshot: result?.artistSnapshot || {},
+    coreIdentity: result?.coreIdentity || {},
+    brandStrategy: result?.brandStrategy || {},
+    audienceProfile: result?.audience || {},
+    toneOfVoice: result?.toneOfVoice || {},
+    visualSystem: result?.visualSystem || {},
+    contentSystem: result?.contentSystem || {},
+    brandGuardrails: result?.brandGuardrails || [],
+  })
 }
 
 function applyReleaseStrategyContext(row: ReleaseStrategyContextLite) {
@@ -1218,6 +1289,13 @@ contentEnergy,
           contextSource,
 selectedCampaignId: selectedCampaignId || null,
 selectedReleaseStrategyId: selectedReleaseStrategyId || null,
+
+selectedIdentityKitId: selectedIdentityKitId || null,
+
+identityKitContext:
+  contextSource === 'identity'
+    ? savedIdentityKits.find(row => row.id === selectedIdentityKitId) || null
+    : null,
 campaignContext:
   contextSource === 'campaign'
     ? savedCampaigns.find(row => row.id === selectedCampaignId) || null
@@ -1594,8 +1672,9 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
   <div className="flex flex-wrap gap-2">
     {[
       { key: 'manual', label: 'Manual brief' },
-      { key: 'campaign', label: 'Saved campaign' },
-      { key: 'release_strategy', label: 'Release strategy' },
+{ key: 'identity', label: 'Identity Kit' },
+{ key: 'campaign', label: 'Saved campaign' },
+{ key: 'release_strategy', label: 'Release strategy' },
     ].map((option) => {
       const active = contextSource === option.key
       return (
@@ -1668,6 +1747,69 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
       </select>
     </div>
   ) : null}
+
+  {contextSource === 'identity' ? (
+  <div className={outputInnerCardClass}>
+    <div className="space-y-2">
+      <p className={labelClass}>Load identity kit</p>
+
+      <select
+        className={selectClass}
+        value={selectedIdentityKitId}
+        onChange={(e) => {
+          const id = e.target.value
+          setSelectedIdentityKitId(id)
+          const row = savedIdentityKits.find((item) => item.id === id)
+          if (row) applyIdentityKitContext(row)
+        }}
+      >
+        <option value="">
+          {loadingIdentityKits ? 'Loading identity kits...' : 'Select an identity kit...'}
+        </option>
+
+        {savedIdentityKits.map((row) => (
+          <option key={row.id} value={row.id}>
+            {(row.artist_name || row.artistName || row.inputs?.artistName || 'Untitled identity kit') +
+              ' — ' +
+              new Date(row.created_at).toLocaleDateString('en-GB')}
+          </option>
+        ))}
+      </select>
+
+      <p className="text-xs text-white/50">
+        Load a saved identity kit to turn the artist’s brand, audience, tone, visuals, and content pillars into stronger ideas.
+      </p>
+
+      {selectedIdentityKitId ? (
+        <div className="mt-3 rounded-2xl border border-ww-violet/15 bg-black/40 p-3 space-y-2">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-white/45">
+            Applied identity kit
+          </p>
+
+          {(() => {
+            const row = savedIdentityKits.find(item => item.id === selectedIdentityKitId)
+            const result = row?.result || row?.kit || {}
+            const inputs = row?.inputs || {}
+
+            return (
+              <>
+                <p className="text-sm font-medium text-white">
+                  {row?.artist_name || row?.artistName || inputs?.artistName || 'Saved identity kit'}
+                </p>
+
+                {result?.oneLineIdentity || result?.brandEssence ? (
+                  <p className="text-xs text-white/58 leading-relaxed">
+                    {String(result.oneLineIdentity || result.brandEssence)}
+                  </p>
+                ) : null}
+              </>
+            )
+          })()}
+        </div>
+      ) : null}
+    </div>
+  </div>
+) : null}
 
   {contextSource === 'release_strategy' ? (
   <div className={outputInnerCardClass}>

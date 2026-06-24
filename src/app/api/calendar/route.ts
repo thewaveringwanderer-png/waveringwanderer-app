@@ -188,6 +188,8 @@ type CalendarRequest = {
   artistType?: string
   performanceStyle?: string
   audience?: string
+  identityKitContext?: any | null
+selectedIdentityKitId?: string | null
   goal?: string
   startDate?: string
   weeks?: number
@@ -205,7 +207,7 @@ type CalendarRequest = {
   energyPattern?: Array<'low' | 'medium' | 'high'>
   noveltySeed?: string
 
-  contextSource?: 'manual' | 'campaign' | 'release_strategy'
+  contextSource?: 'manual' | 'identity' | 'campaign' | 'release_strategy'
   selectedCampaignId?: string | null
   selectedReleaseStrategyId?: string | null
   campaignContext?: {
@@ -420,7 +422,7 @@ function fallbackCalendar(args: {
   focusMode?: string
   releaseContext?: string
   ideaDepth?: 'simple' | 'balanced' | 'detailed'
-  contextSource?: 'manual' | 'campaign' | 'release_strategy'
+  contextSource?: 'manual' | 'identity' | 'campaign' | 'release_strategy'
   campaignContext?: CalendarRequest['campaignContext']
   releaseStrategyContext?: CalendarRequest['releaseStrategyContext']
   contentTypes?: string[]
@@ -439,7 +441,10 @@ function fallbackCalendar(args: {
     campaignContext = null,
     releaseStrategyContext = null,
     contentTypes = [],
+    
   } = args
+
+  
 
   const items: CalendarItem[] = []
 
@@ -476,7 +481,7 @@ function buildFallbackItem(args: {
   focusMode?: string
   releaseContext?: string
   ideaDepth: 'simple' | 'balanced' | 'detailed'
-  contextSource?: 'manual' | 'campaign' | 'release_strategy'
+  contextSource?: 'manual' | 'identity' | 'campaign' | 'release_strategy'
   campaignContext?: CalendarRequest['campaignContext']
   releaseStrategyContext?: CalendarRequest['releaseStrategyContext']
   contentTypes?: string[]
@@ -909,6 +914,37 @@ function extractReleaseStrategyContextBlock(
   return lines.join('\n')
 }
 
+function extractIdentityKitContextBlock(identityKitContext: any) {
+  if (!identityKitContext) return 'No Identity Kit context provided.'
+
+  const inputs = identityKitContext.inputs || {}
+  const result = identityKitContext.result || identityKitContext.kit || identityKitContext || {}
+
+  const lines: string[] = []
+
+  if (identityKitContext.artist_name || identityKitContext.artistName || inputs.artistName) {
+    lines.push(`Artist name: ${identityKitContext.artist_name || identityKitContext.artistName || inputs.artistName}`)
+  }
+
+  if (inputs.artistPhilosophy) lines.push(`Artist philosophy: ${inputs.artistPhilosophy}`)
+  if (inputs.recurringThemes) lines.push(`Recurring themes: ${inputs.recurringThemes}`)
+  if (inputs.listenerEffect) lines.push(`Desired listener effect: ${inputs.listenerEffect}`)
+  if (inputs.uniqueQualities) lines.push(`Unique qualities: ${inputs.uniqueQualities}`)
+  if (inputs.influences) lines.push(`Influences: ${inputs.influences}`)
+
+  lines.push(`Strategic foundations: ${JSON.stringify(result.strategicFoundations || {}).slice(0, 1200)}`)
+  lines.push(`Artist snapshot: ${JSON.stringify(result.artistSnapshot || {}).slice(0, 1200)}`)
+  lines.push(`Core identity: ${JSON.stringify(result.coreIdentity || {}).slice(0, 1200)}`)
+  lines.push(`Brand strategy: ${JSON.stringify(result.brandStrategy || {}).slice(0, 1200)}`)
+  lines.push(`Audience profile: ${JSON.stringify(result.audienceProfile || {}).slice(0, 1200)}`)
+  lines.push(`Tone of voice: ${JSON.stringify(result.toneOfVoice || {}).slice(0, 1200)}`)
+  lines.push(`Visual system: ${JSON.stringify(result.visualSystem || {}).slice(0, 1200)}`)
+  lines.push(`Content system: ${JSON.stringify(result.contentSystem || {}).slice(0, 1200)}`)
+  lines.push(`Brand guardrails: ${JSON.stringify(result.brandGuardrails || []).slice(0, 1200)}`)
+
+  return lines.filter(Boolean).join('\n')
+}
+
 function shuffleArray<T>(items: T[]) {
   return [...items].sort(() => Math.random() - 0.5)
 }
@@ -1304,6 +1340,10 @@ export async function POST(req: Request) {
     performanceStyle = '',
     audience = '',
     goal = '',
+
+    identityKitContext = null,
+  selectedIdentityKitId = null,
+
     tone = 'brand-consistent, concise, human, engaging',
     ideaDepth = 'balanced',
     focusMode = 'general',
@@ -1360,6 +1400,8 @@ if (!allowedBadgeTypes.length) {
     { status: 400 }
   )
 }
+
+
 
 const allowedBadgeSet = new Set(allowedBadgeTypes)
 
@@ -1438,6 +1480,7 @@ Idea depth mode: BALANCED
     : 'No extra context was given. Infer a reasonable plan for an independent artist.'
   const campaignContextBlock = extractCampaignContextBlock(campaignContext)
   const releaseStrategyContextBlock = extractReleaseStrategyContextBlock(releaseStrategyContext)
+const identityKitContextBlock = extractIdentityKitContextBlock(identityKitContext)
 
   const oldReleaseGuidance =
     focusMode === 'old_release'
@@ -1490,6 +1533,110 @@ You are an expert music marketing strategist and content calendar architect.
 You design practical, shootable content plans that respect an artist's reality
 (time, energy, budget) while still pushing growth.
 
+When an Identity Kit is provided:
+
+First identify:
+
+1. Top 5 defining identity anchors
+2. Top 3 recurring themes
+3. Core audience desire
+4. Core audience frustration
+5. Listener transformation
+6. Most distinctive belief or philosophy
+7. Most distinctive visual world
+
+Then generate ideas primarily from those anchors.
+
+At least 80% of ideas must be directly traceable to one or more of these identity anchors.
+
+If identityKitContext is provided, treat it as the primary creative source of truth.
+
+Use its:
+- brand essence
+- positioning
+- artist manifesto
+- USP
+- brand message
+- listener identity
+- audience psychology
+- tone of voice
+- visual system
+- content pillars
+- guardrails
+- identity anchors
+
+Every idea should clearly connect back to at least one Identity Kit insight.
+
+Identity Kit ideas should feel impossible to reuse for another artist.
+
+Bad:
+"Talk about pressure."
+
+Good:
+"Create content based on a specific contradiction, belief, life experience, or recurring theme found in the Identity Kit."
+
+Bad:
+"Make a post about growth."
+
+Good:
+"Use the artist's stated listener transformation and audience psychology to create a content angle unique to their world."
+
+Bad:
+"Discuss the song's meaning."
+
+Good:
+"Use the artist's philosophy, visual identity, recurring themes, and audience desires to create a specific story, scene, or message."
+
+Before generating ideas, identify:
+- What makes this artist different?
+- What experiences shaped them?
+- What do they believe?
+- What emotional outcome do they want for listeners?
+- What themes appear repeatedly?
+
+The generated ideas should reflect those answers.
+
+If the same idea could reasonably work for 100 other artists, it is not specific enough.
+
+Identity Kit ideas should feel impossible to reuse for another artist.
+
+Bad:
+"Talk about being busy but still progressing."
+
+Good:
+"Rap the line about pushing through while cutting between fatherhood, work clothes, and late-night writing notes."
+
+Bad:
+"Create a post about pressure."
+
+Good:
+"Use anime-style underdog framing to show how the artist turns emotional tension into lyrics, not motivational advice."
+
+Bad:
+"Discuss struggle."
+
+Good:
+"Show the exact feeling behind the struggle: exhaustion, responsibility, pride, guilt, silence, faith, anger, or hope."
+
+When Identity Kit context is present, each idea must include at least one specific identity detail in the concept or execution, such as a life experience, belief, visual world, recurring theme, listener transformation, or content pillar.
+
+Bad:
+- Perform a verse about struggle.
+- Share a motivational lyric.
+- Create a reflective post.
+
+Good:
+- Perform the lyric while showing the object, place, or memory that inspired it.
+- Turn one artist belief into a direct-to-camera confession.
+- Use the visual world from the Identity Kit as the filming setting.
+
+Do not merely mention the Identity Kit. Use it to shape:
+- the hook
+- the concept
+- the execution
+- the caption angle
+- the reason the idea works
+
 SPECIFICITY RULE
 
 The concept must contain at least one tangible thing.
@@ -1521,6 +1668,7 @@ If none exist, rewrite the idea.
 
 Rules:
 ${ideaDepthGuidance}
+
 - Mix music-first content pillars: performance, lyrics, sound, visual world, behind-the-scenes, discovery, community.- Avoid near-duplicates. Each slot should feel distinct but on-brand.
 - If an "Avoid list" is provided, do NOT reuse or closely paraphrase those titles/hooks/ideas.
 - Make ideas feel like real platform-native content, not generic marketing suggestions.
@@ -2412,6 +2560,8 @@ const nonEmotionalCategories = [
   'artistReality',
 ]
 
+
+
 const selectedTextOnScreenExamples = [
   ...nonEmotionalCategories
     .sort(() => Math.random() - 0.5)
@@ -2483,6 +2633,9 @@ Release/gig context: ${releaseContext || 'None'}
 Context source: ${contextSource}
 Selected campaign ID: ${selectedCampaignId || 'None'}
 Selected release strategy ID: ${selectedReleaseStrategyId || 'None'}
+Selected identity kit ID: ${selectedIdentityKitId || 'None'}
+
+
 
 Campaign context:
 ${campaignContextBlock}
@@ -2490,7 +2643,60 @@ ${campaignContextBlock}
 Release strategy context:
 ${releaseStrategyContextBlock}
 
+Identity Kit context:
+${identityKitContextBlock}
 
+Identity Kit specificity rule:
+If Context source is "identity", the ideas must feel clearly born from that artist’s saved Identity Kit, not from generic genre advice.
+
+Every idea must use at least one concrete identity source:
+- lived experience
+- belief
+- contradiction
+- visual world
+- audience desire
+- listener transformation
+- tone of voice
+- content pillar
+- brand guardrail
+
+Avoid vague universal themes unless the Identity Kit makes them central.
+
+Bad:
+"Talk about pressure."
+
+Good:
+"Turn the artist’s specific contradiction, belief, or lived experience into a content idea with a clear scene, hook, and emotional angle."
+
+Bad:
+"Create a post about growth."
+
+Good:
+"Use the artist’s visual world, audience promise, and recurring themes to create a post only this artist would make."
+
+Identity Kit hard rule:
+If Context source is "identity", the batch must be built from the specific Identity Kit details, not general artist strategy.
+
+Every idea must use at least one concrete identity source:
+- lived experience
+- relationship
+- belief
+- contradiction
+- visual world
+- recurring theme
+- listener transformation
+- content pillar
+- guardrail
+
+For this artist, avoid generic themes unless the Identity Kit names them directly.
+Do not default to:
+- struggle
+- pressure
+- growth
+- clarity
+- community
+- resilience
+- self-discovery
 
 ${oldReleaseGuidance || ''}
 

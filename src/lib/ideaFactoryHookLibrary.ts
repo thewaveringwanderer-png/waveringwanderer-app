@@ -346,6 +346,35 @@ musicObservations: [
   "The smallest moments usually become the favourite parts.",
 ],
 
+debateStarters: [
+  "What's the most overrated music advice?",
+  "What's a song everyone loves that you don't?",
+  "Be honest, is this the best part of the song?",
+  "What makes you replay a song?",
+  "Lyrics or production?",
+],
+
+fanPsychology: [
+  "The replay button says more than the comments.",
+  "Music fans decide in seconds but stay for years.",
+  "Most favourite songs start as growers.",
+  "The songs you replay become part of your identity.",
+],
+
+unexpectedObservations: [
+  "The caption took longer than the song.",
+  "Nobody else knows it's release day.",
+  "The best line nearly got deleted.",
+  "Most listeners never hear version one.",
+],
+
+artistReality: [
+  "Making music and promoting music are two different jobs.",
+  "The song was easier than the caption.",
+  "Most artists spend more time worrying than creating.",
+  "Release day lasts 24 hours. The overthinking lasts weeks.",
+],
+
 
 
 }

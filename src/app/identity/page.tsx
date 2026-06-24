@@ -197,6 +197,10 @@ export default function IdentityKitPage() {
   const [direction, setDirection] = useState('')
   const [influences, setInfluences] = useState('')
   const [brandWords, setBrandWords] = useState('')
+  const [artistPhilosophy, setArtistPhilosophy] = useState('')
+const [recurringThemes, setRecurringThemes] = useState('')
+const [listenerEffect, setListenerEffect] = useState('')
+const [uniqueQualities, setUniqueQualities] = useState('')
 
   const [result, setResult] = useState<any | null>(null)
   const [campaigns, setCampaigns] = useState<Campaigns | null>(null)
@@ -519,7 +523,18 @@ const creativeWorldPresets = [
       const uid = userData?.user?.id
 
       const payloadBase: any = {
-        inputs: { artistName, genre, influences, brandWords, audience, direction },
+        inputs: {
+  artistName,
+  genre,
+  influences,
+  brandWords,
+  audience,
+  direction,
+  artistPhilosophy,
+  recurringThemes,
+  listenerEffect,
+  uniqueQualities,
+},
         result: resultToSave,
       }
 
@@ -595,13 +610,17 @@ const creativeWorldPresets = [
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        artistName,
-        genre,
-        influences,
-        brandWords,
-        audience,
-        direction,
-      }),
+  artistName,
+  genre,
+  influences,
+  brandWords,
+  audience,
+  direction,
+  artistPhilosophy,
+  recurringThemes,
+  listenerEffect,
+  uniqueQualities,
+}),
     })
 
     if (response.status === 401) {
@@ -622,13 +641,17 @@ const creativeWorldPresets = [
           Authorization: `Bearer ${retryToken}`,
         },
         body: JSON.stringify({
-          artistName,
-          genre,
-          influences,
-          brandWords,
-          audience,
-          direction,
-        }),
+  artistName,
+  genre,
+  influences,
+  brandWords,
+  audience,
+  direction,
+  artistPhilosophy,
+  recurringThemes,
+  listenerEffect,
+  uniqueQualities,
+}),
       })
     }
 
@@ -743,6 +766,10 @@ const creativeWorldPresets = [
     setDirection(inp.direction || '')
     setInfluences(inp.influences || '')
     setBrandWords(inp.brandWords || '')
+    setArtistPhilosophy(inp.artistPhilosophy || '')
+setRecurringThemes(inp.recurringThemes || '')
+setListenerEffect(inp.listenerEffect || '')
+setUniqueQualities(inp.uniqueQualities || '')
 
     setResult(kit.result || null)
     setCampaigns(null)
@@ -768,6 +795,10 @@ const creativeWorldPresets = [
     setDirection(inp.direction || direction)
     setInfluences(inp.influences || influences)
     setBrandWords(inp.brandWords || brandWords)
+    setArtistPhilosophy(inp.artistPhilosophy || '')
+setRecurringThemes(inp.recurringThemes || '')
+setListenerEffect(inp.listenerEffect || '')
+setUniqueQualities(inp.uniqueQualities || '')
 
     setCampaigns(normalizeCampaignPayload(row.concepts))
     setCollapseCampaignCard(false)
@@ -790,7 +821,18 @@ const creativeWorldPresets = [
       const uid = userData?.user?.id
 
       const payloadBase: any = {
-        inputs: { artistName, genre, influences, brandWords, audience, direction },
+        inputs: {
+  artistName,
+  genre,
+  influences,
+  brandWords,
+  audience,
+  direction,
+  artistPhilosophy,
+  recurringThemes,
+  listenerEffect,
+  uniqueQualities,
+},
         result,
       }
 
@@ -834,7 +876,18 @@ const creativeWorldPresets = [
       const uid = userData?.user?.id
 
       const payloadBase: any = {
-        inputs: { artistName, genre, influences, brandWords, audience, direction },
+        inputs: {
+  artistName,
+  genre,
+  influences,
+  brandWords,
+  audience,
+  direction,
+  artistPhilosophy,
+  recurringThemes,
+  listenerEffect,
+  uniqueQualities,
+},
         concepts: campaigns,
       }
 
@@ -1286,7 +1339,12 @@ const COLOUR_NAME_MAP: Record<string, string> = {
 function resolveColour(value?: string) {
   const raw = String(value || '').trim()
   if (!raw) return ''
+
+  const hexMatch = raw.match(/#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})(?![0-9A-Fa-f])/)
+  if (hexMatch) return `#${hexMatch[1]}`
+
   if (isHexColor(raw)) return raw
+
   return COLOUR_NAME_MAP[raw.toLowerCase()] || ''
 }
 
@@ -1315,7 +1373,9 @@ const isHex = !!resolved
         {label ? (
           <p className="text-[10px] uppercase tracking-[0.14em] text-white/40">{label}</p>
         ) : null}
-        <p className="text-xs text-white/78 break-all">{hex || '—'}</p>
+       <p className="text-xs text-white/78 leading-snug break-words">
+  {hex || '—'}
+</p>
       </div>
     </div>
   )
@@ -1333,7 +1393,7 @@ function PaletteGroup({
   return (
     <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">{title}</p>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {colors.map((color, i) => (
           <ColorSwatch key={`${title}-${color}-${i}`} value={String(color)} />
         ))}
@@ -1811,7 +1871,61 @@ if (!hasIdentityAccess) {
   </div>
 </div>
 
-      {/* SECTION 3 */}
+{/* SECTION 3 */}
+<div className={sectionCardClass + ' space-y-4'}>
+  <div>
+    <div className="h-[2px] w-10 bg-ww-violet/60 rounded-full mb-3" />
+    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">3. Artist DNA</p>
+    <p className="mt-2 text-sm leading-relaxed text-white/66">
+      Define the deeper experiences, themes, impact, and standout qualities behind the music.
+    </p>
+  </div>
+
+  <div className="space-y-3">
+    <div className="space-y-1">
+      <p className={labelClass}>Experiences or philosophy</p>
+      <textarea
+        value={artistPhilosophy}
+        onChange={e => setArtistPhilosophy(e.target.value)}
+        className={inputClass + ' min-h-[90px] resize-none'}
+        placeholder="What lived experiences, beliefs, values, or personal philosophies define your music?"
+      />
+    </div>
+
+    <div className="space-y-1">
+      <p className={labelClass}>Recurring themes</p>
+      <textarea
+        value={recurringThemes}
+        onChange={e => setRecurringThemes(e.target.value)}
+        className={inputClass + ' min-h-[90px] resize-none'}
+        placeholder="What themes, ideas, moods, textures, or stories keep appearing in your music?"
+      />
+    </div>
+
+    <div className="space-y-1">
+      <p className={labelClass}>Desired listener effect</p>
+      <textarea
+        value={listenerEffect}
+        onChange={e => setListenerEffect(e.target.value)}
+        className={inputClass + ' min-h-[90px] resize-none'}
+        placeholder="How should listeners feel, think, imagine, or act after hearing your music?"
+      />
+    </div>
+
+    <div className="space-y-1">
+      <p className={labelClass}>Unique qualities</p>
+      <textarea
+        value={uniqueQualities}
+        onChange={e => setUniqueQualities(e.target.value)}
+        className={inputClass + ' min-h-[90px] resize-none'}
+        placeholder="What separates you from other artists? Voice, wordplay, production, story, values, image, live energy?"
+      />
+    </div>
+  </div>
+</div>
+
+
+      {/* SECTION 4 */}
       <div className={sectionCardClass + ' space-y-4'}>
         <div>
           <div className="h-[2px] w-10 bg-ww-violet/60 rounded-full mb-3" />
@@ -2237,13 +2351,86 @@ one consistent artist brief.
 
     {!collapseIdentityCard ? (
       <div className="space-y-4">
+        <Section
+  id="foundations"
+  title="Strategic foundations"
+  hint="The deeper beliefs, tensions, and emotional territory behind the artist"
+>
+  <div className="grid gap-3 md:grid-cols-2">
+    <div className={outputInnerCardClass}>
+      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Core beliefs</p>
+      <BulletList items={Array.isArray(result?.strategicFoundations?.coreBeliefs) ? result.strategicFoundations.coreBeliefs : []} />
+    </div>
+
+    <div className={outputInnerCardClass}>
+      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Core tensions</p>
+      <BulletList items={Array.isArray(result?.strategicFoundations?.coreTensions) ? result.strategicFoundations.coreTensions : []} />
+    </div>
+
+    <div className={outputInnerCardClass}>
+      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Emotional territory</p>
+      <p className="text-white/78 text-sm leading-relaxed">
+        {String(result?.strategicFoundations?.emotionalTerritory || '—')}
+      </p>
+    </div>
+
+    <div className={outputInnerCardClass}>
+      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Listener transformation</p>
+      <p className="text-white/78 text-sm leading-relaxed">
+        {String(result?.strategicFoundations?.listenerTransformation || '—')}
+      </p>
+    </div>
+  </div>
+</Section>
+        <Section
+  id="snapshot"
+  title="Artist snapshot"
+  hint="The quickest way to understand the artist identity"
+>
+  <div className="grid gap-3 md:grid-cols-2">
+    <div className="rounded-2xl border border-ww-violet/25 bg-gradient-to-br from-ww-violet/[0.10] via-black/70 to-black/80 p-4 md:col-span-2">
+      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">One-line identity</p>
+      <p className="text-white/88 text-base leading-relaxed">
+        {String(result?.snapshot?.oneLineIdentity || result?.core?.brandEssence || '—')}
+      </p>
+    </div>
+
+    <div className={outputInnerCardClass}>
+      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Ownable difference</p>
+      <p className="text-white/78 text-sm leading-relaxed">
+        {String(result?.snapshot?.ownableDifference || result?.strategy?.usp || '—')}
+      </p>
+    </div>
+
+    <div className={outputInnerCardClass}>
+      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Audience promise</p>
+      <p className="text-white/78 text-sm leading-relaxed">
+        {String(result?.snapshot?.audiencePromise || result?.strategy?.brandMessage || '—')}
+      </p>
+    </div>
+
+    <div className={outputInnerCardClass}>
+      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Visual shorthand</p>
+      <p className="text-white/78 text-sm leading-relaxed">
+        {String(result?.snapshot?.visualShorthand || result?.visuals?.lighting || '—')}
+      </p>
+    </div>
+
+    <div className={outputInnerCardClass}>
+      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Content direction</p>
+      <p className="text-white/78 text-sm leading-relaxed">
+        {String(result?.snapshot?.contentDirection || result?.content?.pillars?.[0]?.purpose || '—')}
+      </p>
+    </div>
+  </div>
+</Section>
         <Section id="core" title="Core identity" hint="The internal truth, the external position, and the usable artist summary">
   <div className="space-y-4">
     <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-1">How to use this</p>
       <p className="text-sm text-white/68 leading-relaxed max-w-3xl">
         Brand essence defines the emotional truth of the artist. Positioning explains the lane they occupy.
-        The bio translates both into a usable public-facing summary.
+        The manifesto translates both into a first-person statement of what the artist stands for, rejects, and wants listeners to feel.
       </p>
     </div>
 
@@ -2263,11 +2450,34 @@ one consistent artist brief.
       </div>
 
       <div className={outputInnerCardClass}>
-        <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Short bio</p>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Artist manifesto</p>
         <p className="text-white/78 text-sm whitespace-pre-wrap leading-relaxed">
-          {String(result?.core?.bio || '—')}
+          {String(result?.core?.manifesto || '—')}
         </p>
       </div>
+    </div>
+  </div>
+</Section>
+
+<Section id="strategy" title="Brand strategy" hint="What makes the artist memorable, valuable, and distinct">
+  <div className="grid gap-3 md:grid-cols-2">
+    <div className="rounded-2xl border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.08] via-black/70 to-black/70 p-4 md:col-span-2">
+      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Unique selling point</p>
+      <p className="text-white/86 text-sm md:text-[15px] leading-relaxed">
+        {String(result?.strategy?.usp || result?.positioning?.usp || '—')}
+      </p>
+    </div>
+
+    <div className={outputInnerCardClass}>
+      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Brand message</p>
+      <p className="text-white/78 text-sm leading-relaxed">
+        {String(result?.strategy?.brandMessage || result?.messaging?.brandMessage || '—')}
+      </p>
+    </div>
+
+    <div className={outputInnerCardClass}>
+      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Listener identity</p>
+      <BulletList items={Array.isArray(result?.strategy?.listenerIdentity) ? result.strategy.listenerIdentity : []} />
     </div>
   </div>
 </Section>
@@ -2277,8 +2487,7 @@ one consistent artist brief.
     <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-1">How to use this</p>
       <p className="text-sm text-white/68 leading-relaxed max-w-3xl">
-        Persona defines who the artist is really speaking to. Psychographics explain how that listener sees the world.
-        Emotional triggers show what most reliably creates resonance, reflection, saves, shares, or replies.
+        Persona defines who the artist is really speaking to. Frustrations and hidden desires reveal what the audience is carrying emotionally. Content triggers and turnoffs show what will make them stop, care, engage, or ignore the artist.
       </p>
     </div>
 
@@ -2291,29 +2500,23 @@ one consistent artist brief.
       </div>
 
       <div className={outputInnerCardClass}>
-        <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Psychographics</p>
-        <div className="space-y-3">
-          {(Array.isArray(result?.audience?.psychographics) ? result.audience.psychographics : []).map(
-            (item: any, idx: number) => (
-              <div key={idx} className="rounded-xl border border-white/8 bg-white/[0.02] p-3">
-                <p className="text-white/78 text-sm leading-relaxed">{String(item || '—')}</p>
-              </div>
-            )
-          )}
-        </div>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Frustrations</p>
+        <BulletList items={Array.isArray(result?.audience?.frustrations) ? result.audience.frustrations : []} />
       </div>
 
       <div className={outputInnerCardClass}>
-        <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Emotional triggers</p>
-        <div className="space-y-3">
-          {(Array.isArray(result?.audience?.emotionalTriggers) ? result.audience.emotionalTriggers : []).map(
-            (item: any, idx: number) => (
-              <div key={idx} className="rounded-xl border border-ww-violet/12 bg-ww-violet/[0.04] p-3">
-                <p className="text-white/80 text-sm leading-relaxed">{String(item || '—')}</p>
-              </div>
-            )
-          )}
-        </div>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Hidden desires</p>
+        <BulletList items={Array.isArray(result?.audience?.hiddenDesires) ? result.audience.hiddenDesires : []} />
+      </div>
+
+      <div className={outputInnerCardClass}>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Content triggers</p>
+        <BulletList items={Array.isArray(result?.audience?.contentTriggers) ? result.audience.contentTriggers : []} />
+      </div>
+
+      <div className={outputInnerCardClass}>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Content turnoffs</p>
+        <BulletList items={Array.isArray(result?.audience?.contentTurnoffs) ? result.audience.contentTurnoffs : []} />
       </div>
     </div>
   </div>
@@ -2395,7 +2598,7 @@ one consistent artist brief.
     <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-4">Colour palette</p>
 
-      <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-3">
         <PaletteGroup
           title="Primary"
           colors={Array.isArray(result?.visuals?.colorPalette?.primary) ? result.visuals.colorPalette.primary : []}
@@ -2409,6 +2612,49 @@ one consistent artist brief.
           colors={Array.isArray(result?.visuals?.colorPalette?.accent) ? result.visuals.colorPalette.accent : []}
         />
       </div>
+
+      {result?.visuals?.colorMeanings ? (
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className={outputInnerCardClass}>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">
+              Primary meaning
+            </p>
+            <BulletList
+              items={
+                Array.isArray(result.visuals.colorMeanings.primary)
+                  ? result.visuals.colorMeanings.primary
+                  : []
+              }
+            />
+          </div>
+
+          <div className={outputInnerCardClass}>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">
+              Secondary meaning
+            </p>
+            <BulletList
+              items={
+                Array.isArray(result.visuals.colorMeanings.secondary)
+                  ? result.visuals.colorMeanings.secondary
+                  : []
+              }
+            />
+          </div>
+
+          <div className={outputInnerCardClass}>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">
+              Accent meaning
+            </p>
+            <BulletList
+              items={
+                Array.isArray(result.visuals.colorMeanings.accent)
+                  ? result.visuals.colorMeanings.accent
+                  : []
+              }
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
 
     <div className="grid gap-3 md:grid-cols-2">
@@ -2475,6 +2721,15 @@ one consistent artist brief.
                     {String(pillar?.purpose || '—')}
                   </p>
                 </div>
+
+                {Array.isArray(pillar.examples) && pillar.examples.length ? (
+  <div className="mt-3 space-y-2">
+    <p className="text-[10px] uppercase tracking-[0.16em] text-white/35">
+      Example angles
+    </p>
+    <BulletList items={pillar.examples} />
+  </div>
+) : null}
               
               </div>
             </div>
@@ -2534,13 +2789,13 @@ one consistent artist brief.
   </div>
 </Section>
 
-        <Section id="rules" title="Identity rules" hint="Constraints that keep the brand coherent across every output">
+        <Section id="rules" title="Brand guardrails" hint="Flexible rules that keep the artist recognisable without boxing them in">
   <div className="space-y-4">
     <div className="rounded-2xl border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.08] via-black/70 to-black/70 p-4">
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-1">How to use this</p>
       <p className="text-sm text-white/70 leading-relaxed max-w-3xl">
-        These are not loose suggestions. They are the rules that should shape visuals, captions,
-        videos, creative choices, and downstream tool outputs.
+        These are not strict laws. They are guardrails that should shape visuals, captions,
+videos, creative choices, and downstream tool outputs while still leaving room for the artist to evolve.
       </p>
     </div>
 

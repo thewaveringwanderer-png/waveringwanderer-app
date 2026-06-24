@@ -35,7 +35,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
-
+const CURRENT_UPDATE = 'v1.1'
 
 type CardTone = 'violet' | 'blue' | 'emerald' | 'amber' | 'neutral'
 
@@ -49,17 +49,17 @@ type Card = {
   locked?: boolean
 }
 
-function DashboardPageInner() {
-  async function markOnboardingStarted() {
-  localStorage.setItem('ww_identity_banner_dismissed', 'true')
-  setDismissedIdentityBanner(true)
 
-  try {
-    await updateProfile({ onboarding_started: true })
-  } catch {}
+
+function DashboardPageInner() {
+  const [showUpdate, setShowUpdate] = useState(false)
+
+  const dismissUpdate = () => {
+  localStorage.setItem('ww_last_seen_update', CURRENT_UPDATE)
+  setShowUpdate(false)
 }
 
-const [dismissedIdentityBanner, setDismissedIdentityBanner] = useState(false)
+  const [dismissedIdentityBanner, setDismissedIdentityBanner] = useState(false)
   const router = useRouter()
   const [checking, setChecking] = useState(true)
   const [activatingPlan, setActivatingPlan] = useState(false)
@@ -68,6 +68,15 @@ const [biggestStruggle, setBiggestStruggle] = useState('')
 const [savingContext, setSavingContext] = useState(false)
 const [contextSaved, setContextSaved] = useState(false)
 const { profile, tier, updateProfile, loading: profileLoading, refresh } = useWwProfile()
+
+async function markOnboardingStarted() {
+  localStorage.setItem('ww_identity_banner_dismissed', 'true')
+  setDismissedIdentityBanner(true)
+
+  try {
+    await updateProfile({ onboarding_started: true })
+  } catch {}
+}
 
 useEffect(() => {
   if (!profile || profileLoading) return
@@ -111,11 +120,22 @@ useEffect(() => {
 }, [])
 
 useEffect(() => {
+  const seenVersion = localStorage.getItem('ww_last_seen_update')
+
+  if (seenVersion !== CURRENT_UPDATE) {
+    setShowUpdate(true)
+  }
+}, [])
+
+useEffect(() => {
   if (!paymentSuccess) return
 
   let cancelled = false
 
-
+function dismissUpdate() {
+  localStorage.setItem('ww_last_seen_update', CURRENT_UPDATE)
+  setShowUpdate(false)
+}
 
   async function confirmUpgrade() {
     setActivatingPlan(true)
@@ -155,27 +175,6 @@ useEffect(() => {
 
   confirmUpgrade()
 
-  async function handleSaveArtistContext() {
-  setSavingContext(true)
-
-  try {
-    const next = await updateProfile({
-      artist_handle: artistHandle.trim(),
-      biggest_struggle: biggestStruggle.trim(),
-    } as any)
-
-    if (next) {
-      setContextSaved(true)
-      toast.success('Thanks — this helps me improve WW around real artists 🙏')
-    } else {
-      toast.error('Could not save details yet')
-    }
-  } catch {
-    toast.error('Could not save details yet')
-  } finally {
-    setSavingContext(false)
-  }
-}
 
   return () => {
     cancelled = true
@@ -227,7 +226,7 @@ useEffect(() => {
       title: 'Identity Kit & Campaigns',
       desc: 'Generate a pro brand kit, save versions, and spin up shootable campaign concepts.',
       icon: <Palette className="w-5 h-5" />,
-      badge: 'V.1',
+      badge: 'V 1.1',
       tone: 'violet',
     },
     {
@@ -235,7 +234,7 @@ useEffect(() => {
       title: 'Idea Factory',
       desc: 'Plan monthly/weekly posts, auto-generate ideas from your kit or an upcoming release.',
       icon: <Brain className="w-5 h-5" />,
-      badge: 'V.1',
+      badge: 'V 1.1',
       tone: 'violet',
     },
     {
@@ -243,7 +242,7 @@ useEffect(() => {
       title: 'Captions & Hashtags',
       desc: 'Platform-ready copy in your tone of voice with smart hashtag sets.',
       icon: <Type className="w-5 h-5" />,
-      badge: 'V.1',
+      badge: 'V 1',
       tone: 'violet',
     },
 
@@ -252,7 +251,7 @@ useEffect(() => {
       title: 'Release Strategy',
       desc: 'Turn a single, EP, or album into a structured pre-, launch-, and post-campaign plan.',
       icon: <Rocket className="w-5 h-5" />,
-      badge: 'V.1',
+      badge: 'V 1',
       tone: 'violet',
     },
     {
@@ -260,7 +259,7 @@ useEffect(() => {
       title: 'Momentum Board',
       desc: 'Drag content ideas from every tool into one lane and move them from idea to planned, scheduled, and posted.',
       icon: <Compass className="w-5 h-5" />,
-      badge: 'V.1',
+      badge: 'V 1',
       tone: 'blue',
     },
     {
@@ -428,6 +427,60 @@ function toneBadge(tone: CardTone) {
 
   return (
     <main className="min-h-screen bg-black text-white">
+
+      {showUpdate ? (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
+    <div className="w-full max-w-lg rounded-3xl border border-ww-violet/30 bg-black p-6 shadow-[0_0_60px_rgba(168,85,247,0.35)]">
+      <p className="text-xs uppercase tracking-[0.22em] text-ww-violet">
+        WW Update — June 2026
+      </p>
+
+      <h2 className="mt-3 text-2xl font-semibold text-white">
+        Identity Kit and Idea Factory are now stronger
+      </h2>
+
+      <div className="mt-5 space-y-5 text-sm leading-relaxed text-white/72">
+        <div>
+          <p className="font-semibold text-white">Identity Kit → v1.1</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            <li>Stronger artist philosophy extraction</li>
+            <li>Better audience psychology</li>
+            <li>Improved manifesto generation</li>
+            <li>Sharper USP generation</li>
+            <li>More influence-aware outputs</li>
+          </ul>
+        </div>
+
+        <div>
+          <p className="font-semibold text-white">Idea Factory → v1.1</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            <li>Uses Identity Kit context more deeply</li>
+            <li>More artist-specific ideas</li>
+            <li>Better content style matching</li>
+            <li>Less generic/repetitive outputs</li>
+            <li>Improved idea variety</li>
+          </ul>
+        </div>
+
+        <div>
+          <p className="font-semibold text-white">What's next?</p>
+          <p className="mt-2 text-white/60">
+           Release Strategy v1.1, Captions v1.1, Momentum Board v1.1
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={dismissUpdate}
+        className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-2xl bg-ww-violet px-5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(168,85,247,0.35)] transition hover:brightness-110"
+      >
+        Got it
+      </button>
+    </div>
+  </div>
+) : null}
+
       <section className="mx-auto max-w-6xl px-4 pt-6 pb-2">
   <div>
     <span className="inline-flex items-center gap-3 px-3 h-8 rounded-full border border-white/10 bg-white/5 text-xs text-white/80">
