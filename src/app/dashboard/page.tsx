@@ -226,7 +226,6 @@ function dismissUpdate() {
       title: 'Identity Kit & Campaigns',
       desc: 'Generate a pro brand kit, save versions, and spin up shootable campaign concepts.',
       icon: <Palette className="w-5 h-5" />,
-      badge: 'V 1.1',
       tone: 'violet',
     },
     {
@@ -234,7 +233,6 @@ function dismissUpdate() {
       title: 'Idea Factory',
       desc: 'Plan monthly/weekly posts, auto-generate ideas from your kit or an upcoming release.',
       icon: <Brain className="w-5 h-5" />,
-      badge: 'V 1.1',
       tone: 'violet',
     },
     {
@@ -242,7 +240,6 @@ function dismissUpdate() {
       title: 'Captions & Hashtags',
       desc: 'Platform-ready copy in your tone of voice with smart hashtag sets.',
       icon: <Type className="w-5 h-5" />,
-      badge: 'V 1',
       tone: 'violet',
     },
 
@@ -251,7 +248,6 @@ function dismissUpdate() {
       title: 'Release Strategy',
       desc: 'Turn a single, EP, or album into a structured pre-, launch-, and post-campaign plan.',
       icon: <Rocket className="w-5 h-5" />,
-      badge: 'V 1',
       tone: 'violet',
     },
     {
@@ -259,7 +255,6 @@ function dismissUpdate() {
       title: 'Momentum Board',
       desc: 'Drag content ideas from every tool into one lane and move them from idea to planned, scheduled, and posted.',
       icon: <Compass className="w-5 h-5" />,
-      badge: 'V 1',
       tone: 'blue',
     },
     {
@@ -432,50 +427,78 @@ function toneBadge(tone: CardTone) {
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
     <div className="w-full max-w-lg rounded-3xl border border-ww-violet/30 bg-black p-6 shadow-[0_0_60px_rgba(168,85,247,0.35)]">
       <p className="text-xs uppercase tracking-[0.22em] text-ww-violet">
-        WW Update — June 2026
+        WW v1.2 • Foundations
       </p>
 
       <h2 className="mt-3 text-2xl font-semibold text-white">
-        Identity Kit and Idea Factory are now stronger
+        A stronger foundation for every artist.
       </h2>
 
-      <div className="mt-5 space-y-5 text-sm leading-relaxed text-white/72">
+      <p className="mt-3 text-sm leading-relaxed text-white/65">
+        This update focuses on helping artists understand, express and protect their identity with deeper strategic reasoning across the Identity Kit.
+      </p>
+
+      <div className="mt-6 space-y-6 text-sm leading-relaxed text-white/72">
+
         <div>
-          <p className="font-semibold text-white">Identity Kit → v1.1</p>
+          <p className="font-semibold text-white">🧬 Identity Kit</p>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>Stronger artist philosophy extraction</li>
-            <li>Better audience psychology</li>
-            <li>Improved manifesto generation</li>
-            <li>Sharper USP generation</li>
-            <li>More influence-aware outputs</li>
+            <li>New Creative DNA section</li>
+            <li>New Creative Constitution</li>
+            <li>Deeper lived experience analysis</li>
+            <li>Stronger worldview and philosophy extraction</li>
+            <li>Improved audience psychology</li>
+            <li>Less repetition across every section</li>
+            <li>Smarter reasoning throughout the Identity Kit</li>
           </ul>
         </div>
 
         <div>
-          <p className="font-semibold text-white">Idea Factory → v1.1</p>
+          <p className="font-semibold text-white">📄 PDF Export</p>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>Uses Identity Kit context more deeply</li>
-            <li>More artist-specific ideas</li>
-            <li>Better content style matching</li>
-            <li>Less generic/repetitive outputs</li>
-            <li>Improved idea variety</li>
+            <li>Premium report redesign</li>
+            <li>Added Artist Snapshot</li>
+            <li>Added Strategic Foundations</li>
+            <li>Added Brand Strategy</li>
+            <li>Added Creative DNA</li>
+            <li>Added Creative Constitution</li>
           </ul>
         </div>
 
         <div>
-          <p className="font-semibold text-white">What's next?</p>
+          <p className="font-semibold text-white">⚙️ Improvements</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            <li>Cleaner reasoning pipeline</li>
+            <li>Improved JSON reliability</li>
+            <li>Better section differentiation</li>
+            <li>More consistent identity outputs</li>
+          </ul>
+        </div>
+
+        <div>
+          <p className="font-semibold text-white">Coming Soon</p>
           <p className="mt-2 text-white/60">
-           Release Strategy v1.1, Captions v1.1, Momentum Board v1.1
+            Content System 2.0 • Audience Psychology 2.0 • Active Identity Kits • Press Kit Studio
           </p>
         </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="text-xs uppercase tracking-[0.16em] text-white/45">
+            From the Founder
+          </p>
+
+          <p className="mt-3 text-sm leading-relaxed text-white/70">
+            WW is gradually evolving from an AI marketing tool into a creative operating system for independent artists. Every update is shaped by feedback from artists using the platform, so thank you for helping build it.
+          </p>
+        </div>
+
       </div>
 
       <button
-        type="button"
         onClick={dismissUpdate}
-        className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-2xl bg-ww-violet px-5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(168,85,247,0.35)] transition hover:brightness-110"
+        className="mt-8 w-full rounded-xl bg-ww-violet px-4 py-3 text-sm font-medium text-white transition hover:opacity-90"
       >
-        Got it
+        Explore WW v1.2
       </button>
     </div>
   </div>

@@ -2540,7 +2540,7 @@ one consistent artist brief.
     />
 
     <LockedPreviewSection
-      title="Identity rules"
+      title="Creative Constitution"
       hint="Constraints that keep the brand coherent across every output"
     />
   </>
@@ -2789,35 +2789,91 @@ one consistent artist brief.
   </div>
 </Section>
 
-        <Section id="rules" title="Brand guardrails" hint="Flexible rules that keep the artist recognisable without boxing them in">
+<Section
+  id="creative-dna"
+  title="Creative DNA"
+  hint="The permanent identity ingredients that make this artist recognisable"
+>
+  <div className="grid gap-3 md:grid-cols-2">
+    {(Array.isArray(result?.creativeDNA) ? result.creativeDNA : []).map((item: any, idx: number) => (
+      <div
+        key={idx}
+        className="rounded-2xl border border-white/10 bg-black/45 p-4 transition hover:border-ww-violet/30"
+      >
+        <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-2">
+          DNA {idx + 1}
+        </p>
+        <p className="text-white/90 font-semibold leading-snug">
+          {String(item?.title || '—')}
+        </p>
+        {item?.meaning ? (
+          <p className="mt-2 text-sm text-white/70 leading-relaxed">
+            {String(item.meaning)}
+          </p>
+        ) : null}
+      </div>
+    ))}
+  </div>
+</Section>
+
+        <Section
+  id="rules"
+  title="Creative Constitution"
+  hint="Permanent creative laws that protect the artist's identity as they grow"
+>
   <div className="space-y-4">
     <div className="rounded-2xl border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.08] via-black/70 to-black/70 p-4">
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-1">How to use this</p>
       <p className="text-sm text-white/70 leading-relaxed max-w-3xl">
-        These are not strict laws. They are guardrails that should shape visuals, captions,
-videos, creative choices, and downstream tool outputs while still leaving room for the artist to evolve.
+        These are creative laws, not generic advice. Use them when deciding what to release,
+        what to post, which opportunities to accept, and what should never be compromised.
       </p>
     </div>
 
     <div className="grid gap-3">
-      {(Array.isArray(result?.identityRules) ? result.identityRules : []).map((rule: any, idx: number) => (
-        <div
-          key={idx}
-          className="rounded-2xl border border-white/10 bg-black/45 p-4 transition hover:border-ww-violet/30"
-        >
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-ww-violet/25 bg-ww-violet/10 text-[11px] font-semibold text-ww-violet">
-              {idx + 1}
-            </div>
+      {(Array.isArray(result?.identityRules) ? result.identityRules : []).map((rule: any, idx: number) => {
+        const section = typeof rule === 'string' ? '' : String(rule?.section || '')
+        const principle = typeof rule === 'string' ? rule : String(rule?.principle || '')
+        const rationale = typeof rule === 'string' ? '' : String(rule?.rationale || '')
 
-            <div className="min-w-0">
-              <p className="text-white/84 text-sm md:text-[15px] leading-relaxed">
-                {String(rule || '—')}
-              </p>
+        if (!principle && !rationale) return null
+
+        return (
+          <div
+            key={idx}
+            className="rounded-2xl border border-white/10 bg-black/45 p-4 transition hover:border-ww-violet/30"
+          >
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ww-violet/25 bg-ww-violet/10 text-[11px] font-semibold text-ww-violet">
+                {idx + 1}
+              </div>
+
+              <div className="min-w-0 space-y-2">
+                {section ? (
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-ww-violet/80">
+                    {section}
+                  </p>
+                ) : null}
+
+                <p className="text-white/90 text-sm md:text-[15px] font-semibold leading-relaxed">
+                  {principle || '—'}
+                </p>
+
+                {rationale ? (
+                  <div className="rounded-xl border border-white/8 bg-black/35 p-3">
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-white/42 mb-2">
+                      Why this matters
+                    </p>
+                    <p className="text-white/72 text-sm leading-relaxed">
+                      {rationale}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   </div>
 </Section>

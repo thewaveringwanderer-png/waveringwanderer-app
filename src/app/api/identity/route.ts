@@ -90,9 +90,27 @@ function buildIdentityPreview(full: any) {
           }))
         : [],
     },
+    creativeDNA: Array.isArray(full?.creativeDNA)
+  ? full.creativeDNA.slice(0, 6).map((item: any) => ({
+      title: item?.title ?? '',
+      meaning: item?.meaning ?? '',
+    }))
+  : [],
     identityRules: Array.isArray(full?.identityRules)
-      ? full.identityRules.slice(0, 4)
-      : [],
+  ? full.identityRules.slice(0, 9).map((rule: any) =>
+      typeof rule === 'string'
+        ? {
+            section: '',
+            principle: rule,
+            rationale: '',
+          }
+        : {
+            section: rule?.section ?? '',
+            principle: rule?.principle ?? '',
+            rationale: rule?.rationale ?? '',
+          }
+    )
+  : [],
     keywords: Array.isArray(full?.keywords) ? full.keywords.slice(0, 5) : [],
   }
 }
@@ -225,116 +243,344 @@ Write like a sharp artist strategist, not a generic brand copywriter.
 Focus on positioning, psychology, narrative cohesion, and usable brand constraints.
 Return valid JSON only.
 
+The output should teach the artist how to use their experiences, themes, philosophy, and unique qualities.
+
+The artist should leave with a clearer understanding of:
+- what they own
+- why it matters
+- how to communicate it
+- how to make it visually recognisable
+- how to keep it consistent without becoming repetitive
+
 IMPORTANT STYLE RULES:
 
-AUDIENCE VARIETY RULE
+INTERNAL REASONING PIPELINE
 
-Audience psychology may be built around:
+Before generating the Identity Kit, complete these stages internally.
 
-- ambitions
-- lifestyles
-- frustrations
-- cultural identity
-- humour
-- curiosity
-- rebellion
-- status
-- craftsmanship
-- nostalgia
-- obsession
-- responsibility
-
-Do not default to:
-- deep thinkers
-- people seeking meaning
-- people seeking connection
-- introspective listeners
-
-unless strongly supported by inputs.
-
-ANTI-REPETITION RULE
-
-Avoid repeating the same concepts across multiple sections.
-
-If an idea has already been explored in:
-- manifesto
-- USP
-- positioning
-- audience promise
-- listener outcome
-
-then build on it rather than restating it.
-
-Every section should reveal something new.
-
-SECTION DIFFERENTIATION RULE
-
-Every major section must explore a different aspect of the artist.
-
-Do not build the entire identity system around a single theme.
-
-For example:
-
-If positioning focuses on worldview,
-manifesto should focus on conviction.
-
-If audience focuses on psychology,
-content pillars should focus on recurring conversations.
-
-If visuals focus on environment,
-symbolism should focus on metaphors.
-
-If listener outcome focuses on emotional impact,
-USP should focus on competitive differentiation.
-
-No concept should dominate more than 2 major sections.
-
-If the same theme appears repeatedly,
-replace it with a different but equally supported insight.
-
-LANGUAGE DIVERSITY RULE
-
-Do not default to common artist-branding language.
-
-Words such as:
-
-- struggle
-- resilience
-- motivation
-- clarity
-- connection
-- authenticity
-- empowerment
-- journey
-- depth
-- self-discovery
-
-are only valuable when strongly supported by the artist's inputs.
-
-Do not treat these concepts as universal artist traits.
-
-Each artist should develop their own recurring vocabulary based on:
-
-- experiences
+Stage 1 — Identity Extraction
+Identify:
+- identity anchors
+- specific experiences
+- beliefs
+- contradictions
+- motivations
 - worldview
-- influences
-- audience
+- influence fingerprint
+- audience psychology
 - emotional territory
 
-If a concept appears across multiple sections, each section must reveal a different implication of that concept rather than repeating it in different words.
+Do not output this reasoning.
 
-Listener outcome must emerge from the artist's actual worldview.
+Stage 2 — Strategic Interpretation
+For every major finding, ask: "So what?"
 
-Do not default to:
-- empowerment
-- self-discovery
-- growth
-- clarity
-- connection
+Determine:
+- brand implications
+- visual implications
+- content implications
+- audience implications
+- positioning implications
 
-unless clearly supported by the inputs.s
+Do not output this reasoning.
 
-- Each section must serve a different purpose.
+Stage 3 — Section Generation
+Generate each section independently.
+
+Complete one section before moving onto the next.
+
+Each section has a unique role.
+
+Stage 4 — Cross-reference
+Compare every section.
+
+Check:
+- consistency
+- contradictions
+- repeated themes
+- repeated language
+- missing source material
+
+Rewrite where necessary.
+
+Stage 5 — Creative Director Review
+
+Before returning the final JSON, critique your own work as if you were reviewing another strategist's identity system.
+
+Do not immediately accept the first version.
+
+Challenge every section.
+
+Review the Identity Kit using the following questions.
+
+IDENTITY
+
+Would this identity only fit this artist?
+
+Could another artist receive 80% of these outputs?
+
+If yes, rewrite until the identity feels unmistakably personal.
+
+SECTION DIFFERENTIATION
+
+If every heading was removed, could each section still be recognised?
+
+Snapshot should not sound like Positioning.
+
+Positioning should not sound like the USP.
+
+USP should not sound like the Manifesto.
+
+Audience should not sound like Listener Identity.
+
+Content should not sound like Audience.
+
+Every section must reveal new strategic value.
+
+EXPERIENCE TEST
+
+Have the artist's actual experiences remained visible?
+
+Or have they been replaced by abstract ideas?
+
+Prefer:
+
+"Working night shifts."
+
+over
+
+"Resilience."
+
+Prefer:
+
+"Getting knocked back repeatedly."
+
+over
+
+"Perseverance."
+
+The specific experience should remain recognisable.
+
+WORLDVIEW TEST
+
+Do the worldview statements actually sound like opinions about life?
+
+Or are they simply positive values?
+
+Reject safe statements.
+
+Prefer observations over advice.
+
+POSITIONING TEST
+
+Does the positioning describe the market lane?
+
+Or does it simply describe the artist?
+
+USP TEST
+
+Could this USP belong to 100 artists?
+
+If yes, rewrite it.
+
+The USP should reveal an angle the artist may not have recognised.
+
+AUDIENCE TEST
+
+Does the audience feel like real people?
+
+Or simply fans of meaningful music?
+
+Identify how they think.
+
+Not just what they like.
+
+VISUAL TEST
+
+Could a photographer build a recognisable visual identity from this alone?
+
+If not, add more specificity.
+
+CONTENT TEST
+
+Would these pillars become recognisable recurring series?
+
+Or are they simply themes?
+
+Would fans recognise them after several months?
+
+If not, redesign them.
+
+CREATIVE CONSTITUTION TEST
+
+Would these principles genuinely help the artist make difficult creative decisions?
+
+Would they still apply five years from now?
+
+Could these principles belong to another artist?
+
+If yes, rewrite them.
+
+Every principle should emerge from:
+
+- lived experiences
+- signature assets
+- worldview
+- creative tensions
+
+These should feel like creative laws rather than inspirational advice.
+
+FINAL TEST
+
+After reading the whole document ask:
+
+"What would surprise the artist most?"
+
+"What would make them say..."
+
+"I hadn't thought about myself like that before."
+
+Prioritise insight over description.
+
+Reveal patterns.
+
+Do not simply organise information.
+
+Create strategic clarity.
+
+Only after every test has passed should the final JSON be returned.
+
+FIRST DRAFT RULE
+
+Treat your first internal draft as incomplete.
+
+Before returning the final Identity Kit, improve it.
+
+Strengthen weak wording.
+
+Replace generic observations with more specific ones.
+
+Replace summaries with interpretations.
+
+Replace descriptions with strategic implications.
+
+Assume your first draft is only 70% of the final quality.
+
+The final JSON should represent the improved second draft.
+
+
+INTERNAL STRATEGIC PROFILE
+
+Create an internal strategic profile before writing.
+
+Do not output it.
+
+Use it only for reasoning.
+
+Include:
+- identityAnchors
+- worldview
+- hiddenBeliefs
+- contradictions
+- audienceNeeds
+- influenceFingerprint
+- strategicImplications
+- sectionPurpose
+
+Use this internal profile to make the final Identity Kit coherent without making every section sound the same.
+
+EVIDENCE-BASED INFERENCE
+
+Every major inference must be supported by something in the artist's inputs.
+
+Before using an inferred idea, internally check:
+
+- What input supports this?
+- Is this directly stated, strongly implied, or weakly implied?
+- Am I expanding the artist's details or inventing new ones?
+- Is there a more specific interpretation available?
+
+Use bold interpretations only when they are supported.
+
+Do not invent trauma, background, beliefs, audience pain points, cultural identity, or life circumstances that the artist did not provide.
+
+If an input is vague, create a useful but cautious interpretation.
+
+The best output should feel insightful, not psychic.
+
+QUALITY STANDARDS
+
+No repetition
+
+Different section roles
+
+No clichés
+
+No AI language
+
+No generic emotional defaults
+
+Respect lived experiences
+
+Don't over-abstract
+
+Reveal new information every section
+
+SECTION ROLE TEST
+
+Before finalising the JSON, review every major section as if the heading was removed.
+
+The reader should still be able to tell what section it belongs to by the function of the writing.
+
+Each section must have a distinct job:
+
+- snapshot = fast strategic summary
+- strategicFoundations = hidden beliefs, tensions, worldview and source material
+- core.brandEssence = condensed identity
+- core.positioning = the market lane the artist owns
+- core.manifesto = first-person conviction
+- strategy.usp = competitive difference
+- strategy.brandMessage = public-facing promise
+- strategy.listenerIdentity = how listeners see themselves through the artist
+- audience = listener psychology, frustrations, desires and behaviours
+- tone = how the artist should speak
+- visuals = how the artist should look and feel
+- content = repeatable creative territories and formats
+- identityRules = Creative Constitution and permanent creative principles
+
+Do not allow multiple sections to become emotional summaries.
+
+Bad:
+Positioning, manifesto, USP, audience promise and listener transformation all saying the artist helps people feel understood.
+
+Good:
+Positioning explains the artist's lane.
+Manifesto states what the artist believes.
+USP explains what makes them harder to replace.
+Audience explains who needs this and why.
+Listener transformation explains what changes for the listener.
+Content pillars explain what the artist repeatedly talks about.
+Visuals translate the identity into recognisable images.
+
+FINAL DIFFERENTIATION CHECK
+
+Before returning JSON:
+
+1. Identify repeated emotional words across sections.
+2. If the same emotional idea appears in more than 2 major sections, rewrite the weaker uses.
+3. Replace repeated generic emotion with a different supported angle:
+   - lived experience
+   - worldview
+   - contradiction
+   - audience frustration
+   - influence fingerprint
+   - visual metaphor
+   - content behaviour
+   - market difference
+4. Make sure every section reveals new information.
+5. The final kit should not feel like one paragraph rewritten under different headings.
+If removing every heading would make two sections difficult to distinguish, rewrite them until each has a unique purpose.
+
 
 Analyse the artist's influences.
 
@@ -357,17 +603,6 @@ Allow these patterns to subtly shape:
 - Tone of voice
 - Content pillars
 - Audience psychology
-
-snapshot = quick understanding
-strategicFoundations = belief system
-core = public identity
-strategy = market positioning
-audience = listener psychology
-tone = communication style
-visuals = recognisable aesthetic
-content = repeatable content systems
-identityRules = guardrails
-
 - Expand the artist's inputs into sharper strategic ideas.
 - Do not simply reword what they typed.
 - Every section should reveal a new insight.
@@ -375,30 +610,6 @@ identityRules = guardrails
 You are building an ARTIST IDENTITY SYSTEM, not just a description.
 
 The user inputs are raw material, not final strategy.
-
-HIGHEST PRIORITY RULE
-
-The artist's lived experiences, philosophy,
-recurring themes, desired listener effect
-and unique qualities are the primary source
-of differentiation.
-
-Genre and influences provide context.
-
-Experiences provide identity.
-
-(parenthood, obsession, boredom, responsibility,
-migration, faith, competition, nightlife,
-community, rebellion, isolation, routine,
-success, failure, craftsmanship, ambition, etc.)
-it should remain visible throughout the identity system.
-
-Do not replace lived experiences with generic concepts
-such as resilience, authenticity, growth,
-self-discovery, clarity or introspection.
-
-The output should help the artist own
-their specific experiences rather than abstract them away.
 
 
 Use the artist's actual details heavily:
@@ -424,45 +635,61 @@ For every section, ask:
 - What angle does this reveal that the artist may not have noticed?
 - How does this help with visuals, messaging, content, audience connection, or positioning?
 
-The output should teach the artist how to use their experiences, themes, philosophy, and unique qualities.
 
-The artist should leave with a clearer understanding of:
-- what they own
-- why it matters
-- how to communicate it
-- how to make it visually recognisable
-- how to keep it consistent without becoming repetitive
 
-EXPERIENCE PRESERVATION RULE
 
-When extracting strategic themes:
+EXPERIENCE INTERPRETATION
 
-Do not discard the original experiences.
+Before identifying themes, first identify the artist's specific lived experiences.
 
-Keep specific experiences visible throughout the kit.
+Interpret experiences rather than summarising them.
 
-Example:
+Ask:
 
-A specific experience should remain visible.
+- What happened?
+- What did that teach them?
+- How did it change how they see the world?
+- What emotional territory did it create?
+- What recurring beliefs came from it?
 
-Do not reduce:
-"Becoming a parent unexpectedly"
-to
-"responsibility"
+Do not replace experiences with abstract labels.
 
-Do not reduce:
-"Working night shifts"
-to
-"sacrifice"
+Bad:
 
-Do not reduce:
-"Growing up in a small town"
-to
-"feeling trapped"
+Working night shifts
+↓
 
-Specific experiences should remain visible alongside broader themes.
+Sacrifice
 
-EXPERIENCE PRESERVATION RULE
+Good:
+
+Working night shifts
+↓
+
+Seeing a different side of society after dark.
+Developing discipline through routine.
+Finding creativity when most people were asleep.
+
+The experience should remain visible.
+
+Themes should explain experiences, not replace them.
+
+Always preserve both:
+
+Specific reality
++
+Universal meaning.
+
+
+EXPERIENCE DOMINANCE
+
+The artist's lived experiences, philosophy, recurring themes, desired listener effect and unique qualities are the primary source of differentiation.
+
+Genre and influences provide context.
+
+Experiences provide identity.
+
+Do not replace lived experiences with generic concepts such as resilience, authenticity, growth, self-discovery, clarity or introspection.
 
 When analysing artist inputs, identify:
 
@@ -484,12 +711,6 @@ The strongest artist identities combine:
 - Universal emotional themes
 
 Example:
-
-Specific:
-"Becoming a parent unexpectedly"
-
-Universal:
-"Responsibility"
 
 Specific:
 "Growing up in a small town"
@@ -541,14 +762,15 @@ Do not invent these.
 
 They must be supported by the artist's inputs.
 
-Use these findings throughout:
+Use these findings selectively across:
 - positioning
 - manifesto
 - USP
 - audience psychology
 - content pillars
 
-Look beneath what the artist says and identify what they believe.
+Do not force every finding into every section.
+
 
 Extract 5 identity anchors.
 
@@ -595,9 +817,141 @@ Anchor:
 
 Store these anchors.
 
+SIGNATURE ASSETS
+
+Before generating any section, identify the artist's most ownable identity assets.
+
+These are not themes.
+
+They are recurring ingredients that make this artist recognisable.
+
+They should come directly from the artist's lived experiences, environment, interests, creative process, ambitions, contradictions and worldview.
+
+Examples include:
+
+- unexpected fatherhood
+- growing up in London
+- night shifts
+- anime philosophy
+- notebooks full of lyrics
+- underground venues
+- faith
+- skate culture
+- engineering mindset
+- photography
+- martial arts
+- solitude
+- obsession with language
+
+Avoid generic assets such as:
+
+- struggle
+- resilience
+- hope
+- authenticity
+- motivation
+
+Those are themes.
+
+Instead identify tangible identity ingredients.
+
+Every Signature Asset should be:
+
+• specific
+• memorable
+• difficult to copy
+• repeatedly usable
+
+Before writing each section ask:
+
+Which Signature Assets naturally belong here?
+
+The final Identity Kit should repeatedly reference these assets in different ways without becoming repetitive.
+
+These assets should influence:
+
+- Snapshot
+- Manifesto
+- Positioning
+- USP
+- Audience
+- Visual System
+- Content System
+- Identity Rules
+
+The best Identity Kits feel as though every section was built from the same set of identity ingredients.
+
+SIGNATURE ASSET DISTRIBUTION
+
+Do not rely on the same Signature Asset in every section.
+
+Distribute them naturally.
+
+For example:
+
+One asset may shape the Visual System.
+
+Another may shape the Manifesto.
+
+Another may shape the Content System.
+
+Another may shape the Audience.
+
+Collectively they should create a complete identity rather than repeatedly emphasising one idea.
+
+The goal is breadth without losing coherence.
+
+CREATIVE DNA HIERARCHY
+
+The artist's identity should be built in this order.
+
+Experiences
+
+↓
+
+Identity Anchors
+
+↓
+
+Signature Assets
+
+↓
+
+Creative DNA
+
+↓
+
+Worldview
+
+↓
+
+Strategic Implications
+
+↓
+
+Every remaining section.
+
+Creative DNA is the bridge between lived experiences and long-term artistic identity.
+
+The Constitution should protect the DNA.
+
+The Positioning should communicate the DNA.
+
+The Visual System should express the DNA.
+
+The Content System should repeatedly reinforce the DNA.
+
+Nothing should contradict the DNA.
+
 WORLDVIEW EXTRACTION
 
-Before writing any section, identify:
+Look beneath what the artist says and identify what they believe.
+
+Worldview should reveal the artist's opinions about life, culture, people, ambition, creativity, struggle, love, belonging, success, or the industry.
+
+Do not turn worldview into vague values.
+
+Before writing any section, identify the artist's worldview.
 
 - What repeatedly frustrates this artist?
 - What do they believe most people misunderstand?
@@ -626,29 +980,17 @@ Strong:
 
 Prefer specific worldview statements over personal values.
 
-Every major section must reference at least one anchor.
+Use identity anchors as source material, not repeated slogans.
 
-At least 3 of the 5 anchors should remain visible in the final output.
+At least 3 of the 5 anchors should influence the final kit, but they should not appear in every section.
 
-ABSTRACTION LIMIT
-
-Do not replace artist inputs with:
-
-- resilience
-- authenticity
-- vulnerability
-- empowerment
-- growth
-- transformation
-- self-discovery
-- introspection
-- emotional depth
-
-unless those exact concepts were provided by the artist.
-
-Prefer the artist's actual language.
-
-Specific inputs are more valuable than abstract summaries.
+Each major section should use a different implication of the anchors:
+- positioning = market lane
+- manifesto = belief
+- USP = competitive difference
+- audience = listener need
+- visuals = aesthetic translation
+- content = repeatable creative territory
 
 Every major section should build from an identity anchor but reveal a different implication of that anchor.
 
@@ -659,6 +1001,121 @@ The output must define how the artist should:
 - create content
 
 The goal is to create constraints that make the artist consistent and recognisable.
+
+---
+
+STRATEGIC IMPLICATIONS
+
+For every important finding ask:
+
+"So what?"
+
+Translate discoveries into decisions.
+
+For every identity anchor determine:
+
+• positioning implication
+• audience implication
+• visual implication
+• messaging implication
+• content implication
+• commercial implication
+
+Every important discovery should create multiple strategic consequences.
+
+Do not output these.
+
+Use them to make later sections feel connected without repeating the same wording.
+
+POSITIONING
+
+Positioning answers one question.
+
+Why should this artist exist in today's music landscape?
+
+Do not describe the artist.
+
+Describe the gap they occupy.
+
+This should explain:
+
+What space do they own?
+
+What conversations do they naturally lead?
+
+What makes them culturally relevant?
+
+Positioning should describe the lane.
+
+Not the person.
+
+Good positioning makes competitors feel irrelevant rather than inferior.
+
+USP
+
+USP answers one question.
+
+Why would someone choose this artist instead of another artist in the same space?
+
+Focus on competitive differentiation.
+
+Not personality.
+
+Not emotions.
+
+Not philosophy.
+
+Think like a strategist.
+
+Examples of differentiation:
+
+Perspective
+
+Creative process
+
+Combination of influences
+
+Recurring themes
+
+Consistency
+
+Communication style
+
+Avoid describing quality.
+
+Describe replaceability.
+
+A strong USP should make another artist difficult to substitute.
+
+BRAND MESSAGE
+
+Brand Message answers one question.
+
+What promise does this artist make every time someone encounters their work?
+
+This is external.
+
+Not internal.
+
+Do not describe who the artist is.
+
+Describe what listeners can expect.
+
+This should feel usable on:
+
+website
+
+press kit
+
+social bio
+
+Spotify
+
+campaigns
+
+captions
+
+It should remain consistent even as songs change.
 
 ---
 
@@ -687,93 +1144,152 @@ Lighting = the emotional atmosphere.
 
 ---
 
-CONTENT PILLARS:
+CONTENT PILLARS
 
-Each content pillar should include:
-- name
-- purpose
-- examples
+Do not generate broad content themes.
 
-The examples should be practical content angles, not full ideas.
+Instead design 3 recurring creative franchises that this artist could realistically become known for.
 
-Example:
-Pillar: Survival Notes
-Purpose: Turn difficult experiences into lessons listeners can use.
-Examples:
-- What a setback taught me
-- The lyric that came from a hard week
-- A belief I had to unlearn
+Each pillar should feel like an original series, not a topic.
 
-Pillar Naming Rule
+Think like a creative director designing repeatable IP.
 
-Pillar names should feel ownable.
+Every pillar should have:
 
-Avoid:
+- a memorable name
+- a clear strategic purpose
+- a recognisable identity
+- practical recurring examples
 
-- Clarity
-- Growth
+The goal is that, after several months of consistent posting, fans would immediately recognise one of these series even if the artist's username was hidden.
+
+The best content pillars should become part of the artist's identity rather than simply supporting it.
+
+Avoid names that simply describe emotions or subjects.
+
+Bad:
+
 - Motivation
+- Personal Growth
 - Reflection
 - Community
 - Inspiration
+- Mindset
 
-Prefer names that emerge from the artist's actual worldview.
+Instead prefer names that emerge naturally from the artist's worldview, philosophy, experiences or lyrical style.
 
-Examples:
+Good examples:
 
 - The Cost Of Becoming
-- Lessons From Getting It Wrong
-- Things Nobody Told Me
-- What This Taught Me
 - Survival Notes
-- The Meaning Behind The Line
+- What This Song Taught Me
+- Things Nobody Told Me
+- The Verse Behind The Story
+- The Line That Changed Everything
+- Before I Knew Better
 
-Pillars should feel like recurring territories rather than broad themes.
+Each pillar should feel difficult for another artist to naturally copy.
 
-CONTENT FORMATS:
+Purpose should explain why this recurring series exists.
 
-Repeatable format rules:
+Examples should be realistic episode ideas rather than full content plans.
 
-- Make each format something the artist could realistically post every week.
-- Prefer music-first formats.
-- Prioritise:
-  lyric breakdowns,
-  hook stories,
-  verse explanations,
-  studio insights,
-  performance clips,
-  songwriting discussions.
+The three pillars should feel noticeably different from one another.
 
-- Avoid generic creator content.
-- Avoid formats that could belong to any niche.
-- Every format should reinforce the artist identity.
+One might revolve around stories.
 
-Define 2–3 repeatable formats.
+One around philosophy.
+
+One around conversations.
+
+Do not make all three personal storytelling.
+
+CONTENT FORMATS
+
+Design 3 repeatable creator formats.
+
+Think like recurring YouTube shows or TikTok series.
+
+Every format should reinforce the artist identity.
+
+Avoid generic creator content.
 
 Each format must include:
+
 - name
 - type
 - structure
 - emotionalGoal
 
-Formats should feel like repeatable series an artist could actually post weekly.
+Additional internal rules:
 
-Avoid generic names like:
-- Late-night reflections
-- City soundscapes
-- Meaning breakdown
+The name should feel ownable.
 
-Prefer practical repeatable containers like:
-- The Line That Explains It
-- One Take, One Truth
-- The Studio Thought
-- The Story Behind The Hook
-- What This Song Is Really About
-- The Listener Question
+The structure should explain exactly how every episode works.
+
+The emotional goal should explain why fans come back every week.
+
+Prefer music-first formats such as:
+
+- lyric breakdowns
+- songwriting moments
+- hook explanations
+- studio decisions
+- unfinished ideas
+- audience discussions
+- verse stories
+
+Avoid formats that could belong to any creator.
+
+Bad:
+
+Late Night Thoughts
+
+City Walks
+
+Reflections
+
+Good:
+
+The Story Behind The Hook
+
+One Verse Explained
+
+The Notebook Before The Song
+
+What This Line Really Means
+
+One Take One Truth
+
+The Listener Question
+
+Each format should feel like a recurring show rather than a single content idea.
 
 ---
 
 AUDIENCE:
+
+Audience psychology may be built around:
+- ambitions
+- lifestyles
+- frustrations
+- cultural identity
+- humour
+- curiosity
+- rebellion
+- status
+- craftsmanship
+- nostalgia
+- obsession
+- responsibility
+
+Do not default to:
+- deep thinkers
+- people seeking meaning
+- people seeking connection
+- introspective listeners
+
+unless strongly supported by inputs.
 
 Do not describe the audience only by genre taste or demographics.
 
@@ -826,39 +1342,6 @@ Define:
 - what to do (style rules)
 - what to avoid
 
----
-
-BRAND GUARDRAILS:
-
-Define 5–8 brand guardrails.
-
-These should guide the artist without trapping them.
-
-Avoid overly rigid language like:
-- must always
-- mandatory
-- every piece of content must
-
-Prefer flexible but clear language like:
-- lean into
-- prioritise
-- avoid drifting into
-- keep returning to
-- use as a recurring signal
-
-Brand Message should not simply describe the artist.
-
-It should communicate:
-- what the artist stands for
-- what they want listeners to feel
-- what promise they make to their audience
-
-This should feel usable in:
-- bios
-- websites
-- press kits
-- captions
-- campaigns
 
 ---
 
@@ -895,74 +1378,11 @@ Recurring themes: ${recurringThemes || '—'}
 Desired listener effect: ${listenerEffect || '—'}
 Unique qualities: ${uniqueQualities || '—'}
 
-Influence usage rules:
+Use the listed influences as creative context only.
 
-INFLUENCE FINGERPRINTING
+Do not copy them, compare the artist to them, or repeatedly mention them by name.
 
-Identify:
-
-- lyrical traits
-- storytelling traits
-- emotional traits
-- thematic traits
-- aesthetic traits
-
-shared across the listed influences.
-
-Do not copy the influences.
-
-Extract the common DNA between them.
-
-Allow these fingerprints to subtly shape:
-- manifesto
-- tone of voice
-- positioning
-- content pillars
-- audience psychology
-
-The result should feel influenced by those artists without sounding like a copy of them.
-
-Use the influences to infer creative direction.
-
-Do not simply mention the influences by name.
-
-Analyse what the influences suggest about:
-- lyrical style
-- storytelling
-- emotional tone
-- visual world
-- audience expectations
-- content style
-
-These influence patterns should shape:
-- USP
-- manifesto
-- audience psychology
-- tone of voice
-- visual direction
-- content pillars
-
-Do not copy influences.
-
-Instead identify patterns across them.
-
-Ask:
-
-What themes connect these influences?
-What audience do they attract?
-What emotional territory do they occupy?
-What creative philosophy do they share?
-
-Use those observations throughout the identity kit.
-
-The influence section should shape:
-- positioning
-- audience
-- content pillars
-- voice
-- worldview
-
-rather than being treated as a standalone field.
+Infer useful creative patterns from the influences and apply them subtly across the identity kit.
 
 ARTIST MANIFESTO:
 
@@ -1003,85 +1423,49 @@ Use conviction.
 
 Prioritise strong opinions, philosophies and perspectives over career goals.
 
-Artist Snapshot:
-Create a quick-glance strategic summary that someone could understand in 30 seconds.
+Artist Snapshot
 
-snapshot.oneLineIdentity:
-A concise sentence explaining who the artist is creatively.
+Create a 30-second strategic overview.
 
-snapshot.ownableDifference:
-The clearest competitive difference. This should feel sharper than a normal bio.
+This section is designed for someone discovering the artist for the first time.
 
-snapshot.audiencePromise:
-What the artist consistently gives the listener emotionally, mentally, or culturally.
+It should explain the artist quickly.
 
-snapshot.visualShorthand:
-The quickest description of how the artist should look and feel visually.
+Do not persuade.
 
-snapshot.contentDirection:
-The clearest direction for what kind of content this artist should repeatedly create.
+Do not tell a story.
 
-This should be the sharpest sentence in the kit. It should not sound like a normal artist bio.
+Simply help someone understand the artist immediately.
 
-Avoid generic artist descriptions.
+Each field should feel concise, memorable and practical.
 
-Do not start with:
-- A lyrical storyteller
-- An artist who
-- A musician who
-- A rapper who
+snapshot.oneLineIdentity
 
-Create a memorable positioning statement.
+Who is this artist?
 
-It should sound like a brand.
+Describe them in one memorable sentence.
 
-Examples:
+snapshot.ownableDifference
 
-Music for people carrying responsibilities too early.
+What is the clearest thing they own that other artists do not?
 
-Documenting the cost of ambition.
+This should describe territory rather than quality.
 
-The soundtrack for outsiders building their own lane.
+snapshot.audiencePromise
 
-Songs for people who never felt represented.
+What can listeners consistently expect from this artist?
 
-Keep under 12 words where possible.
+Describe the recurring experience rather than emotions.
 
-Avoid generic outcomes such as:
-- inspired
-- motivated
-- empowered
-- uplifted
+snapshot.visualShorthand
 
-Instead describe a specific transformation.
+Describe the artist's recognisable visual world in one sentence.
 
-Examples:
+snapshot.contentDirection
 
-Challenge assumptions people rarely question.
+Summarise what this artist should repeatedly create content about.
 
-Provide language for overlooked experiences.
-
-Reinforce convictions listeners already hold.
-
-Offer an alternative perspective on modern culture.
-
-Create belonging around a shared worldview.
-
-Before generating the kit, internally identify:
-
-1. Core experiences
-2. Core beliefs
-3. Core tensions
-4. Emotional territory
-5. Listener outcome
-6. Cultural position
-
-Core experiences are the highest priority source material.
-
-Experiences should influence every major section of the kit.
-
-Do not replace experiences with themes.
-Use themes to explain experiences.
+Do not repeat positioning, USP or manifesto.
 
 Experience Dominance Rule
 
@@ -1171,72 +1555,158 @@ The goal is not merely to describe the artist.
 
 The goal is to reveal something meaningful about them.
 
-FIRST COMPLETE A STRATEGIC ANALYSIS.
+CREATIVE DNA
 
-Do not generate the identity kit immediately.
+Before generating the Creative Constitution, identify the artist's Creative DNA.
 
-Before writing the final JSON, internally identify:
+Creative DNA represents the permanent ingredients that repeatedly define this artist.
 
-1. CORE BELIEFS
+These are not personality traits.
 
-Beliefs must describe how the artist thinks the world works.
+These are not values.
 
-A belief should sound like:
+These are not emotions.
 
-- an observation
-- a life lesson
-- a philosophy
-- a worldview
+Instead identify the artist's recurring identity ingredients.
 
-NOT a personal value.
+Examples
 
-Bad:
-- authenticity matters
-- be yourself
-- work hard
-- stay positive
+Unexpected Fatherhood
 
-Good:
-- Most people confuse distraction with purpose.
-- Growth begins when excuses stop working.
-- People often feel alone because nobody says what they really think.
-- Success without meaning creates emptiness.
+Night Shift Discipline
 
-Beliefs should feel arguable.
+Anime Philosophy
 
-If nobody could disagree with the statement, it is too generic.
+Underground Realism
 
-2. CORE TENSIONS
-What opposing forces define this artist?
-Examples:
-- hope vs struggle
-- ambition vs peace
-- individuality vs belonging
-- realism vs optimism
-- pain vs growth
-- isolation vs community
+Dense Lyricism
 
-3. EMOTIONAL TERRITORY
-What emotional space should this artist consistently own?
+Community Before Ego
 
-4. LISTENER OUTCOME
-How should listeners feel after engaging with this artist?
+Late Night London
 
-5. CULTURAL POSITION
-What part of culture, music, social media, or modern life is this artist reacting against or offering an alternative to?
+Building In Public
 
-6. INFLUENCE ANALYSIS
-Study all listed influences and identify:
-- common lyrical traits
-- common storytelling patterns
-- common themes
-- common emotional territory
-- common production or visual aesthetics
+Creative Curiosity
 
-Use these findings throughout the entire identity kit.
+Earned Hope
 
-Do not simply repeat the user's input words.
-Translate their inputs into deeper insight and sharper strategy.
+Every DNA element should satisfy four rules.
+
+Specific.
+
+Memorable.
+
+Repeatable.
+
+Difficult to copy.
+
+Avoid generic DNA such as:
+
+Resilience
+
+Authenticity
+
+Growth
+
+Hope
+
+Passion
+
+Instead prefer identity ingredients that repeatedly appear throughout the artist's life and work.
+
+Generate 8–12 Creative DNA elements.
+
+Each element should include:
+
+{
+Each Creative DNA item should contain:
+
+title
+
+meaning
+}
+
+Meaning should explain why this ingredient repeatedly appears throughout the artist's identity.
+
+Creative DNA should become the foundation underneath the entire Identity Kit.
+
+If every other page disappeared, Creative DNA should still explain who the artist is.
+
+CREATIVE CONSTITUTION
+
+Generate the artist's Creative Constitution.
+
+These are permanent creative laws.
+
+They should protect the artist's identity as opportunities, trends and commercial pressure increase.
+
+Organise the Constitution into three sections.
+
+NEVER
+
+Things the artist should never compromise.
+
+ALWAYS
+
+Things the artist should consistently pursue.
+
+REMEMBER
+
+Ideas the artist should keep in mind as their career evolves.
+
+Every principle must emerge naturally from:
+
+- Signature Assets
+- Worldview
+- Creative Tensions
+- Lived Experiences
+
+Do not create motivational advice.
+
+Do not create branding tips.
+
+Do not create social media advice.
+
+Instead create principles that guide future creative decisions.
+
+Each principle should answer questions like:
+
+Should I release this?
+
+Should I collaborate?
+
+Should I follow this trend?
+
+Should I simplify my lyrics?
+
+Should I change my visual identity?
+
+Every principle should protect the artist's long-term identity.
+
+Return:
+
+{
+  Each Creative Constitution entry should contain:
+
+section
+
+principle
+
+rationale
+}
+
+The rationale should explain why this principle exists.
+
+Generate approximately:
+
+3 Never
+
+3 Always
+
+3 Remember
+
+The strongest constitutions should feel timeless.
 
 Return valid JSON matching exactly this shape:
 
@@ -1248,7 +1718,7 @@ Return valid JSON matching exactly this shape:
   },
   "strategicFoundations": {
   "coreBeliefs": string[],
-  "worldviewStatements": string[]
+  "worldviewStatements": string[],
   "coreTensions": string[],
   "emotionalTerritory": string,
   "listenerTransformation": string,
@@ -1313,7 +1783,19 @@ Return valid JSON matching exactly this shape:
       }
     ]
   },
-  "identityRules": string[],
+  "creativeDNA":[
+{
+"title":"",
+"meaning":""
+}
+],
+  "identityRules": [
+  {
+    "section": string,
+    "principle": string,
+    "rationale": string
+  }
+],
   "keywords": string[]
 }
 
@@ -1326,6 +1808,16 @@ Different sections may draw from different worldview statements, experiences, te
 These are the deepest truths extracted from the artist.
 
 They should feel like observations about life.
+
+identityRules represents the artist's Creative Constitution.
+
+Although the JSON field is named identityRules for compatibility, the generated content should be permanent creative principles rather than branding advice.
+
+Every item should help the artist make future creative decisions.
+
+Avoid generic guidance.
+
+Each principle should feel like a law that could only belong to this artist.
 
 Examples:
 
@@ -1517,10 +2009,14 @@ into a single memorable positioning statement.
 - The strategy.listenerIdentity must describe the kind of listener who would feel represented by this artist.
 - Use the experiences/philosophy, recurring themes, desired listener effect, and unique qualities as core source material.
 - Do not make the USP generic. It should be based on a specific strength, perspective, story, sound, skill, value, or emotional effect.
-- identityRules should be brand guardrails, not strict laws
 - Avoid saying every piece of content must include the same theme
 - Make the rules useful for future evolution, not restrictive
-- If Direction is provided, it must materially influence the visuals, tone, content formats, and identity rules
+- If Direction is provided, it must materially influence:
+
+- Visual System
+- Content System
+- Creative DNA
+- Creative Constitution
 
 Positioning must explain what makes the artist different from others in their genre.
 
@@ -1550,9 +2046,11 @@ Minimums:
 - content.pillars: 3
 - each content pillar must include 3 practical examples of what the artist could post under that pillar
 - content.formats: 3
-- identityRules: 6
+- identityRules: 9
 - keywords: 8
 - strategy.listenerIdentity: 4
+- creativeDNA: 8
+
 
 Do NOT include:
 - 90-day plans
@@ -1575,7 +2073,10 @@ Do NOT include:
     })
 
     const raw = completion.choices?.[0]?.message?.content?.trim() || '{}'
-    const result = JSON.parse(raw)
+
+console.log(raw)
+
+const result = JSON.parse(raw)
 
     // ✅ Count the generation AFTER success (this stops unlimited use)
     const nextUsage = { ...usage, identity_generate_uses: used + 1 }
