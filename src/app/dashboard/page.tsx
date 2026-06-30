@@ -424,82 +424,86 @@ function toneBadge(tone: CardTone) {
     <main className="min-h-screen bg-black text-white">
 
       {showUpdate ? (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
-    <div className="w-full max-w-lg rounded-3xl border border-ww-violet/30 bg-black p-6 shadow-[0_0_60px_rgba(168,85,247,0.35)]">
-      <p className="text-xs uppercase tracking-[0.22em] text-ww-violet">
-        WW v1.2 • Foundations
-      </p>
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 py-6 backdrop-blur-sm">
+    <div className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-ww-violet/30 bg-black shadow-[0_0_60px_rgba(168,85,247,0.35)]">
+      <div className="border-b border-white/10 p-5">
+        <p className="text-xs uppercase tracking-[0.22em] text-ww-violet">
+          WW v1.2 • Foundations
+        </p>
 
-      <h2 className="mt-3 text-2xl font-semibold text-white">
-        A stronger foundation for every artist.
-      </h2>
+        <h2 className="mt-3 text-xl font-semibold text-white">
+          A stronger foundation for every artist.
+        </h2>
 
-      <p className="mt-3 text-sm leading-relaxed text-white/65">
-        This update focuses on helping artists understand, express and protect their identity with deeper strategic reasoning across the Identity Kit.
-      </p>
-
-      <div className="mt-6 space-y-6 text-sm leading-relaxed text-white/72">
-
-        <div>
-          <p className="font-semibold text-white">🧬 Identity Kit</p>
-          <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>New Creative DNA section</li>
-            <li>New Creative Constitution</li>
-            <li>Deeper lived experience analysis</li>
-            <li>Stronger worldview and philosophy extraction</li>
-            <li>Improved audience psychology</li>
-            <li>Less repetition across every section</li>
-            <li>Smarter reasoning throughout the Identity Kit</li>
-          </ul>
-        </div>
-
-        <div>
-          <p className="font-semibold text-white">📄 PDF Export</p>
-          <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>Premium report redesign</li>
-            <li>Added Artist Snapshot</li>
-            <li>Added Strategic Foundations</li>
-            <li>Added Brand Strategy</li>
-            <li>Added Creative DNA</li>
-            <li>Added Creative Constitution</li>
-          </ul>
-        </div>
-
-        <div>
-          <p className="font-semibold text-white">⚙️ Improvements</p>
-          <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>Cleaner reasoning pipeline</li>
-            <li>Improved JSON reliability</li>
-            <li>Better section differentiation</li>
-            <li>More consistent identity outputs</li>
-          </ul>
-        </div>
-
-        <div>
-          <p className="font-semibold text-white">Coming Soon</p>
-          <p className="mt-2 text-white/60">
-            Content System 2.0 • Audience Psychology 2.0 • Active Identity Kits • Press Kit Studio
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-xs uppercase tracking-[0.16em] text-white/45">
-            From the Founder
-          </p>
-
-          <p className="mt-3 text-sm leading-relaxed text-white/70">
-            WW is gradually evolving from an AI marketing tool into a creative operating system for independent artists. Every update is shaped by feedback from artists using the platform, so thank you for helping build it.
-          </p>
-        </div>
-
+        <p className="mt-3 text-sm leading-relaxed text-white/65">
+          This update focuses on helping artists understand, express and protect their identity with deeper strategic reasoning across the Identity Kit.
+        </p>
       </div>
 
-      <button
-        onClick={dismissUpdate}
-        className="mt-8 w-full rounded-xl bg-ww-violet px-4 py-3 text-sm font-medium text-white transition hover:opacity-90"
-      >
-        Explore WW v1.2
-      </button>
+      <div className="flex-1 overflow-y-auto px-5 py-5 text-sm leading-relaxed text-white/72">
+        <div className="space-y-5">
+          <div>
+            <p className="font-semibold text-white">🧬 Identity Kit</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>New Creative DNA section</li>
+              <li>New Creative Constitution</li>
+              <li>Deeper lived experience analysis</li>
+              <li>Stronger worldview and philosophy extraction</li>
+              <li>Improved audience psychology</li>
+              <li>Less repetition across every section</li>
+              <li>Smarter reasoning throughout the Identity Kit</li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="font-semibold text-white">📄 PDF Export</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>Premium report redesign</li>
+              <li>Added Artist Snapshot</li>
+              <li>Added Strategic Foundations</li>
+              <li>Added Brand Strategy</li>
+              <li>Added Creative DNA</li>
+              <li>Added Creative Constitution</li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="font-semibold text-white">⚙️ Improvements</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>Cleaner reasoning pipeline</li>
+              <li>Improved JSON reliability</li>
+              <li>Better section differentiation</li>
+              <li>More consistent identity outputs</li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="font-semibold text-white">Coming Soon</p>
+            <p className="mt-2 text-white/60">
+              Content System 2.0 • Audience Psychology 2.0 • Active Identity Kits • Press Kit Studio
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs uppercase tracking-[0.16em] text-white/45">
+              From the Founder
+            </p>
+
+            <p className="mt-3 text-sm leading-relaxed text-white/70">
+              WW is gradually evolving from an AI marketing tool into a creative operating system for independent artists. Every update is shaped by feedback from artists using the platform, so thank you for helping build it.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-white/10 p-5">
+        <button
+          onClick={dismissUpdate}
+          className="w-full rounded-xl bg-ww-violet px-4 py-3 text-sm font-medium text-white transition hover:opacity-90"
+        >
+          Explore WW v1.2
+        </button>
+      </div>
     </div>
   </div>
 ) : null}
