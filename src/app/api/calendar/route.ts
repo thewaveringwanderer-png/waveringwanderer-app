@@ -1,6 +1,7 @@
 // src/app/api/calendar/route.ts
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { formatAttentionGenomeForPrompt } from '@/lib/attentionGenome'
 import {
   TEXT_ON_SCREEN_HOOKS,
 } from '@/lib/ideaFactoryHookLibrary'
@@ -187,6 +188,7 @@ type CalendarRequest = {
   genre?: string
   artistType?: string
   performanceStyle?: string
+  creativeReality?: string
   audience?: string
   identityKitContext?: any | null
 selectedIdentityKitId?: string | null
@@ -243,6 +245,8 @@ export type CalendarItem = {
   title: string
   platform: string
   contentType: string
+  attentionStrategy: string
+attentionReason: string
   hook: string
   onScreenText: string
   concept: string
@@ -260,6 +264,8 @@ type AiCalendarItem = {
   short_label?: string
   pillar?: string
   content_type?: string
+  attentionStrategy?: string
+attentionReason?: string
  hook?: string
 onScreenText?: string
 on_screen_text?: string
@@ -824,6 +830,8 @@ format = fallbackBadge
       title,
       platform,
       contentType: format,
+      attentionStrategy: '',
+attentionReason: '',
       hook,
       onScreenText,
       caption: fallbackCaption,
@@ -1338,6 +1346,7 @@ export async function POST(req: Request) {
     genre = '',
     artistType = '',
     performanceStyle = '',
+    creativeReality = '',
     audience = '',
     goal = '',
 
@@ -1472,6 +1481,7 @@ Idea depth mode: BALANCED
   if (genre) contextLines.push(`Genre / lane: ${genre}`)
   if (artistType) contextLines.push(`Artist type: ${artistType}`)
   if (performanceStyle) contextLines.push(`Performance / creation style: ${performanceStyle}`)
+  if (creativeReality) contextLines.push(`Creative reality: ${creativeReality}`)
   if (audience) contextLines.push(`Audience: ${audience}`)
   if (goal) contextLines.push(`Primary goal: ${goal}`)
 
@@ -1527,11 +1537,200 @@ ${moment.why}
       .join('\n\n')
   : 'No lyric moments identified.'     
 
-  
+  const attentionGenome = formatAttentionGenomeForPrompt()
   const systemPrompt = `
 You are an expert music marketing strategist and content calendar architect.
 You design practical, shootable content plans that respect an artist's reality
 (time, energy, budget) while still pushing growth.
+
+ATTENTION ENGINE
+
+The following Attention Genome defines the psychological building blocks available when generating ideas.
+
+Do not copy it.
+
+Reason from it.
+
+${attentionGenome}
+
+For every idea:
+
+1. Choose the most appropriate Attention Gene.
+
+2. Use its psychology to shape the concept.
+
+3. Use its viewer feeling to shape the hook.
+
+4. Use its compatible mechanics when choosing a content mechanic.
+
+5. Avoid the common mistakes listed.
+
+Do not simply reuse patterns.
+
+Understand why they work, then create something original for this specific artist.
+
+CONCEPT ENGINE
+
+Before writing any content idea, first design the CONTENT MECHANIC.
+
+Do not start with a topic.
+
+Start with HOW the audience experiences the idea.
+
+A concept should feel like a creator thought:
+
+"That would make a really good video."
+
+before they thought:
+
+"I should talk about this."
+
+Choose ONE primary concept mechanic for every idea.
+
+Possible mechanics include:
+
+• Split screen
+• Before vs After
+• Countdown
+• POV
+• Storytime
+• Lyric reveal
+• Notebook / journal
+• Whiteboard explanation
+• Screen recording
+• Text conversation
+• Fake conversation
+• Draft evolution
+• Voice memo
+• Anonymous confession
+• Challenge
+• Timer
+• One take
+• Performance interruption
+• Camera hidden
+• Green screen
+• Duet bait
+• Stitch bait
+• Audience chooses
+• Myth vs Reality
+• Expectation vs Reality
+• Parallel timelines
+• First person narration
+• Internal monologue
+• Reverse storytelling
+• Build-up and payoff
+• Comment reply
+• Fan response
+• Live reaction
+• Song breakdown
+
+Every mechanic should naturally fit:
+
+- the artist
+- the platform
+- the content style
+- Creative Reality
+- audience psychology
+- Identity Kit
+
+Do NOT repeatedly use the same mechanic.
+
+Actively diversify mechanics across the batch.
+
+Every idea must satisfy this test:
+
+If somebody removed the music,
+
+would the video STILL be interesting?
+
+If not,
+
+the concept is not strong enough.
+
+Improve the mechanic before continuing.
+
+CONCEPT QUALITY TEST
+
+A strong concept should make the artist think:
+
+"I actually want to film that."
+
+not
+
+"That's another content idea."
+
+Every concept should contain one memorable creative decision.
+
+Examples:
+
+- an unexpected reveal
+- an unusual filming mechanic
+- audience participation
+- a visual twist
+- a specific object
+- a location
+- a constraint
+- a storytelling device
+
+If the concept could be replaced by "talk to camera," improve it.
+
+
+For every idea think in this order:
+
+1. Which Identity Kit element should this express?
+
+2. Which Attention Gene best matches this artist, audience and goal?
+
+3. Which concept mechanic naturally expresses that psychology?
+
+4. Adapt the concept to the artist's Creative Reality.
+
+5. Write an original hook.
+
+6. Write original on-screen text.
+
+7. Design the execution.
+
+8. Finish with the CTA.
+
+The Attention Gene should drive the entire idea, not just the hook.
+
+Never skip these reasoning steps.
+
+Never start by writing a hook.
+
+The mechanic comes first.
+
+For every idea:
+
+Choose ONE primary Attention Gene from the Attention Genome.
+
+Use its psychology to shape:
+
+- the concept
+- the hook
+- the on-screen text
+- the execution
+- the CTA
+
+Do not imitate existing examples.
+
+Understand the psychological mechanism and create an original execution for this artist.
+
+If an Identity Kit exists, the attention gene must naturally emerge from:
+
+- audience psychology
+- listener transformation
+- identity anchors
+- recurring themes
+- brand philosophy
+- Creative DNA
+
+Vary the Attention Genes across the batch.
+
+Avoid repeatedly selecting the same psychological mechanism.
+
+Aim for emotional and psychological variety while remaining true to the artist's identity.
 
 When an Identity Kit is provided:
 
@@ -2645,6 +2844,37 @@ ${releaseStrategyContextBlock}
 
 Identity Kit context:
 ${identityKitContextBlock}
+
+Creative constraints rule:
+If creative constraints are provided, treat them as hard production requirements.
+
+Do not generate ideas that ignore the artist's constraints.
+
+Constraints may include:
+- filming only in a bedroom
+- not showing face
+- limited time
+- no budget
+- no one available to film
+- only using a phone
+- low confidence speaking to camera
+- unable to film outside
+- only filming at night
+- no studio access
+
+Treat constraints as creative design requirements, not obstacles.
+
+The strongest ideas make the artist's creative reality feel intentional rather than limiting.
+
+Good ideas should feel realistic for the artist to make this week.
+
+Bad:
+"Film a cinematic outdoor sequence."
+
+Good:
+"Film a close-up phone video at your desk using text on screen, hands, notebook shots, or room details."
+
+Every idea should respect the artist's available time, confidence, location, equipment and energy.
 
 Identity Kit specificity rule:
 If Context source is "identity", the ideas must feel clearly born from that artist’s saved Identity Kit, not from generic genre advice.

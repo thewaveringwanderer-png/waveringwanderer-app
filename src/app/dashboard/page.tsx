@@ -428,60 +428,63 @@ function toneBadge(tone: CardTone) {
     <div className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-ww-violet/30 bg-black shadow-[0_0_60px_rgba(168,85,247,0.35)]">
       <div className="border-b border-white/10 p-5">
         <p className="text-xs uppercase tracking-[0.22em] text-ww-violet">
-          WW v1.2 • Foundations
+          WW v1.3 • Creative Intelligence
         </p>
 
         <h2 className="mt-3 text-xl font-semibold text-white">
-          A stronger foundation for every artist.
+          WW is learning how to think.
         </h2>
 
         <p className="mt-3 text-sm leading-relaxed text-white/65">
-          This update focuses on helping artists understand, express and protect their identity with deeper strategic reasoning across the Identity Kit.
+          This update marks the beginning of a new architecture for Wavering Wanderers. Rather than relying on one increasingly large prompt, WW is evolving into specialist knowledge systems that reason together before generating ideas.
         </p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-5 text-sm leading-relaxed text-white/72">
         <div className="space-y-5">
+
           <div>
-            <p className="font-semibold text-white">🧬 Identity Kit</p>
+            <p className="font-semibold text-white">🧬 Identity Intelligence</p>
             <ul className="mt-2 list-disc space-y-1 pl-5">
-              <li>New Creative DNA section</li>
-              <li>New Creative Constitution</li>
-              <li>Deeper lived experience analysis</li>
-              <li>Stronger worldview and philosophy extraction</li>
+              <li>Creative DNA introduced</li>
+              <li>Creative Constitution added</li>
+              <li>Stronger identity reasoning</li>
               <li>Improved audience psychology</li>
-              <li>Less repetition across every section</li>
-              <li>Smarter reasoning throughout the Identity Kit</li>
+              <li>Deeper philosophy extraction</li>
+              <li>More consistent artist understanding</li>
             </ul>
           </div>
 
           <div>
-            <p className="font-semibold text-white">📄 PDF Export</p>
+            <p className="font-semibold text-white">🧠 Attention Genome</p>
             <ul className="mt-2 list-disc space-y-1 pl-5">
-              <li>Premium report redesign</li>
-              <li>Added Artist Snapshot</li>
-              <li>Added Strategic Foundations</li>
-              <li>Added Brand Strategy</li>
-              <li>Added Creative DNA</li>
-              <li>Added Creative Constitution</li>
+              <li>New psychological reasoning engine</li>
+              <li>12 foundational Attention Genes</li>
+              <li>Idea generation now reasons before writing</li>
+              <li>Greater variation between artists</li>
+              <li>Hooks are becoming strategy-led instead of template-led</li>
             </ul>
           </div>
 
           <div>
-            <p className="font-semibold text-white">⚙️ Improvements</p>
+            <p className="font-semibold text-white">⚙️ Architecture</p>
             <ul className="mt-2 list-disc space-y-1 pl-5">
-              <li>Cleaner reasoning pipeline</li>
-              <li>Improved JSON reliability</li>
-              <li>Better section differentiation</li>
-              <li>More consistent identity outputs</li>
+              <li>Beginning the transition to modular AI reasoning</li>
+              <li>Cleaner knowledge separation</li>
+              <li>Foundation laid for future reasoning engines</li>
+              <li>Easier long-term improvements across the platform</li>
             </ul>
           </div>
 
           <div>
-            <p className="font-semibold text-white">Coming Soon</p>
-            <p className="mt-2 text-white/60">
-              Content System 2.0 • Audience Psychology 2.0 • Active Identity Kits • Press Kit Studio
-            </p>
+            <p className="font-semibold text-white">🗺️ Coming Next</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>Content Strategy Genome</li>
+              <li>Concept Engine</li>
+              <li>Idea Quality Evaluation Engine</li>
+              <li>Active Identity Kits</li>
+              <li>Press Kit Studio</li>
+            </ul>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -490,9 +493,14 @@ function toneBadge(tone: CardTone) {
             </p>
 
             <p className="mt-3 text-sm leading-relaxed text-white/70">
-              WW is gradually evolving from an AI marketing tool into a creative operating system for independent artists. Every update is shaped by feedback from artists using the platform, so thank you for helping build it.
+              For months we've been teaching WW what to generate. This update marks the beginning of something much bigger. From now on, we're teaching it how to think. Every new reasoning engine brings WW one step closer to becoming a true creative operating system for independent artists.
             </p>
+            <p className="mt-4 text-center text-xs italic text-white/35">
+  "Every voyage begins by reaching the next visible horizon."
+</p>
           </div>
+          
+
         </div>
       </div>
 
@@ -501,7 +509,7 @@ function toneBadge(tone: CardTone) {
           onClick={dismissUpdate}
           className="w-full rounded-xl bg-ww-violet px-4 py-3 text-sm font-medium text-white transition hover:opacity-90"
         >
-          Explore WW v1.2
+          Explore WW v1.3
         </button>
       </div>
     </div>

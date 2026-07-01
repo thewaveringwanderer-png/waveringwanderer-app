@@ -67,6 +67,8 @@ type ApiCalendarItem = {
   title?: string
   platform?: string
   contentType?: string
+  attentionStrategy?: string
+attentionReason?: string
   hook?: string
   onScreenText?: string
   concept?: string
@@ -82,6 +84,8 @@ type StructuredIdea = {
   title?: string
   platform?: string
   contentType?: string
+  attentionStrategy?: string
+attentionReason?: string
   hook?: string
   onScreenText?: string
   concept?: string
@@ -738,6 +742,7 @@ const outputInnerCardClass =
 const [genre, setGenre] = useState('')
 const [artistType, setArtistType] = useState('other')
 const [performanceStyle, setPerformanceStyle] = useState('')
+const [creativeReality, setCreativeReality] = useState('')
 const [contentStyles, setContentStyles] = useState<string[]>([])
 const [contentEnergy, setContentEnergy] = useState('Balanced')
 const [audience, setAudience] = useState('')
@@ -1271,6 +1276,7 @@ monthlyListeners,
           genre,
           artistType,
           performanceStyle,
+          creativeReality,
           contentStyles: selectedContentStyles,
 contentEnergy,
           audience,
@@ -2087,16 +2093,32 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
     })}
   </div>
 </div>
-    <div className="space-y-1">
-    <p className={labelClass}>Focus mode</p>
-    <select className={selectClass} value={focusMode} onChange={e => setFocusMode(e.target.value as CalendarFocus)}>
-      <option value="general">General content</option>
-      <option value="release">Upcoming release</option>
-      <option value="old_release">Old release</option>
-      <option value="gig">Upcoming gig</option>
-      <option value="growth">Growth sprint</option>
-    </select>
-  </div>
+
+<div className="mt-5 border-t border-white/10 pt-5">
+  <p className={labelClass}>Creative Reality</p>
+
+  <p className="mt-1 text-xs text-white/45">
+    Tell WW what your ideas need to work around. The more honest you are, the more usable your ideas become.
+  </p>
+
+  <textarea
+    className={`${selectClass} mt-3 min-h-[110px] resize-none`}
+    placeholder="Examples:
+• I only film in my bedroom
+• I don't show my face
+• I only use my phone
+• I only have 20 minutes
+• I can't film outside
+• I don't feel confident talking to camera
+• I don't have anyone to film me"
+    value={creativeReality}
+    onChange={(e) => setCreativeReality(e.target.value)}
+  />
+
+  <p className="mt-2 text-xs text-ww-violet/80">
+    WW will treat this as your creative reality — not a limitation.
+  </p>
+</div>
   </div>
 </InputSection>
 
