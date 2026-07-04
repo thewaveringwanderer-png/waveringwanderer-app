@@ -983,7 +983,7 @@ async function handleDeleteCard(id: string) {
         </h1>
 
         <p className="text-white/65 leading-relaxed mb-8">
-          Plan releases, organise ideas, schedule content visually, and turn scattered inspiration into consistent momentum.
+          Bring your ideas together, map your next moves, and turn creative energy into consistent progress.
         </p>
 
         <a
@@ -1006,11 +1006,12 @@ async function handleDeleteCard(id: string) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight flex items-center gap-2">
-              <Compass className="w-7 h-7 text-ww-violet" />
-              Momentum Board
-            </h1>
-            <p className="text-white/70 max-w-2xl mt-1">
-  Your central planning space. Pull ideas in, place them when they feel right, and build momentum without pressure.
+  <Compass className="w-7 h-7 text-ww-violet" />
+  Momentum Board
+</h1>
+
+<p className="text-white/70 max-w-2xl mt-1">
+  Turn scattered ideas into a clear path forward. Organise your next steps, plan your releases, and keep moving with purpose.
 </p>
 
             {armedItemId && (
@@ -1028,19 +1029,21 @@ async function handleDeleteCard(id: string) {
 )}
 
             <p className="text-xs text-white/45 mt-2">
-  Only your chosen cards live here, so the board stays focused and manageable.
+  Your ideas, plans, and creative decisions collected into one place so your journey stays clear.
 </p>
           </div>
         </div>
 
 <div className="grid gap-3 sm:grid-cols-3">
     <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-      <p className="text-[0.7rem] uppercase tracking-wide text-white/45">In pool</p>
+      <p className="text-[0.7rem] uppercase tracking-wide text-white/45">
+  Ideas waiting
+</p>
       <p className="text-xl font-semibold text-white mt-1">{filteredPoolItems.length}</p>
     </div>
 
     <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-      <p className="text-[0.7rem] uppercase tracking-wide text-white/45">Scheduled this month</p>
+      <p className="text-[0.7rem] uppercase tracking-wide text-white/45">Steps planned</p>
       <p className="text-xl font-semibold text-white mt-1">
         {
           calendarItems.filter(it => {
@@ -1055,8 +1058,10 @@ async function handleDeleteCard(id: string) {
     <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
       <p className="text-[0.7rem] uppercase tracking-wide text-white/45">Focus</p>
       <p className="text-sm font-medium text-white mt-1">
-        {armedItemId ? 'Choose a date for your selected idea' : 'Drag, place, and shape your month'}
-      </p>
+  {armedItemId 
+    ? 'Choose when this step happens' 
+    : 'Build your path one step at a time'}
+</p>
     </div>
   </div>
 
@@ -1074,8 +1079,13 @@ async function handleDeleteCard(id: string) {
               <div className="flex items-center justify-between gap-3 mb-3 flex-wrap sm:flex-nowrap">
 
                 <div className="space-y-1">
-  <p className="text-lg uppercase tracking-wide font-semibold text-white">Idea pool</p>
-  <p className="text-xs text-white/50">Pick a card, then click a date on the board.</p>
+  <p className="text-lg uppercase tracking-wide font-semibold text-white">
+  Path Finder
+</p>
+
+<p className="text-xs text-white/50">
+  Choose your next move, then place it on your journey.
+</p>
 </div>
                 <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
 
@@ -1271,14 +1281,14 @@ async function handleDeleteCard(id: string) {
 
                     {filteredPoolItems.length === 0 && !loading && (
                       <p className="text-[0.75rem] text-white/50">
-                        No ideas in the pool with these filters. Send items here from other tools.
+                        No ideas waiting here yet. Send ideas from your WW tools and start building your path.
                       </p>
                     )}
 
                     {loading && (
                       <p className="text-[0.75rem] text-white/50 flex items-center gap-2">
                         <Loader2 className="w-3 h-3 animate-spin" />
-                        Loading ideas…
+                        Gathering your next steps…
                       </p>
                     )}
 

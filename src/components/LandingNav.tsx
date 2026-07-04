@@ -46,18 +46,7 @@ export default function LandingNav() {
           {/* Left spacer */}
           <div />
 
-          {/* Center nav */}
-          <nav className="hidden md:flex items-center justify-center gap-8 text-sm text-white/70">
-            <a href="#tools" className="hover:text-white transition">
-              Tools
-            </a>
-            <a href="#how" className="hover:text-white transition">
-              How it works
-            </a>
-            <a href="#pricing" className="hover:text-white transition">
-              Pricing
-            </a>
-          </nav>
+          
 
           {/* Right actions */}
           <div className="flex items-center gap-2">
@@ -69,7 +58,7 @@ export default function LandingNav() {
               hover:shadow-[0_0_18px_rgba(186,85,211,0.35)]
               transition active:scale-[0.99]"
             >
-              Sign in
+              Log in
             </Link>
 
             <Link
@@ -81,7 +70,7 @@ export default function LandingNav() {
               hover:shadow-[0_0_20px_rgba(155,48,255,0.35)]
               transition active:scale-[0.99]"
             >
-              Get started free
+              Start Your Journey
             </Link>
           </div>
         </div>

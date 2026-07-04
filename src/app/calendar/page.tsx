@@ -165,6 +165,14 @@ const CONTENT_ENERGY_OPTIONS = [
   'Chill / casual',
 ]
 
+const IDEA_FACTORY_GENERATING_MESSAGES = [
+  'Reading your creative direction...',
+  'Mapping your audience and content style...',
+  'Finding ideas that fit your current journey...',
+  'Building hooks around your creative reality...',
+  'Turning your direction into usable content...',
+  'Adding new points to your creative map...',
+]
 
 // ---------- Helpers ----------
 function dateKey(d: Date) {
@@ -512,6 +520,8 @@ const concept =
   'A platform-ready content idea built from your artist brief.'
 
 const rawHook = safeString(structured?.hook).trim() || ''
+const attentionStrategy = safeString(structured?.attentionStrategy).trim()
+const attentionReason = safeString(structured?.attentionReason).trim()
 const titleLower = title.toLowerCase()
 const conceptLower = concept.toLowerCase()
 
@@ -742,6 +752,7 @@ const outputInnerCardClass =
 const [genre, setGenre] = useState('')
 const [artistType, setArtistType] = useState('other')
 const [performanceStyle, setPerformanceStyle] = useState('')
+
 const [creativeReality, setCreativeReality] = useState('')
 const [contentStyles, setContentStyles] = useState<string[]>([])
 const [contentEnergy, setContentEnergy] = useState('Balanced')
@@ -1092,7 +1103,10 @@ safeString(b.metadata?.api?.format).trim()
     return Array.from(new Set(visibleItems.map(it => safeString(it.platform)).filter(Boolean)))
   }, [visibleItems])
 
-const generatingMessage = useGeneratingMessages(generating)
+const generatingMessage = useGeneratingMessages(
+  generating,
+  IDEA_FACTORY_GENERATING_MESSAGES
+)
 
   // ---------- DB helpers ----------
   async function insertCalendarRows(rows: Array<Partial<CalendarItem>>) {
@@ -1584,11 +1598,11 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
       </div>
 
       <h1 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white">
-        Turn ideas into content
+        Turn your direction into consistent content
       </h1>
 
       <p className="mt-3 text-sm md:text-base leading-relaxed text-white/65 max-w-2xl">
-        Generate platform-ready content ideas tailored to your sound, audience, and current moment — without repeating yourself.
+        Transform your artist identity, ideas, and current journey into content that helps people understand your world — without losing yourself trying to keep up.
       </p>
     </div>
   </div>
@@ -1598,7 +1612,7 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
   <div className="mb-4 rounded-2xl border border-ww-violet/20 bg-ww-violet/[0.06] p-4">
     <p className="text-[11px] uppercase tracking-[0.16em] text-ww-violet/80">Context loaded</p>
     <p className="mt-2 text-sm text-white/80 leading-relaxed">
-      Using your Identity Kit to shape content ideas from your brand, audience, tone, and creative world.
+      Your Identity Kit map is guiding this session. Ideas will stay connected to your audience, creative world, and long-term direction.
     </p>
   </div>
 ) : null}
@@ -1607,7 +1621,7 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
   <div className="mb-4 rounded-2xl border border-ww-violet/20 bg-ww-violet/[0.06] p-4">
     <p className="text-[11px] uppercase tracking-[0.16em] text-ww-violet/80">Context loaded</p>
     <p className="mt-2 text-sm text-white/80 leading-relaxed">
-      Using your campaign direction to shape content ideas from the selected concept, hook, and rollout angle.
+      Your campaign direction has been loaded. WW will help turn this milestone into content ideas that continue the journey.
     </p>
   </div>
 ) : null}
@@ -1656,11 +1670,17 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
 
           <div className="relative flex items-start justify-between gap-4 flex-wrap">
   <div className="max-w-xl">
-    <p className="text-[11px] uppercase tracking-[0.2em] text-white/45">Input</p>
-    <h2 className="mt-1 text-lg md:text-xl font-semibold text-white">Build your content brief</h2>
-    <p className="mt-2 text-sm text-white/62 leading-relaxed">
-      Give the tool the real context behind your music, content style, and current moment so the ideas feel specific, usable, and less repetitive.
-    </p>
+    <p className="text-[11px] uppercase tracking-[0.2em] text-white/45">
+Your Map
+</p>
+
+<h2 className="mt-1 text-lg md:text-xl font-semibold text-white">
+Chart your creative direction
+</h2>
+
+<p className="mt-2 text-sm text-white/62 leading-relaxed">
+Share where you are in your journey, how you create, and what you want to build. WW will help uncover content ideas that match your path.
+</p>
   </div>
 
             
@@ -1671,13 +1691,13 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
     <div className="h-[2px] w-10 bg-ww-violet/60 rounded-full mb-3" />
     <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">Context source</p>
     <p className="mt-2 text-sm leading-relaxed text-white/66">
-      Start from your manual brief, or load saved strategy context to turn bigger rollout thinking into content ideas.
+      Start from a fresh idea or continue from an existing map. Load your saved Identity Kit, campaigns, or release plans to keep your content aligned.
     </p>
   </div>
 
   <div className="flex flex-wrap gap-2">
     {[
-      { key: 'manual', label: 'Manual brief' },
+      { key: 'manual', label: 'New direction' },
 { key: 'identity', label: 'Identity Kit' },
 { key: 'campaign', label: 'Saved campaign' },
 { key: 'release_strategy', label: 'Release strategy' },
@@ -1886,8 +1906,8 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
 ) : null}
 </div>
          <InputSection
-  title="Artist basics"
-  hint="Set the artist, genre, stage, and guidance level."
+  title="Starting Point"
+hint="Set where you are today so WW can guide ideas that fit your current stage."
 >
   <div className="grid gap-3 md:grid-cols-2">
     <div className="space-y-1">
@@ -1957,7 +1977,7 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
 
 <InputSection
   title="Audience and direction"
-  hint="Tell WW who the content is for and what it should achieve."
+  hint="Define who you are guiding toward your world and what you want this content to create."
 >
   <div className="space-y-1">
     <p className={labelClass}>Audience</p>
@@ -1982,7 +2002,7 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
 
           <InputSection
   title="Creation style"
-  hint="Tell WW how you realistically make content so the ideas stay usable."
+  hint="Tell WW how you naturally create so every idea fits your style, resources, and journey."
 >
   <div
     className={`rounded-2xl border ${
@@ -2235,8 +2255,8 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
     {isCalendarLocked
       ? 'Unlock the full WW system'
       : generating
-      ? 'Generating ideas…'
-      : 'Generate ideas'}
+      ? 'Mapping ideas…'
+: 'Generate ideas'}
   </button>
 
   <p className="text-[0.75rem] text-white/50 min-h-[20px]">
@@ -2502,45 +2522,47 @@ const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
     </div>
 
     <div className="relative">
-      <div className="relative rounded-2xl border border-ww-violet/20 bg-gradient-to-r from-ww-violet/[0.12] via-ww-violet/[0.05] to-transparent p-4">
-  <p className="text-sm font-medium text-white">Turn strategy into actual content</p>
-  <p className="mt-1 text-xs leading-relaxed text-white/60">
-    Idea Factory is the execution engine of the workflow. Use your brief, campaigns, or release strategy
-    to generate content ideas that are aligned, specific, and ready to develop.
-  </p>
-</div>
-<span className="text-white/40 text-sm h-8">
-  Tip: Load a campaign or release strategy to generate more focused ideas.
-</span>
+      <div className="rounded-2xl border border-ww-violet/20 bg-gradient-to-r from-ww-violet/[0.12] via-ww-violet/[0.05] to-transparent p-4">
+        <p className="text-sm font-medium text-white">
+          Your next ideas will appear here.
+        </p>
+
+        <p className="mt-1 text-xs leading-relaxed text-white/60">
+          Every generation adds another point to your creative map. Start with your brief, Identity Kit, campaign, or release strategy, and WW will help turn that direction into content you can actually make.
+        </p>
+      </div>
+
+      <p className="mt-3 text-sm text-white/40">
+        Tip: Load your Identity Kit for ideas that stay closer to your world, audience, and long-term direction.
+      </p>
 
       <div className="mt-6 grid gap-3 md:grid-cols-2">
         <div className={outputInnerCardClass}>
-          <p className="text-xs uppercase tracking-wide text-white/45">Idea Factory gives you</p>
+          <p className="text-xs uppercase tracking-wide text-white/45">
+            Idea Factory helps you discover
+          </p>
+
           <ul className="mt-3 space-y-2 text-sm text-white/78">
-            <li>Platform-ready content angles</li>
-            <li>Stronger hooks and clearer formats</li>
-            <li>More variety without losing brand consistency</li>
-            <li>Ideas you can send straight to Momentum Board</li>
+            <li>Content ideas shaped around your creative direction</li>
+            <li>Hooks that fit your audience and current stage</li>
+            <li>Formats that match how you actually create</li>
+            <li>New paths into Momentum Board when an idea is ready</li>
           </ul>
         </div>
 
         <div className={outputInnerCardClass}>
-  <p className="text-xs uppercase tracking-wide text-white/45">How Idea Factory fits the workflow</p>
-  <ul className="mt-3 space-y-2 text-sm text-white/78">
-    <li>Identity Kit gives you the brand foundation</li>
-    <li>Campaigns and Release Strategy give you rollout direction</li>
-    <li>Idea Factory turns that thinking into actual content ideas</li>
-    <li>Captions sharpens the messaging on the strongest picks</li>
-    <li>Momentum Board is where those ideas get scheduled and executed</li>
-  </ul>
-</div>
-      </div>
+          <p className="text-xs uppercase tracking-wide text-white/45">
+            How it fits your journey
+          </p>
 
-      <div className="mt-6 rounded-2xl border border-ww-violet/15 bg-black/45 p-4">
-        <p className="text-xs uppercase tracking-wide text-white/45">Start with the left panel</p>
-        <p className="mt-2 text-sm text-white/70 leading-relaxed">
-          Build the brief, choose your platforms and content types, then generate a fresh batch of ideas to review and develop.
-        </p>
+          <ul className="mt-3 space-y-2 text-sm text-white/78">
+            <li>Identity Kit maps your foundations</li>
+            <li>Campaigns and Release Strategy give direction</li>
+            <li>Idea Factory turns that direction into expression</li>
+            <li>Captions sharpen the strongest ideas</li>
+            <li>Momentum Board helps you keep moving</li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>

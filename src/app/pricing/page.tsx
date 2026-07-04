@@ -68,13 +68,20 @@ export default function PricingPage() {
     <main className="min-h-screen bg-black text-white px-6 py-16">
       <div className="mx-auto max-w-6xl">
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-5xl font-bold">Pricing</h1>
+          <h1 className="text-3xl md:text-5xl font-bold">
+  Choose Your Path
+</h1>
           <p className="mt-4 text-white/70 max-w-xl mx-auto">
-            Start free. Choose the workflow that fits where you are right now.
-          </p>
+  Every artist journey looks different. Start with your foundations and unlock more guidance when you're ready to continue.
+</p>
         </div>
 
         <div className="mx-auto flex w-full max-w-4xl gap-4 overflow-x-auto pb-3 snap-x snap-mandatory md:flex-row md:items-center md:justify-center md:overflow-visible md:pb-0">
+          <div className="mb-10 flex justify-center">
+  <div className="rounded-full border border-white/10 bg-white/[0.03] px-5 py-3 text-sm text-white/60">
+    Foundations → Identity → Expression → Momentum
+  </div>
+</div>
           {WW_TIER_CARDS.map((tier) => {
             const isPaidTier = tier.key === 'idea_factory' || tier.key === 'creator'
 
@@ -89,7 +96,13 @@ export default function PricingPage() {
                 ].join(' ')}
               >
                 <div>
-                  <div className="flex items-baseline justify-between gap-3">
+  {tier.key === 'creator' && (
+    <div className="mb-4 inline-flex rounded-full border border-ww-violet/40 bg-ww-violet/10 px-3 py-1 text-xs text-ww-violet">
+      Recommended Journey
+    </div>
+  )}
+
+  <div className="flex items-baseline justify-between gap-3">
                     <h3 className="text-xl font-semibold text-white">{tier.name}</h3>
                     <span className="text-white/80 whitespace-nowrap">{tier.priceLabel}</span>
                   </div>
@@ -131,7 +144,7 @@ export default function PricingPage() {
     "border border-white/15 text-white/90 hover:border-ww-violet/70 hover:shadow-[0_0_22px_rgba(186,85,211,0.35)]",
   ].join(" ")}
 >
-  {loadingCheckout === 'idea_factory' ? 'Opening checkout…' : tier.cta}
+  {loadingCheckout === 'idea_factory' ? 'Preparing your path…' : tier.cta}
 </Link>
   ) : tier.key === 'creator' ? (
     <button
@@ -143,7 +156,7 @@ export default function PricingPage() {
         "bg-ww-violet text-white shadow-[0_0_16px_rgba(186,85,211,0.7)] hover:shadow-[0_0_22px_rgba(186,85,211,0.9)]",
       ].join(" ")}
     >
-      {loadingCheckout === 'creator' ? 'Opening checkout…' : tier.cta}
+      {loadingCheckout === 'creator' ? 'Preparing your path…' : tier.cta}
     </button>
   ) : null}
 </div>

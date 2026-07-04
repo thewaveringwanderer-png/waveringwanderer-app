@@ -52,17 +52,17 @@ type PolishResult = {
 }
 
 const CAPTION_GENERATING_MESSAGES = [
-  'Gathering your post context...',
-  'Matching your tone and platform...',
-  'Writing caption options...',
-  'Adding stronger hooks and phrasing...',
+  'Reading your creative direction...',
+  'Finding the right voice for this moment...',
+  'Exploring different ways to express your idea...',
+  'Preparing captions ready for your next step...',
 ]
 
 const CAPTION_POLISHING_MESSAGES = [
-  'Reading your caption...',
-  'Tightening the phrasing...',
-  'Improving clarity and rhythm...',
-  'Polishing your final version...',
+  'Understanding your original message...',
+  'Keeping your voice intact...',
+  'Strengthening clarity and connection...',
+  'Preparing your refined caption...',
 ]
 
 
@@ -720,12 +720,12 @@ if (!hasCaptionsAccess) {
 
     <div className="space-y-3">
       <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white">
-        Turn ideas into captions that hit
-      </h1>
+  Shape your ideas into words that connect.
+</h1>
 
-      <p className="max-w-2xl text-white/70 text-sm md:text-base leading-relaxed">
-        Generate, refine, and attach captions directly to your content so every idea becomes something ready to post.
-      </p>
+<p className="max-w-2xl text-white/70 text-sm md:text-base leading-relaxed">
+  Turn your creative direction into captions that feel aligned with your voice, your audience, and the story behind your work.
+</p>
     </div>
   </div>
 
@@ -825,11 +825,12 @@ if (!hasCaptionsAccess) {
           ) : null}
           <div className="rounded-2xl border border-ww-violet/20 bg-ww-violet/5 p-4">
   <p className="text-sm text-white font-medium">
-    Describe the post you want captions for
-  </p>
-  <p className="text-xs text-white/60 mt-1">
-    Generate multiple caption styles plus optional hashtag sets tailored to your platform.
-  </p>
+  Give your idea direction
+</p>
+
+<p className="text-xs text-white/60 mt-1">
+  Share what you want to express and WW will help shape it into captions that match your creative identity.
+</p>
 </div>
 
 
@@ -1142,7 +1143,7 @@ if (!hasCaptionsAccess) {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <h2 className="text-lg font-semibold text-white flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-ww-violet" />
-          Generated variants
+          Caption paths
         </h2>
 
         <div className="flex flex-wrap gap-2 items-center">
@@ -1298,10 +1299,13 @@ if (!hasCaptionsAccess) {
   ) : (
     <div className="h-full min-h-[480px] flex items-center justify-center text-center px-6">
       <div className="space-y-2">
-        <p className="text-white/80 font-medium">Your caption variants will appear here</p>
-        <p className="text-sm text-white/50 max-w-sm">
-          Generate a set on the left to preview, copy, save, send, or export them.
-        </p>
+        <p className="text-white/80 font-medium">
+  Your words will take shape here
+</p>
+
+<p className="text-sm text-white/50 max-w-sm">
+  Every idea starts as a spark. Add some direction and WW will help turn it into something ready to share.
+</p>
       </div>
     </div>
   )}
@@ -1354,11 +1358,12 @@ if (!hasCaptionsAccess) {
   <div className="relative space-y-5">
               <div className="rounded-2xl border border-ww-violet/20 bg-ww-violet/5 p-4">
                 <p className="text-sm font-medium text-white">
-                  Refine a caption you already have
-                </p>
-                <p className="mt-1 text-xs text-white/60">
-                  Paste a caption, tell the AI what to improve, and get a cleaner, sharper version without losing your voice.
-                </p>
+  Strengthen your message
+</p>
+
+<p className="mt-1 text-xs text-white/60">
+  Keep your original voice while improving clarity, emotion, and connection with your audience.
+</p>
               </div>
 
               <div className="rounded-2xl border border-ww-violet/15 bg-gradient-to-br from-white/[0.045] via-white/[0.025] to-transparent p-4 space-y-4">

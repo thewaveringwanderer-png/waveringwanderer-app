@@ -120,10 +120,10 @@ type OpenSections = {
 }
 
 const RELEASE_STRATEGY_GENERATING_MESSAGES = [
-  'Reading your release context...',
-  'Planning your rollout phases...',
+  'Reading your release direction...',
+  'Mapping your rollout path...',
   'Sequencing your key moments...',
-  'Building your release strategy...',
+  'Preparing your release playbook...',
 ]
 
 function normalizeMoveArray(value: unknown): StrategyMove[] {
@@ -1275,12 +1275,11 @@ if (inp.selectedIdentityKitId) {
               </div>
 
               <h1 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white">
-                Plan the release properly
+                Map the path for your next release
               </h1>
 
               <p className="mt-3 text-sm md:text-base leading-relaxed text-white/65 max-w-2xl">
-                Turn a song, EP, or album into a clear runway with stronger timing,
-                sharper rollout phases, and more realistic momentum after release.
+                Turn a song, EP, or album into a clear release path with stronger timing, focused rollout phases, and momentum that continues after launch.
               </p>
             </div>
 </div>
@@ -1328,22 +1327,19 @@ if (inp.selectedIdentityKitId) {
 
             <div className="relative space-y-5">
               <div className="max-w-xl">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-white/45">Input</p>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-white/45">Release Map</p>
                 <h2 className="mt-1 text-lg md:text-xl font-semibold text-white">
-                  Build the release brief
+                  Chart your release direction
                 </h2>
                 <p className="mt-2 text-sm text-white/62 leading-relaxed">
-                  This is where strategy gets shaped. A better brief creates a stronger rollout,
-                  cleaner timing, and more useful execution decisions later.
+                  Share the context behind your release so WW can help map a rollout that feels focused, realistic, and aligned with your artist journey.
                 </p>
               </div>
 
               <div className="relative rounded-2xl border border-ww-violet/20 bg-gradient-to-r from-ww-violet/[0.12] via-ww-violet/[0.05] to-transparent p-4">
-                <p className="text-sm font-medium text-white">How this fits the workflow</p>
+                <p className="text-sm font-medium text-white">How this fits your journey</p>
                 <p className="mt-1 text-xs leading-relaxed text-white/60">
-                  Identity Kit gives you the brand foundation. Release Strategy turns that into a
-                  rollout plan. Then Idea Factory can generate content from the strategy, and
-                  Momentum Board becomes the execution layer.
+                  Identity Kit maps your foundations. Release Strategy turns that direction into a rollout path. Idea Factory creates content from the strategy, and Momentum Board helps you keep moving.
                 </p>
               </div>
 
@@ -1660,16 +1656,16 @@ if (inp.selectedIdentityKitId) {
                   className={primaryBtn + ' w-full justify-center h-10 text-xs'}
                 >
                   {releaseStrategyLocked
-  ? 'Unlock the full WW systeme'
+  ? 'Explore Beyond the Horizon'
   : loadingPlan
   ? 'Generating…'
-  : 'Generate Release Strategy'}
+ : 'Map Release Strategy'}
                 </button>
 
                 <p className="text-[0.75rem] text-white/50 min-h-[20px]">
                   {loadingPlan
                     ? generatingMessage
-                    : 'A clearer brief gives you a stronger pre-release, launch week, and post-release plan.'}
+                    : 'A clearer release map helps you move with more confidence before, during, and after launch.'}
                 </p>
               </div>
             </div>
@@ -1846,7 +1842,7 @@ if (inp.selectedIdentityKitId) {
 
   <div className="rounded-2xl border border-ww-violet/20 bg-black/60 p-4 shadow-[0_0_18px_rgba(186,85,211,0.10)]">
     <p className="text-sm text-white/80 leading-relaxed">
-      Free plan: you get 1 full Light release strategy. Upgrade to Creator for Standard/Aggressive strategies, saving, PDF export, and more generations.
+      Free plan: you get 1 full Light release strategy. Continue Your Journeyfor Standard/Aggressive strategies, saving, PDF export, and more generations.
     </p>
   </div>
 

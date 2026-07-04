@@ -54,7 +54,7 @@ export default function UpdatePasswordClient() {
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-black/60 shadow-xl p-6">
         <h1 className="text-2xl font-bold mb-2">Set a new password</h1>
         <p className="text-white/60 text-sm mb-6">
-          Enter your new password below. You’ll be redirected to your Creator Hub.
+          Enter your new password below. You’ll be redirected to your Creator Map.
         </p>
 
         <form onSubmit={handleUpdate} className="space-y-4">

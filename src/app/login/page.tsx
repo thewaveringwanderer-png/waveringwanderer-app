@@ -119,7 +119,7 @@ window.location.href = next || '/dashboard'
       <section className="mx-auto max-w-md px-4 py-20">
         <div className="rounded-2xl border border-white/10 bg-black/70 p-6 shadow-[0_0_25px_rgba(186,85,211,0.06)]">
           <h1 className="text-2xl font-semibold">Welcome back</h1>
-          <p className="text-white/70 mt-1">Sign in to your Creator Hub.</p>
+          <p className="text-white/70 mt-1">Sign in to your Creator Map.</p>
 
           {/* Mode Switch */}
 <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-black/40 p-1">

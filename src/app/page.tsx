@@ -54,20 +54,27 @@ animate-ww-helm
   />
 </div>
 
-            <h1 className="mt-6 text-[1.85rem] sm:text-4xl md:text-5xl font-bold leading-[1.06] tracking-tight">
-  The operating system for{" "}
-  <span className="whitespace-nowrap bg-gradient-to-r from-white via-ww-soft-violet to-ww-violet bg-clip-text text-transparent">
-    independent artists
+           <h1 className="mt-6 text-[1.85rem] sm:text-4xl md:text-5xl font-bold leading-[1.06] tracking-tight">
+  Every artist has a destination.{" "}
+  <span className="block bg-gradient-to-r from-white via-ww-soft-violet to-ww-violet bg-clip-text text-transparent">
+    We're here to help you find the path.
   </span>
-  
 </h1>
 
-            <p className="mt-6 text-base md:text-xl text-white/70 leading-relaxed max-w-3xl mx-auto">
-  Wavering Wanderers helps you{" "}
-  <span className="text-ww-violet/75 font-medium">plan releases</span>,{" "}
-  <span className="text-ww-amber/75 font-medium">create content</span> and{" "}
-  <span className="text-ww-blue/75 font-medium">build momentum</span>
-  {" "}— without spending every spare hour marketing yourself.
+            <p className="mx-auto mt-6 max-w-2xl text-center text-base leading-relaxed text-white/65 md:text-lg">
+  Wavering Wanderers helps you{' '}
+  <span className="font-semibold text-white">
+    discover your identity
+  </span>
+  ,{' '}
+  <span className="font-semibold text-white">
+    find creative direction
+  </span>{' '}
+  and{' '}
+  <span className="font-semibold text-white">
+    build lasting momentum
+  </span>{' '}
+  — with AI tools designed to guide your journey as an independent artist.
 </p>
 
             <div className="mt-10 flex flex-row flex-wrap items-center justify-center gap-3">
@@ -80,15 +87,10 @@ animate-ww-helm
   hover:shadow-[0_0_20px_rgba(155,48,255,0.55)]
   transition active:scale-[0.99]"
 >
-  Get started free
+  Start Your Journey
 </Link>
 
-              <a
-                href="#tools"
-                className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 h-11 text-sm font-semibold text-white/90 hover:bg-ww-blue/10 hover:border-ww-blue/50 hover:text-white hover:shadow-[0_0_24px_rgba(59,130,246,0.22)] transition"
-              >
-                Explore tools
-              </a>
+              
             </div>
 
             
@@ -136,7 +138,7 @@ border border-ww-violet/20 bg-gradient-to-br from-ww-violet/[0.12] via-white/[0.
               </div>
               <div className="mt-4 text-xl font-semibold text-white">Clarity</div>
               <p className="mt-3 text-sm leading-relaxed text-white/70">
-                Know exactly what you’re building and why.
+                Understand who you are, where you're going, and the foundations behind your artistry.
               </p>
             </div>
 
@@ -155,7 +157,7 @@ border border-ww-amber/25 bg-gradient-to-br from-ww-amber/[0.12] via-white/[0.03
               </div>
               <div className="mt-4 text-xl font-semibold text-white">Consistency</div>
               <p className="mt-3 text-sm leading-relaxed text-white/70">
-                Turn one song into weeks of content.
+                Create from a clear direction instead of constantly starting from zero.
               </p>
             </div>
 
@@ -173,7 +175,7 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
               </div>
               <div className="mt-4 text-xl font-semibold text-white">Momentum</div>
               <p className="mt-3 text-sm leading-relaxed text-white/70">
-                Run releases without burning out.
+                Keep moving forward with a clearer path and sustainable creative habits.
               </p>
             </div>
           </div>
@@ -188,12 +190,12 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
   className="border-t border-white/10 px-6 py-20 md:px-10">
           <div className="mx-auto max-w-6xl">
             <div className="text-center max-w-3xl mx-auto">
-              <p className="text-sm uppercase tracking-[0.22em] text-ww-violet/75">Your workflow</p>
+              <p className="text-sm uppercase tracking-[0.22em] text-ww-violet/75">Your Creative Map</p>
               <h2 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight text-white">
-                A clearer way to move as an independent artist.
+                Every journey starts with direction.
               </h2>
               <p className="mt-4 text-white/65 text-lg leading-relaxed">
-                Define your identity, generate better ideas, then organise everything in one place.
+                Discover your foundations, express your identity, and build momentum one step at a time.
               </p>
             </div>
 
@@ -206,9 +208,9 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
                   <p className="text-sm uppercase tracking-[0.2em] text-ww-violet/70">Start here</p>
                 </div>
 
-                <h3 className="mt-5 text-2xl font-semibold text-white">🎨 Stop second-guessing your direction</h3>
+                <h3 className="mt-5 text-2xl font-semibold text-white">🎨 Discover your creative foundations</h3>
                 <p className="mt-3 text-white/70 leading-relaxed">
-                  Get clear on your sound, story and audience so every piece of content feels connected.
+                 Map your story, audience and identity so every creative decision has a clearer direction.
                 </p>
               </div>
 
@@ -221,9 +223,9 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
                 </div>
 
                
-                <h3 className="mt-5 text-2xl font-semibold text-white">🧠 Never wonder what to post again</h3>
+                <h3 className="mt-5 text-2xl font-semibold text-white">🧠 Turn identity into expression</h3>
                 <p className="mt-3 text-white/70 leading-relaxed">
-                  Turn your music into content ideas, hooks and campaigns built around your goals.
+                  Transform your creative foundations into content ideas, campaigns and strategies that feel like you.
                 </p>
               </div>
 
@@ -232,7 +234,7 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
                   <div className="flex h-10 w-10 items-center justify-center rounded-full border border-ww-blue/30 bg-black text-sm font-semibold text-ww-blue">
                     03
                   </div>
-                  <p className="text-sm uppercase tracking-[0.2em] text-ww-blue/70">Command centre</p>
+                  <p className="text-sm uppercase tracking-[0.2em] text-ww-blue/70">Your Path</p>
                 </div>
 
                 <h3 className="mt-5 text-2xl font-semibold text-white">🧭 Stay organised when life gets busy</h3>
@@ -261,13 +263,13 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
   <div className="mx-auto max-w-5xl">
     <div className="text-center max-w-3xl mx-auto mb-10">
       <p className="text-sm uppercase tracking-[0.22em] text-ww-violet/75">
-        Product preview
+        Inside WW
       </p>
       <h2 className="mt-3 text-3xl md:text-4xl font-semibold tracking-tight text-white">
-        See the artist workflow in action.
+        See your creative system come together.
       </h2>
       <p className="mt-4 text-white/65 text-base leading-relaxed">
-        Click a preview to enlarge it.
+        Explore the tools designed to guide your next steps.
       </p>
     </div>
 
@@ -311,7 +313,7 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
   <div className="max-w-3xl mx-auto text-center">
 
             <h2 className="text-2xl md:text-3xl font-bold">
-  Built for artists balancing music with real life.
+  Built for artists trying to find their way.
 </h2>
 
 <p className="mt-4 text-white/70 leading-relaxed">
@@ -339,7 +341,7 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
   <div className="mb-8 text-center">
     <h2 className="text-3xl font-bold text-white">Pricing</h2>
     <p className="mt-2 text-white/70">
-      Start free. Unlock the full Wavering Wanderers system when you’re ready.
+      Start with your foundations. Continue your journey when you're ready to explore further.
     </p>
   </div>
 
@@ -390,33 +392,48 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
 
 <motion.section className="mx-auto max-w-6xl px-4 py-16 border-t border-white/10">
   <div className="text-center mb-10">
+    <p className="text-sm uppercase tracking-[0.22em] text-ww-violet/75">
+      First discoveries
+    </p>
+
     <h2 className="text-3xl font-bold text-white">
       Built with artists, not just for artists
     </h2>
 
     <p className="mt-3 text-white/70 max-w-2xl mx-auto">
-      Wavering Wanderers is currently in its test user programme.
-      Every piece of feedback helps shape the platform and make it
-      more useful for independent artists.
+      Early artists are helping shape the journey. Their feedback guides every improvement we make.
     </p>
   </div>
 
-  <div className="max-w-3xl mx-auto rounded-3xl border border-ww-violet/30 bg-black/70 p-8 shadow-[0_0_24px_rgba(186,85,211,0.2)]">
-    <p className="text-lg text-white leading-relaxed">
-      "It gave me one fresh idea... then another one.
-      I spend half my day worrying about promo, so that's crazy.
-      A lot of people could really use this."
-    </p>
+  <div className="grid gap-5 md:grid-cols-2">
+    {[
+      {
+        quote:
+          "It gave me one fresh idea... then another one. I spend half my day worrying about promo, so that's crazy. A lot of people could really use this.",
+        name: "JustYB",
+        role: "Independent Artist · Founding Crew",
+      },
+      {
+        quote:
+          "I used the platform and it generated perfect ideas that perfectly aligned with my type of videos. I really think it should get more attention as it could honestly be a useful tool for artists out there.",
+        name: "Sophie Maybies",
+        role: "Independent Artist · Founding Crew",
+      },
+    ].map((testimonial) => (
+      <div
+        key={testimonial.name}
+        className="rounded-3xl border border-ww-violet/30 bg-black/70 p-6 md:p-8 shadow-[0_0_24px_rgba(186,85,211,0.2)]"
+      >
+        <p className="text-base md:text-lg text-white leading-relaxed">
+          “{testimonial.quote}”
+        </p>
 
-    <div className="mt-6">
-      <p className="text-white font-semibold">
-        JustYB, Independent Artist
-      </p>
-
-      <p className="text-white/60 text-sm">
-        Early Test User
-      </p>
-    </div>
+        <div className="mt-6">
+          <p className="text-white font-semibold">{testimonial.name}</p>
+          <p className="text-white/60 text-sm">{testimonial.role}</p>
+        </div>
+      </div>
+    ))}
   </div>
 </motion.section>
 
@@ -429,9 +446,9 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
   variants={fadeUp}
   className="py-16 border-t border-white/10">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
-            <h3 className="text-xl md:text-2xl font-bold">Turn your music into momentum.</h3>
+            <h3 className="text-xl md:text-2xl font-bold">Your next step starts here.</h3>
             <p className="mt-3 text-white/70 max-w-2xl mx-auto">
-              No gatekeepers. No fluff. Just tools that help independent artists ship consistently.
+              A clearer path for independent artists building something meaningful — one step at a time.
             </p>
             <div className="mt-6 flex justify-center">
               <Link
@@ -451,7 +468,7 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
           <footer className="py-10 text-center text-xs text-white/50">
   <div className="flex flex-col items-center gap-4">
     <p>
-      © {new Date().getFullYear()} Wavering Wanderers — AI-powered creativity for independent artists.
+      © {new Date().getFullYear()} Wavering Wanderers — Helping independent artists find their way.
     </p>
 
     <div className="flex flex-wrap items-center justify-center gap-3">

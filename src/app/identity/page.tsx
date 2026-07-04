@@ -151,10 +151,10 @@ function normalizeCampaignPayload(raw: any): Campaigns {
 }
 
 const KIT_GENERATING_MESSAGES = [
-  'Gathering your artist identity...',
-  'Clarifying your positioning...',
-  'Shaping your tone and story...',
-  'Building your identity kit...',
+  'Mapping your artist identity...',
+  'Charting your creative foundations...',
+  'Uncovering your audience psychology...',
+  'Preparing your identity map...',
 ]
 
 const CAMPAIGN_GENERATING_MESSAGES = [
@@ -567,12 +567,12 @@ const creativeWorldPresets = [
 
   async function handleGenerateKit() {
     if (tier === 'idea_factory') {
-  toast.info('Identity Kit is part of the full Creator system.')
+  toast.info('You\'ve charted your foundations. Continue your journey to unlock your complete identity map.')
   router.push('/pricing')
   return
 }
     if (freeLimitReached) {
-  toast.info('Identity Kit is part of the full Creator system.')
+  toast.info('You\'ve charted your foundations. Continue your journey to unlock your complete identity map.')
   router.push('/pricing')
   return
 }
@@ -775,7 +775,7 @@ setUniqueQualities(inp.uniqueQualities || '')
     setCampaigns(null)
     setCollapseIdentityCard(false)
 
-    toast.success('Loaded ✅')
+    toast.success('Journey resumed.')
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250)
   }
 
@@ -803,7 +803,7 @@ setUniqueQualities(inp.uniqueQualities || '')
     setCampaigns(normalizeCampaignPayload(row.concepts))
     setCollapseCampaignCard(false)
 
-    toast.success('Loaded ✅')
+    toast.success('Journey resumed.')
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250)
   }
 
@@ -857,7 +857,7 @@ setUniqueQualities(inp.uniqueQualities || '')
       setSelectedKitId(row.id)
       setLoadedKitId(row.id)
       setKitSavedForCurrentResult(true)
-      toast.success('Saved ✅')
+      toast.success('New discoveries added to your map.')
 
       setTimeout(() => savedSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250)
     } catch (e: any) {
@@ -911,7 +911,7 @@ setUniqueQualities(inp.uniqueQualities || '')
       setSavedCampaigns(prev => [row, ...prev])
       setSelectedCampaignId(row.id)
       setLoadedCampaignId(row.id)
-      toast.success('Saved ✅')
+      toast.success('New discoveries added to your map.')
     } catch (e: any) {
       toast.error(e?.message || 'Error saving')
     } finally {
@@ -928,7 +928,7 @@ setUniqueQualities(inp.uniqueQualities || '')
       if (res.error) throw res.error
 
       setKits(prev => prev.map(k => (k.id === id ? { ...k, title, notes } : k)))
-      toast.success('Updated ✅')
+      toast.success('Your map has been updated.')
       setEditingKitId('')
       setKitTitleDraft('')
       setKitNotesDraft('')
@@ -946,7 +946,7 @@ setUniqueQualities(inp.uniqueQualities || '')
       if (res.error) throw res.error
 
       setSavedCampaigns(prev => prev.map(c => (c.id === id ? { ...c, title, notes } : c)))
-      toast.success('Updated ✅')
+      toast.success('Your map has been updated.')
       setEditingCampaignId('')
       setCampaignTitleDraft('')
       setCampaignNotesDraft('')
@@ -1303,7 +1303,7 @@ function LockedPreviewSection({
               onClick={() => window.location.assign('/pricing')}
               className="mt-3 inline-flex h-9 items-center justify-center rounded-full bg-ww-violet px-4 text-xs font-semibold text-white transition hover:shadow-[0_0_18px_rgba(186,85,211,0.7)]"
             >
-              Unlock the full WW system
+              Continue Your Journey
             </button>
           </div>
         </div>
@@ -1530,8 +1530,7 @@ if (!hasIdentityAccess) {
             </h1>
 
             <p className="mt-3 text-sm md:text-base leading-relaxed text-white/65 max-w-2xl">
-              Define your sound, story, audience, and visual direction so every other tool starts
-              from the same brand foundation.
+              Map your sound, story, audience, and creative direction so every WW tool can follow the same path.
             </p>
           </div>
 
@@ -1583,7 +1582,7 @@ if (!hasIdentityAccess) {
       <div className="relative flex items-start justify-between gap-4 flex-wrap">
   <div className="max-w-xl">
     <p className="text-[11px] uppercase tracking-[0.2em] text-white/45">Input</p>
-    <h2 className="mt-1 text-lg md:text-xl font-semibold text-white">Build your brand brief</h2>
+    <h2 className="mt-1 text-lg md:text-xl font-semibold text-white">Chart your artist foundations</h2>
     <p className="mt-2 text-sm text-white/62 leading-relaxed">
       Keep this tight and specific. A better brief creates a better identity system, sharper messaging,
       and stronger downstream content.
@@ -1620,10 +1619,10 @@ if (!hasIdentityAccess) {
       </div>
 
       <div className="relative rounded-2xl border border-ww-violet/20 bg-gradient-to-r from-ww-violet/[0.12] via-ww-violet/[0.05] to-transparent p-4">
-  <p className="text-sm font-medium text-white">One connected workflow starts here</p>
+  <p className="text-sm font-medium text-white">Every journey starts with identity</p>
   <p className="mt-1 text-xs leading-relaxed text-white/60">
     Identity should feed everything else — ideas, captions, campaigns, and execution. Treat this as the
-    source-of-truth layer for the artist.
+    creative map every other tool should follow.
   </p>
 </div>
 
@@ -1632,10 +1631,10 @@ if (!hasIdentityAccess) {
           <div>
             <div className="flex items-center gap-2 text-sm text-white/80">
               <BookOpen className="w-4 h-4 text-ww-violet" />
-              Reuse a saved kit
+              Continue your journey
             </div>
             <p className="mt-1 text-xs text-white/50">
-              Load a previous version and keep refining instead of starting from scratch.
+              Return to a previous discovery and continue exploring your artist identity.
             </p>
           </div>
 
@@ -1646,7 +1645,7 @@ if (!hasIdentityAccess) {
             className={outlineBtn + ' h-9'}
           >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            Refresh
+            Refine
           </button>
         </div>
 
@@ -2000,7 +1999,7 @@ if (!hasIdentityAccess) {
       "
     >
       <Sparkles className="w-4 h-4" />
-      Unlock the full WW system
+      Continue Your Journey
     </button>
   </div>
 )}
@@ -2523,27 +2522,101 @@ one consistent artist brief.
 </Section>
 
 {isFreeIdentityPreview ? (
-  <>
-    <LockedPreviewSection
-      title="Tone of voice"
-      hint="How the brand should sound, what to lean into, and what to avoid"
-    />
+  <div className="space-y-4">
+    <div className="relative overflow-hidden rounded-3xl border border-ww-violet/25 bg-gradient-to-br from-ww-violet/[0.12] via-black/80 to-black p-5">
+      <div className="pointer-events-none absolute -top-20 right-0 h-48 w-48 rounded-full bg-ww-violet/20 blur-[80px]" />
 
-    <LockedPreviewSection
-      title="Visual system"
-      hint="Palette, lighting, environments, framing, texture, symbolism"
-    />
+      <div className="relative">
+        <p className="text-xs uppercase tracking-[0.22em] text-ww-violet">
+          Beyond the Horizon
+        </p>
 
-    <LockedPreviewSection
-      title="Content system"
-      hint="Pillars and repeatable containers for showing up consistently"
-    />
+        <h3 className="mt-3 text-xl font-semibold text-white">
+          Your identity map has only just begun.
+        </h3>
 
-    <LockedPreviewSection
-      title="Creative Constitution"
-      hint="Constraints that keep the brand coherent across every output"
-    />
-  </>
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/65">
+          You've discovered the foundations of your artist identity. The complete map reveals how to express that identity consistently across your music, visuals and content.
+        </p>
+
+        {/* Journey Map */}
+
+        <div className="mt-6 rounded-2xl border border-white/10 bg-black/40 p-5 text-center">
+          <p className="text-xs uppercase tracking-[0.18em] text-white/40">
+            Your Journey
+          </p>
+
+          <div className="mt-4 text-3xl">
+            ⚓────────────🌅
+          </div>
+
+          <p className="mt-3 text-sm font-medium text-white">
+            You are here.
+          </p>
+
+          <p className="mt-2 text-sm leading-relaxed text-white/60">
+            The rest of your map is waiting beyond the horizon.
+          </p>
+        </div>
+
+        {/* Premium discoveries */}
+
+        <div className="mt-6 grid gap-3 md:grid-cols-2">
+          {[
+            [
+              '🗣️ Tone of Voice',
+              'Your unique communication style has been mapped. Unlock to discover it.',
+            ],
+            [
+              '🎨 Visual System',
+              'A complete visual world has been designed around your identity. Unlock to explore it.',
+            ],
+            [
+              '🎥 Content System',
+              'WW created 5 personalised content pillars for your brand. Unlock to see them.',
+            ],
+            [
+              '🧬 Creative DNA',
+              'WW discovered 7 defining creative traits that make your work recognisable. Unlock to reveal them.',
+            ],
+            [
+              '📜 Creative Constitution',
+              'WW created 8 lifelong creative principles to protect your artistic direction. Unlock to read them.',
+            ],
+            [
+              '📄 Premium Identity Report',
+              'Your complete creative blueprint is ready. Unlock to download it.',
+            ],
+          ].map(([title, desc]) => (
+            <div
+              key={title}
+              className="rounded-2xl border border-white/10 bg-white/[0.04] p-4"
+            >
+              <p className="text-sm font-medium text-white">{title}</p>
+
+              <p className="mt-2 text-xs leading-relaxed text-white/50">
+                {desc}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-white/10 bg-black/45 p-4">
+          <p className="text-sm leading-relaxed text-white/70">
+            Every great artist starts by discovering who they are. You've taken the first step. Continue your journey and uncover everything waiting beyond the horizon.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => router.push('/pricing')}
+          className="mt-5 w-full rounded-xl bg-ww-violet px-4 py-3 text-sm font-medium text-black transition hover:opacity-90"
+        >
+          Continue Your Journey
+        </button>
+      </div>
+    </div>
+  </div>
 ) : (
   <>
 <Section id="tone" title="Tone of voice" hint="How the brand should sound, what to lean into, and what to avoid">

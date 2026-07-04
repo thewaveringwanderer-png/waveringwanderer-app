@@ -223,22 +223,22 @@ function dismissUpdate() {
   const cards: Card[] = [
     {
       href: '/identity',
-      title: 'Identity Kit & Campaigns',
-      desc: 'Generate a pro brand kit, save versions, and spin up shootable campaign concepts.',
+      title: 'Identity Kit',
+desc: 'Discover your creative foundations — your story, audience, visuals, voice, and the identity behind your art.',
       icon: <Palette className="w-5 h-5" />,
       tone: 'violet',
     },
     {
       href: '/calendar',
       title: 'Idea Factory',
-      desc: 'Plan monthly/weekly posts, auto-generate ideas from your kit or an upcoming release.',
+desc: 'Transform your identity, releases, and ideas into content that helps the right listeners discover you.',
       icon: <Brain className="w-5 h-5" />,
       tone: 'violet',
     },
     {
       href: '/captions',
       title: 'Captions & Hashtags',
-      desc: 'Platform-ready copy in your tone of voice with smart hashtag sets.',
+desc: 'Shape your message with captions that match your voice, audience, and creative direction.',
       icon: <Type className="w-5 h-5" />,
       tone: 'violet',
     },
@@ -246,21 +246,21 @@ function dismissUpdate() {
   {
       href: '/release-strategy',
       title: 'Release Strategy',
-      desc: 'Turn a single, EP, or album into a structured pre-, launch-, and post-campaign plan.',
+      desc: 'Chart the path for your next release with a clear plan before, during, and after launch.',
       icon: <Rocket className="w-5 h-5" />,
       tone: 'violet',
     },
     {
       href: '/strategy-board',
       title: 'Momentum Board',
-      desc: 'Drag content ideas from every tool into one lane and move them from idea to planned, scheduled, and posted.',
+      desc: 'Collect your ideas, map your next steps, and keep your creative journey moving with purpose.',
       icon: <Compass className="w-5 h-5" />,
       tone: 'blue',
     },
     {
   href: '#',
   title: 'The Lighthouse',
-  desc: 'Expand ideas. Clarify direction. Execute with confidence.',
+  desc: 'A future guide for deeper questions, clearer direction, and navigating the challenges of your artist journey.',
   icon: <TowerControl className="w-5 h-5" />,
   badge: 'Coming soon',
   tone: 'neutral',
@@ -551,16 +551,15 @@ function toneBadge(tone: CardTone) {
           <p className="inline-flex items-center gap-2 rounded-full border border-ww-violet/25 bg-ww-violet/10 px-3 py-1 text-xs text-white/80">
 
             <span className="h-1.5 w-1.5 rounded-full bg-ww-violet" />
-            Recommended first step
+            Begin your journey
           </p>
 
           <h2 className="mt-4 text-xl md:text-2xl font-semibold leading-tight">
-            Start with your Artist Identity Kit
+            Discover your creative foundations
           </h2>
 
           <p className="mt-2 text-sm md:text-base text-white/70 leading-relaxed">
-            Define your sound, story, visuals, and audience — then reuse it to generate captions, calendars,
-            press kits, and release plans that actually match your brand.
+            Uncover your story, audience, creative DNA, and direction — then use those foundations across every WW tool.
           </p>
 
           <p className="mt-3 text-xs text-white/50">
@@ -582,7 +581,7 @@ function toneBadge(tone: CardTone) {
     hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_0_26px_rgba(186,85,211,0.65)]
     transition"
   >
-    Generate Identity Kit
+   Discover My Identity
   </Link>
   <button
   type="button"
@@ -608,11 +607,10 @@ function toneBadge(tone: CardTone) {
   <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
     <div className="min-w-0">
       <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
-        Creator Hub
+        Creator Map
       </h1>
       <p className="mt-3 text-white/70 max-w-2xl text-base leading-relaxed">
-        Your AI-powered workspace for music marketing. Start with your brand
-        identity, then plan, write, and ride the trends — all in one place.
+        Your creative home base. Discover your identity, shape your ideas, and keep moving forward with a clearer direction.
       </p>
     </div>
 
@@ -636,58 +634,6 @@ function toneBadge(tone: CardTone) {
   </div>
 </section>
 
-{!contextSaved && (
-  <section className="mx-auto max-w-6xl px-5 md:px-6 pb-6">
-    <div className="rounded-2xl border border-ww-violet/20 bg-black/60 p-4 md:p-5 shadow-[0_0_18px_rgba(186,85,211,0.08)]">
-      <p className="text-[11px] uppercase tracking-[0.16em] text-ww-violet/80">
-        Help shape WW
-      </p>
-
-      <h3 className="mt-2 text-white font-semibold text-lg">
-        Tell me who you are
-      </h3>
-
-      <p className="mt-1 text-sm text-white/60">
-        This helps me understand who’s using the platform and improve it around real independent artists.
-      </p>
-
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <input
-          value={artistHandle}
-          onChange={(e) => setArtistHandle(e.target.value)}
-          placeholder="Artist name or @handle"
-          className="h-11 rounded-xl border border-white/10 bg-black/60 px-3 text-sm text-white placeholder:text-white/35 focus:border-ww-violet focus:outline-none"
-        />
-
-        <input
-          value={biggestStruggle}
-          onChange={(e) => setBiggestStruggle(e.target.value)}
-          placeholder="Biggest struggle right now"
-          className="h-11 rounded-xl border border-white/10 bg-black/60 px-3 text-sm text-white placeholder:text-white/35 focus:border-ww-violet focus:outline-none"
-        />
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={handleSaveArtistContext}
-          disabled={savingContext || (!artistHandle.trim() && !biggestStruggle.trim())}
-          className="inline-flex h-10 items-center justify-center rounded-full bg-ww-violet px-5 text-sm font-semibold text-white shadow-[0_0_16px_rgba(186,85,211,0.45)] transition hover:shadow-[0_0_22px_rgba(186,85,211,0.7)] disabled:opacity-50"
-        >
-          {savingContext ? 'Saving…' : 'Save details'}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setContextSaved(true)}
-          className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 px-5 text-sm font-semibold text-white/65 hover:border-white/20 hover:text-white transition"
-        >
-          Skip for now
-        </button>
-      </div>
-    </div>
-  </section>
-)}
 
       {/* Grid */}
       <section className="mx-auto max-w-6xl px-4 pb-16">
