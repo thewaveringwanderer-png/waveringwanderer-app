@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
+import { CONTENT_FORMAT_GENOME } from '@/lib/ideaFactory/contentFormatGenome'
 import {
   Sparkles,
   Brain,

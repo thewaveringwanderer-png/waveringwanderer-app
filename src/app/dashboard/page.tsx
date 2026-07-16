@@ -52,10 +52,21 @@ type Card = {
 
 
 function DashboardPageInner() {
-  const [showUpdate, setShowUpdate] = useState(false)
+  const UPDATE_STORAGE_KEY = 'ww-update-v1.2-foundations-dismissed'
 
-  const dismissUpdate = () => {
-  localStorage.setItem('ww_last_seen_update', CURRENT_UPDATE)
+const [showUpdate, setShowUpdate] = useState(false)
+
+useEffect(() => {
+  const hasDismissedUpdate =
+    window.localStorage.getItem(UPDATE_STORAGE_KEY) === 'true'
+
+  if (!hasDismissedUpdate) {
+    setShowUpdate(true)
+  }
+}, [])
+
+function dismissUpdate() {
+  window.localStorage.setItem(UPDATE_STORAGE_KEY, 'true')
   setShowUpdate(false)
 }
 

@@ -2,6 +2,15 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { formatAttentionGenomeForPrompt } from '@/lib/attentionGenome'
+import { CONTENT_FORMAT_GENOME } from '@/lib/ideaFactory/contentFormatGenome'
+import { formatIdeaFactoryReasoningPipelineForPrompt } from '@/lib/ideaFactory/reasoningPipeline'
+import { formatInterferenceEngineForPrompt } from '@/lib/ideaFactory/interferenceEngine'
+import { formatConceptEngineForPrompt } from '@/lib/ideaFactory/conceptEngine'
+import { formatExecutionEngineForPrompt } from '@/lib/ideaFactory/executionEngine'
+import {
+  formatCreatorGenomeForPrompt,
+  formatCreatorInferenceEngineForPrompt,
+} from '@/lib/ideaFactory/creatorGenome'
 import {
   TEXT_ON_SCREEN_HOOKS,
 } from '@/lib/ideaFactoryHookLibrary'
@@ -55,7 +64,18 @@ const CONTENT_FRAMEWORKS = [
 "One lyric repeated visually",
 ]
 
-const TEXT_ON_SCREEN_FRAMEWORKS = []
+const LYRIC_ONLY_FRAMEWORKS = new Set([
+  'Lyric performance',
+  'Chorus preview',
+  'Verse spotlight',
+  'Punchline / bar breakdown',
+  'Lyric slideshow',
+  'One lyric, one visual',
+  'Lyrics on screen',
+  'Lyric acting',
+  'Lip sync performance',
+  'One lyric repeated visually',
+])
 
 const TEXT_ON_SCREEN_LIBRARY = {
 
@@ -432,6 +452,7 @@ function fallbackCalendar(args: {
   campaignContext?: CalendarRequest['campaignContext']
   releaseStrategyContext?: CalendarRequest['releaseStrategyContext']
   contentTypes?: string[]
+  hasLyrics: boolean
 }) {
   const {
     startDate,
@@ -447,6 +468,7 @@ function fallbackCalendar(args: {
     campaignContext = null,
     releaseStrategyContext = null,
     contentTypes = [],
+    hasLyrics,
     
   } = args
 
@@ -470,6 +492,7 @@ function fallbackCalendar(args: {
         contextSource,
         campaignContext,
         releaseStrategyContext,
+        hasLyrics
       })
     )
   }
@@ -494,6 +517,7 @@ function buildFallbackItem(args: {
   
   usedTitles?: string[]
 usedConcepts?: string[]
+hasLyrics: boolean
 }): CalendarItem {
   const {
     startDate,
@@ -511,6 +535,7 @@ usedConcepts?: string[]
     usedTitles = [],
 usedConcepts = [],
 contentTypes = [],
+hasLyrics,
   } = args
 
   const date = addDaysIso(startDate, index)
@@ -529,11 +554,26 @@ contentTypes = [],
   const detailed = ideaDepth === 'detailed'
 
   const usedPool = [...usedTitles, ...usedConcepts].map(normalizeForComparison)
-    
+ 
+ type FallbackVariant = {
+  title: string
+  pillar: string
+  format: string
+  idea: string
+  hook: string
+  onScreenText: string
+  execution: string
+  cta: string
+  why: string[]
+  requiresLyrics?: boolean
+  supportedTypes: string[]
+} 
 
- const fallbackVariants = [
+ const fallbackVariants: FallbackVariant[] = [
   {
     title: 'POV performance with lyrics on screen',
+    requiresLyrics: true,
+supportedTypes: ['direct-performance', 'text-on-screen'],
     pillar: 'Performance',
     format: 'performance',
     idea: 'Perform one emotionally strong lyric directly to camera while the text appears on screen.',
@@ -548,6 +588,7 @@ contentTypes = [],
   },
   {
     title: 'Discovery slideshow for new listeners',
+    supportedTypes: ['slideshow'],
     pillar: 'Discovery',
     format: 'slideshow',
     idea: 'Use a two-slide post to introduce the emotion of the song to people discovering you for the first time.',
@@ -562,6 +603,8 @@ contentTypes = [],
   },
   {
     title: 'One lyric, one visual',
+    requiresLyrics: true,
+supportedTypes: ['text-on-screen', 'visual-cinematic'],
     pillar: 'Text-on-screen',
     format: 'Text-on-screen',
     idea: 'Pair one lyric with a simple visual that makes the emotion easier to feel.',
@@ -576,6 +619,8 @@ contentTypes = [],
   },
   {
     title: 'Found early hook preview',
+    supportedTypes: ['direct-performance', 'text-on-screen'],
+    requiresLyrics: true,
     pillar: 'Discovery',
     format: 'performance',
     idea: 'Preview the hook using a found-early text overlay that makes viewers feel like they discovered the song before everyone else.',
@@ -590,6 +635,7 @@ contentTypes = [],
   },
   {
     title: 'Silent acting to the song',
+    supportedTypes: ['visual-cinematic'],
     pillar: 'Visual',
     format: 'visual-cinematic',
     idea: 'Act out the feeling of the lyric without lip syncing, using facial expression and body language.',
@@ -604,6 +650,8 @@ contentTypes = [],
   },
   {
     title: 'Lip sync lyric moment',
+    requiresLyrics: true,
+supportedTypes: ['direct-performance'],
     pillar: 'Performance',
     format: 'performance',
     idea: 'Lip sync the most relatable lyric with strong eye contact and a simple text overlay.',
@@ -618,6 +666,7 @@ contentTypes = [],
   },
   {
     title: 'Camera roll music visualiser',
+    supportedTypes: ['slideshow', 'visual-cinematic'],
     pillar: 'visual-cinematic',
     format: 'visual',
     idea: 'Use camera roll clips that match the mood of the song and turn them into a simple visualiser.',
@@ -632,6 +681,8 @@ contentTypes = [],
   },
   {
     title: 'Small artist underdog post',
+      supportedTypes: ['text-on-screen'],
+
     pillar: 'text-on-screen',
     format: 'text-on-screen',
     idea: 'Use the small-artist angle to make viewers feel like their support actually matters.',
@@ -645,8 +696,29 @@ contentTypes = [],
     ],
   },
 ]
-const variantIndex = (index + usedTitles.length + usedConcepts.length) % fallbackVariants.length
-  const variant = fallbackVariants[variantIndex]
+
+
+const eligibleFallbackVariants = fallbackVariants.filter(variant => {
+  if (variant.requiresLyrics && !hasLyrics) {
+    return false
+  }
+
+  return variant.supportedTypes.some(type =>
+    contentTypes.includes(type)
+  )
+})
+
+const fallbackPool = eligibleFallbackVariants.length
+  ? eligibleFallbackVariants
+  : fallbackVariants.filter(
+      variant => !variant.requiresLyrics || hasLyrics
+    )
+
+const variantIndex =
+  (index + usedTitles.length + usedConcepts.length) %
+  fallbackPool.length
+
+const variant = fallbackPool[variantIndex]
   
 
     let title = variant.title
@@ -781,8 +853,7 @@ let why = variant.why
 const fallbackBadge =
   selectedFallbackBadges[index % selectedFallbackBadges.length] || 'text-on-screen'
 
-pillar = fallbackBadge
-format = fallbackBadge
+
 
   if (genre && format === 'story') {
     why = why.map((line, idx) =>
@@ -1467,6 +1538,7 @@ Idea depth mode: BALANCED
   campaignContext,
   releaseStrategyContext,
   contentTypes: allowedBadgeTypes,
+  hasLyrics: lyrics.trim().length > 0,
 }),
         _fallback: true,
         _fallbackReason: 'missing_openai_key',
@@ -1513,6 +1585,8 @@ Old release focus:
     })
   : []
 
+const hasLyrics = lyrics.trim().length > 0  
+
 const lyricMomentsBlock = lyricMoments.length
   ? lyricMoments
       .map((moment, index) => {
@@ -1535,7 +1609,36 @@ ${moment.why}
 `.trim()
       })
       .join('\n\n')
-  : 'No lyric moments identified.'     
+  : 'No lyric moments identified.'  
+  
+  const contentFormatKnowledge = CONTENT_FORMAT_GENOME.map((format) => {
+  return `
+FORMAT ID: ${format.id}
+FORMAT NAME: ${format.name}
+
+BEST FOR:
+${format.bestFor.map((item) => `- ${item}`).join('\n')}
+
+WHY THIS FORMAT WORKS:
+${format.psychology}
+
+STRUCTURE:
+${format.structure.map((item) => `- ${item}`).join('\n')}
+
+AVOID:
+${format.avoid.map((item) => `- ${item}`).join('\n')}
+
+EXAMPLE DIRECTION:
+${format.exampleDirection}
+`.trim()
+}).join('\n\n')
+
+const creatorGenomeKnowledge = formatCreatorGenomeForPrompt()
+const creatorInferenceEngine = formatCreatorInferenceEngineForPrompt()
+const reasoningPipeline = formatIdeaFactoryReasoningPipelineForPrompt()
+const interferenceEngine = formatInterferenceEngineForPrompt()
+const conceptEngine = formatConceptEngineForPrompt()
+const executionEngine = formatExecutionEngineForPrompt()
 
   const attentionGenome = formatAttentionGenomeForPrompt()
   const systemPrompt = `
@@ -1543,7 +1646,27 @@ You are an expert music marketing strategist and content calendar architect.
 You design practical, shootable content plans that respect an artist's reality
 (time, energy, budget) while still pushing growth.
 
+${reasoningPipeline}
+
+CREATOR GENOME KNOWLEDGE
+
+${creatorGenomeKnowledge}
+
+${creatorInferenceEngine}
+
+INTERFERENCE ENGINE
+
+${interferenceEngine}
+
 ATTENTION ENGINE
+
+The chosen Attention Gene must shape:
+
+- the concept
+- the hook
+- the on-screen text
+- the execution
+- the CTA
 
 The following Attention Genome defines the psychological building blocks available when generating ideas.
 
@@ -1553,101 +1676,47 @@ Reason from it.
 
 ${attentionGenome}
 
-For every idea:
-
-1. Choose the most appropriate Attention Gene.
-
-2. Use its psychology to shape the concept.
-
-3. Use its viewer feeling to shape the hook.
-
-4. Use its compatible mechanics when choosing a content mechanic.
-
-5. Avoid the common mistakes listed.
-
 Do not simply reuse patterns.
 
 Understand why they work, then create something original for this specific artist.
 
-CONCEPT ENGINE
+CONTENT FORMAT ENGINE
 
-Before writing any content idea, first design the CONTENT MECHANIC.
+The following Content Format Genome explains how different content formats work, who they suit, and how they should be structured.
 
-Do not start with a topic.
+Do not copy its example directions word for word.
 
-Start with HOW the audience experiences the idea.
+Use it as strategic knowledge for choosing the right vessel for each idea.
 
-A concept should feel like a creator thought:
+${contentFormatKnowledge}
 
-"That would make a really good video."
+Use the inferred Creative Fingerprint before choosing a Content Format Gene.
 
-before they thought:
+The selected format must:
+- fit the artist's Primary Creator Gene
+- benefit from the Secondary Creator Gene where useful
+- respect filming habits
+- respect performance comfort
+- fit likely editing style
+- use available recurring assets
+- avoid behaviours listed in the fingerprint
 
-"I should talk about this."
+For every idea:
 
-Choose ONE primary concept mechanic for every idea.
+1. Choose the most suitable Content Format Gene.
+2. Base the choice on the artist's selected content styles, performance style, Creative Reality, confidence, resources, audience, goal, and identity.
+3. Respect the content styles explicitly selected by the artist.
+4. Do not choose formats randomly merely to create variety.
+5. Treat Creative Reality as useful design information, not as a weakness.
+6. Avoid forcing talking-to-camera, outdoor filming, live footage, performance, or complicated production when the artist's circumstances make them unsuitable.
+7. Use the selected format's psychology and structure to shape the actual concept.
+8. The output contentType must still use one of the artist's allowed selected content types.
+9. The format named in the output must accurately describe the execution.
+10. Do not repeat the same format too heavily unless the artist's preferences strongly justify it.
 
-Possible mechanics include:
+${conceptEngine}
 
-• Split screen
-• Before vs After
-• Countdown
-• POV
-• Storytime
-• Lyric reveal
-• Notebook / journal
-• Whiteboard explanation
-• Screen recording
-• Text conversation
-• Fake conversation
-• Draft evolution
-• Voice memo
-• Anonymous confession
-• Challenge
-• Timer
-• One take
-• Performance interruption
-• Camera hidden
-• Green screen
-• Duet bait
-• Stitch bait
-• Audience chooses
-• Myth vs Reality
-• Expectation vs Reality
-• Parallel timelines
-• First person narration
-• Internal monologue
-• Reverse storytelling
-• Build-up and payoff
-• Comment reply
-• Fan response
-• Live reaction
-• Song breakdown
-
-Every mechanic should naturally fit:
-
-- the artist
-- the platform
-- the content style
-- Creative Reality
-- audience psychology
-- Identity Kit
-
-Do NOT repeatedly use the same mechanic.
-
-Actively diversify mechanics across the batch.
-
-Every idea must satisfy this test:
-
-If somebody removed the music,
-
-would the video STILL be interesting?
-
-If not,
-
-the concept is not strong enough.
-
-Improve the mechanic before continuing.
+${executionEngine}
 
 CONCEPT QUALITY TEST
 
@@ -1674,46 +1743,6 @@ Examples:
 
 If the concept could be replaced by "talk to camera," improve it.
 
-
-For every idea think in this order:
-
-1. Which Identity Kit element should this express?
-
-2. Which Attention Gene best matches this artist, audience and goal?
-
-3. Which concept mechanic naturally expresses that psychology?
-
-4. Adapt the concept to the artist's Creative Reality.
-
-5. Write an original hook.
-
-6. Write original on-screen text.
-
-7. Design the execution.
-
-8. Finish with the CTA.
-
-The Attention Gene should drive the entire idea, not just the hook.
-
-Never skip these reasoning steps.
-
-Never start by writing a hook.
-
-The mechanic comes first.
-
-For every idea:
-
-Choose ONE primary Attention Gene from the Attention Genome.
-
-Use its psychology to shape:
-
-- the concept
-- the hook
-- the on-screen text
-- the execution
-- the CTA
-
-Do not imitate existing examples.
 
 Understand the psychological mechanism and create an original execution for this artist.
 
@@ -1764,70 +1793,32 @@ Use its:
 - guardrails
 - identity anchors
 
-Every idea should clearly connect back to at least one Identity Kit insight.
+Use Identity Kit context to shape the premise, emotional angle, visual choice,
+execution and audience relevance of each idea.
+
+When Identity Kit context exists, every idea must use at least one specific
+identity source such as:
+
+- lived experience
+- belief or philosophy
+- identity anchor
+- contradiction
+- recurring theme
+- listener transformation
+- audience desire or frustration
+- visual motif
+- content pillar
+- brand guardrail
+
+Do not merely mention an Identity Kit insight in the caption.
+
+The identity source must materially change the concept or execution.
+
+If the idea could be reused for many unrelated artists, personalise it further.
 
 Identity Kit ideas should feel impossible to reuse for another artist.
-
-Bad:
-"Talk about pressure."
-
-Good:
-"Create content based on a specific contradiction, belief, life experience, or recurring theme found in the Identity Kit."
-
-Bad:
-"Make a post about growth."
-
-Good:
-"Use the artist's stated listener transformation and audience psychology to create a content angle unique to their world."
-
-Bad:
-"Discuss the song's meaning."
-
-Good:
-"Use the artist's philosophy, visual identity, recurring themes, and audience desires to create a specific story, scene, or message."
-
-Before generating ideas, identify:
-- What makes this artist different?
-- What experiences shaped them?
-- What do they believe?
-- What emotional outcome do they want for listeners?
-- What themes appear repeatedly?
-
-The generated ideas should reflect those answers.
-
-If the same idea could reasonably work for 100 other artists, it is not specific enough.
-
-Identity Kit ideas should feel impossible to reuse for another artist.
-
-Bad:
-"Talk about being busy but still progressing."
-
-Good:
-"Rap the line about pushing through while cutting between fatherhood, work clothes, and late-night writing notes."
-
-Bad:
-"Create a post about pressure."
-
-Good:
-"Use anime-style underdog framing to show how the artist turns emotional tension into lyrics, not motivational advice."
-
-Bad:
-"Discuss struggle."
-
-Good:
-"Show the exact feeling behind the struggle: exhaustion, responsibility, pride, guilt, silence, faith, anger, or hope."
 
 When Identity Kit context is present, each idea must include at least one specific identity detail in the concept or execution, such as a life experience, belief, visual world, recurring theme, listener transformation, or content pillar.
-
-Bad:
-- Perform a verse about struggle.
-- Share a motivational lyric.
-- Create a reflective post.
-
-Good:
-- Perform the lyric while showing the object, place, or memory that inspired it.
-- Turn one artist belief into a direct-to-camera confession.
-- Use the visual world from the Identity Kit as the filming setting.
 
 Do not merely mention the Identity Kit. Use it to shape:
 - the hook
@@ -1843,10 +1834,10 @@ The concept must contain at least one tangible thing.
 Examples:
 
 Good:
-- Rap the verse you wrote during a lunch break while sitting in your work uniform.
-- Perform the line you nearly deleted while showing the notebook page it came from.
-- Walk through your city at night delivering the verse about feeling behind in life.
-- Perform the hook while showing old screenshots from when nobody was listening.
+- Film in your work uniform while the song plays, using text about creating during limited free time.
+- Place one meaningful object from the artist's world in the centre of the frame and build the visual action around it.
+- Walk through an available location while the camera gradually widens as the song builds.
+- Use verified existing screenshots or footage only when the artist has confirmed they possess them.
 
 Bad:
 - Perform a verse about personal growth.
@@ -1854,14 +1845,14 @@ Bad:
 - Showcase transformation through music.
 - Reflect on success and struggle.
 
-Every concept should contain:
-- a moment
-OR
-- a place
-OR
-- an object
-OR
-- a specific lyric
+Every concept should contain at least one:
+- moment
+- place
+- object
+- visual action
+- supplied lyric
+- verified piece of existing footage
+- specific audience interaction
 
 If none exist, rewrite the idea.
 
@@ -1875,13 +1866,10 @@ ${ideaDepthGuidance}
 - For DETAILED mode, increase specificity, not complexity.
 - Do not make detailed ideas bloated, multi-scene, or overproduced unless the user's brief clearly supports that.
 - Titles should feel scroll-stopping, not bland or corporate.
-- Execution should be shootable by a solo independent artist.
 - Respect AUDIENCE language and interests.
 - Respect the artist's actual creative and performance setup.
 - Do NOT suggest instruments, band performance ideas, DJ actions, or music-making workflows unless they clearly fit the stated artist type or performance style.
 - If the artist is a rapper or says they do not play instruments, avoid instrument-based suggestions entirely.
-- Assume a realistic solo/DIY artist workload: don't make every slot insanely complex.
-- In DETAILED mode, the extra value should come mainly from the "execution" field, using light-touch filming direction such as framing, angle, location, lighting, pacing, or time of day.
 - Do not make title, hook, or concept much longer in DETAILED mode than in BALANCED mode.
 - If contextSource is "campaign", use campaign concept, rollout, tone, deliverables, and visual direction to shape the ideas.
 - If contextSource is "release_strategy", use that strategic direction to shape the ideas.
@@ -1898,7 +1886,6 @@ ${ideaDepthGuidance}
 - Build POV ideas around those experiences, not just around the song title.
 - POV content does not have to mean lip-syncing.
 - POV execution can use facial expression, body language, hand gestures, walking shots, stillness, environment, contrast, or visual metaphor.
-- Suggest simple visual settings where useful, such as blue sky, trees, bedroom mirror, train window, street lights, car park, studio corner, or quiet outdoor spaces.
 - Avoid defaulting every music idea to lip-sync performance.
 - For early-stage artists, especially 0-3k followers, include some low-lift slideshow ideas.
 - Slideshow ideas can use selfies, still images, text overlays, lyric screenshots, camera roll moments, or simple contrast posts.
@@ -1953,9 +1940,7 @@ Example:
 Hook: "If you're hearing this before I blow up, you're early."
 onScreenText: "Small artist. Real song. Right algorithm."
 
-Example:
-Hook: "This line hits different when you're walking through the streets alone."
-onScreenText: "Nobody talks about how lonely growth can be"
+
 - The hook should feel like the first spoken line, caption lead, or opening thought.
 - The onScreenText should feel like short overlay text that visually frames the video.
 - If hook and onScreenText would be similar, make the onScreenText shorter, more visual, or more curiosity-driven.
@@ -1969,7 +1954,6 @@ onScreenText: "Nobody talks about how lonely growth can be"
 - Prioritise lyric moments that are relatable, emotionally specific, quotable, or visually easy to turn into content.
 - Never say "select a line", "pick a lyric", "choose a verse", or "use a lyric from your song" when lyrics have been provided.
 - If lyrics are provided, YOU must choose the strongest lyric moment yourself.
-TEXT ON SCREEN PRIORITY RULES
 
 TEXT ON SCREEN QUALITY RULES
 
@@ -2136,7 +2120,11 @@ Avoid repeatedly generating:
 
 unless these themes are clearly present in the supplied lyrics or context.
 
-No single category should dominate more than 25% of the batch.
+Avoid unnecessary emotional repetition across the batch.
+
+However, artist fit and explicit selections take priority over artificial category quotas.
+
+Do not force unrelated emotional territories merely to satisfy variety.
 
 Spread ideas across:
 - Found Early
@@ -2177,6 +2165,10 @@ Avoid generic summaries of the content.
 Avoid simply describing the video.
 The text on screen should be capable of stopping a scroll by itself.
 
+If two artists have different Creative Fingerprints, they should receive noticeably different concepts even if they share the same genre and audience.
+
+The Creative Fingerprint should influence ideas as strongly as genre.
+
 HOOK FRAMEWORKS
 
 Prefer hooks that sound like:
@@ -2193,17 +2185,6 @@ Prefer hooks that sound like:
 Avoid turning hooks into poster statements.
 
 Poster statements belong in on-screen text.
-
-If lyrics are provided:
-
-- Never tell the artist to pick a lyric.
-- Never tell the artist to choose a verse.
-- Never tell the artist to select a line.
-- You must identify the lyric yourself.
-- Quote the lyric directly in the idea.
-- Build the hook, on-screen text and execution around that specific lyric.
-- Quote or paraphrase the specific lyric moment in the idea, hook, on-screen text, or execution.
-- Lyric-based ideas should say exactly what part of the lyrics to use, not ask the user to decide.
 
 CONCEPT GENERATION RULES
 
@@ -2432,8 +2413,6 @@ Guidelines:
 
 HOOK RULES:
 
-HOOK RULES:
-
 The hook must be:
 
 - spoken
@@ -2445,19 +2424,22 @@ The hook is NOT the primary scroll stopper.
 
 The hook exists to support the idea once attention has already been captured.
 
-Good hooks:
+Prefer artist language that is grounded in supplied context:
 
-- "I nearly removed this verse."
-- "This part still gets me."
-- "I didn't realise what I meant when I wrote this."
-- "Tell me if this is just me."
-- "I still think about this line."
+- "This part still feels personal to me."
+- "I wanted this section to feel unresolved."
+- "This is the energy I was trying to capture."
+- "I made this for people who understand this feeling."
+- "This is the moment where the track changes direction."
+
+Only use lyric-specific or behind-the-song claims when verified by supplied lyrics
+or artist context.
 
 Bad hooks:
 
 - Identity statements
 - Deep observations
--
+
 
 The hook must NEVER describe the filming.
 
@@ -2478,33 +2460,6 @@ Good:
 
 Good:
 "I almost removed this from the song."
-
-VIDEO EXECUTION RULES:
-
-The execution should contain the majority of the specificity.
-
-The concept should explain the post.
-
-The execution should explain exactly how to film it.
-
-Bad concept:
-"Highlight a lyric about pressure."
-
-Good concept:
-"Perform the lyric about carrying pressure like it's normal."
-
-Bad execution:
-"Use a performance clip."
-
-Good execution:
-"Film yourself walking through your city at dusk while delivering the lyric directly to camera. Add the selected lyric as large text on screen."
-
-Execution describes what is filmed.
-
-Hooks describe what is felt.
-
-Never copy execution wording into the hook.
-Never copy hook wording into execution.
 
 Format every section clearly using labels and spacing.
 
@@ -2605,20 +2560,7 @@ Rules:
 - Every idea should answer: "How does this make someone want to hear, save, remember, or understand the music?"
 At least 80% of generated ideas must use different content frameworks from one another.
 Do not use "idea" as a content_type or format. The content_type must be one of the selected content types only. Never use "idea" as a content_type.
-LYRIC SAFETY RULES
 
-If lyrics are NOT provided:
-
-- Do not reference lyrics.
-- Do not reference verses.
-- Do not reference song lines.
-- Do not reference handwritten notes.
-- Do not reference lyric breakdowns.
-- Do not reference lyric explanations.
-- Do not suggest choosing a lyric.
-- Do not suggest showing lyrics on screen.
-
-Treat the song as having no accessible lyric content.
 
 AUDIENCE OVERRIDE RULE
 
@@ -2676,34 +2618,6 @@ Do NOT use:
 - small artist positioning
 
 These frameworks are prohibited.
-
-CONTENT DECISION ORDER
-
-When generating ideas decide in this order:
-
-1. Artist Type
-2. Genre
-3. Audience
-4. Goal
-5. Lyrics
-
-Everything else is secondary.
-
-Never generate content that conflicts with Artist Type, Genre, or Audience.
-
-Do not create multiple versions of:
-- story behind the song
-- lyric explanation
-- POV meaning
-- generic BTS
-
-Across the batch:
-- Do not use the same text-on-screen structure twice.
-- Do not use more than one "found early" style hook unless discovery is selected.
-- Vary between POV, identity, relatable truth, lyric lead-in, underdog, and contrarian framing.
-- If using a library pattern, adapt it so it does not appear copied.
-
-If two ideas use the same framework, they must be substantially different.
 `.trim()
 
 const selectedTextOnScreenBuckets = getTextOnScreenBuckets({
@@ -2724,9 +2638,31 @@ const selectedTextOnScreenFrameworks = selectedTextOnScreenBuckets
   })
   .join('\n')
 
-const selectedFrameworks = [...CONTENT_FRAMEWORKS]
-  .sort(() => Math.random() - 0.5)
-  .slice(0, 12)
+const LYRIC_ONLY_FRAMEWORKS = new Set([
+  'Lyric performance',
+  'Lyric slideshow',
+  'One lyric, one visual',
+  'Lyrics on screen',
+  'Lyric acting',
+  'Lyric reveal',
+  'Punchline / bar breakdown',
+  'Verse spotlight',
+  'Chorus preview',
+])  
+
+const eligibleFrameworks = CONTENT_FRAMEWORKS.filter(framework => {
+  if (!hasLyrics && LYRIC_ONLY_FRAMEWORKS.has(framework)) {
+    return false
+  }
+
+  return true
+})
+
+const availableFrameworks = hasLyrics
+  ? CONTENT_FRAMEWORKS
+  : CONTENT_FRAMEWORKS.filter(
+      framework => !LYRIC_ONLY_FRAMEWORKS.has(framework)
+    )
   
 
 const pickRandomExamples = (
@@ -2770,7 +2706,6 @@ const selectedTextOnScreenExamples = [
   ...pickRandomExamples('relatableTruths', 1),
 ].slice(0, 12)
 
-const selectedContentTypesText = contentTypes.join(', ').toLowerCase()
 
 const artistTypeRules = `
 Artist type rules:
@@ -2780,7 +2715,7 @@ Artist type rules:
 - Selected content types: ${contentTypes.join(', ')}
 
 Hard rules:
-- Artist type is the highest-priority constraint.
+- Artist type is a hard compatibility rule, but it must operate inside Creative Reality and the artist's explicitly selected content styles.
 - Do not generate ideas that conflict with the selected artist type.
 - Do not mention lyrics, verses, bars, choruses, handwritten lyrics, or lyric explanations unless lyrics content is selected OR lyrics are provided.
 - Do not borrow rapper/singer formats for DJs, producers, or instrumentalists.
@@ -2845,24 +2780,69 @@ ${releaseStrategyContextBlock}
 Identity Kit context:
 ${identityKitContextBlock}
 
-Creative constraints rule:
-If creative constraints are provided, treat them as hard production requirements.
+CREATIVE REALITY FOR THIS GENERATION
 
-Do not generate ideas that ignore the artist's constraints.
+Treat the artist's stated Creative Reality as hard production requirements.
 
-Constraints may include:
-- filming only in a bedroom
-- not showing face
-- limited time
-- no budget
-- no one available to film
-- only using a phone
-- low confidence speaking to camera
-- unable to film outside
-- only filming at night
-- no studio access
+Do not assume access to:
 
-Treat constraints as creative design requirements, not obstacles.
+- other people
+- extra equipment
+- outdoor locations
+- studio access
+- money
+- travel
+- advanced editing
+- confidence speaking or performing
+
+unless the artist explicitly provides it.
+
+Every idea must be realistically achievable within the supplied time, confidence, location, equipment, energy and budget.
+
+When uncertain, choose the simpler execution.
+
+CONSTRAINT TRANSFORMATION
+
+Whenever the artist describes a limitation:
+
+1. Identify the limitation.
+2. Identify the hidden creative advantage.
+3. Choose a suitable format and concept mechanic.
+4. Build the idea around that advantage.
+5. Keep the final execution inside the original limitation.
+
+Examples:
+
+Small bedroom
+→ intimacy, closeness, repetition, recognisable setting
+
+No face
+→ mystery, hands, objects, environments, silhouette, text, voiceover
+
+Phone camera only
+→ immediacy, authenticity, handheld energy
+
+No budget
+→ resourcefulness, simplicity, repeatable formats
+
+Low confidence on camera
+→ voiceover, text overlays, slideshow, process footage, partial framing
+
+Only 10–20 minutes
+→ single-take videos, recurring series, one-location ideas, reusable setups
+
+No tripod
+→ handheld footage, fixed phone placement, natural movement
+
+No helpers
+→ solo storytelling, screen recordings, self-filmed close-ups, existing footage
+
+Cannot film outside
+→ bedroom, desk, doorway, mirror, window, wall, floor, notebook, phone screen
+
+Never remove the original limitation while transforming it.
+
+For example, do not respond to "I cannot film outside" by suggesting an easier outdoor location.
 
 The strongest ideas make the artist's creative reality feel intentional rather than limiting.
 
@@ -2876,59 +2856,71 @@ Good:
 
 Every idea should respect the artist's available time, confidence, location, equipment and energy.
 
-Identity Kit specificity rule:
-If Context source is "identity", the ideas must feel clearly born from that artist’s saved Identity Kit, not from generic genre advice.
+SUCCESSFUL CREATIVE REALITY
 
-Every idea must use at least one concrete identity source:
-- lived experience
-- belief
-- contradiction
-- visual world
-- audience desire
-- listener transformation
-- tone of voice
-- content pillar
-- brand guardrail
+A successful idea should make the artist think:
 
-Avoid vague universal themes unless the Identity Kit makes them central.
+"I could genuinely film this tomorrow."
 
-Bad:
-"Talk about pressure."
+Not:
 
-Good:
-"Turn the artist’s specific contradiction, belief, or lived experience into a content idea with a clear scene, hook, and emotional angle."
+"I wish I had that setup."
 
-Bad:
-"Create a post about growth."
+If an idea requires confidence, time, locations, equipment, money, travel, studio access, additional people, or skills that the artist has not said they possess, the idea is unsuccessful.
 
-Good:
-"Use the artist’s visual world, audience promise, and recurring themes to create a post only this artist would make."
+Do not assume an unmentioned resource is available.
 
-Identity Kit hard rule:
-If Context source is "identity", the batch must be built from the specific Identity Kit details, not general artist strategy.
+When uncertain, choose the simpler and more achievable execution.
 
-Every idea must use at least one concrete identity source:
+IDENTITY KIT APPLICATION
+
+If Context source is "identity", use the saved Identity Kit as the primary source of artist-specific material.
+
+Every idea must draw from at least one concrete element:
+
 - lived experience
 - relationship
 - belief
 - contradiction
-- visual world
 - recurring theme
+- visual world
 - listener transformation
+- audience desire or frustration
 - content pillar
-- guardrail
+- Creative DNA
+- brand guardrail
 
-For this artist, avoid generic themes unless the Identity Kit names them directly.
-Do not default to:
-- struggle
-- pressure
-- growth
-- clarity
-- community
-- resilience
-- self-discovery
+Do not merely mention the Identity Kit.
+
+Use its evidence to shape the concept, setting, hook, execution and reason the idea works.
+
+Avoid defaulting to generic themes such as struggle, pressure, growth, resilience, clarity, community or self-discovery unless the Identity Kit makes them central.
+
+The ideas should feel difficult to reuse for another artist.
 
 ${oldReleaseGuidance || ''}
+
+CONFIDENCE MATCHING
+
+Never force an artist into a presentation style they are unlikely to use.
+
+If the artist has low confidence speaking to camera:
+- do not default to direct-to-camera monologues
+- prefer voiceover, performance, text-on-screen, partial framing, process footage, slideshows, or simple visual storytelling
+
+If the artist is comfortable performing but not speaking:
+- let performance carry the idea
+- avoid requiring long explanations
+
+If the artist avoids showing their face:
+- never describe facial expressions, eye contact, lip syncing, or direct-to-camera delivery
+- use hands, surroundings, silhouette, objects, screen recordings, existing footage, text, or voiceover
+
+Meet the artist where they are.
+
+Do not treat confidence expansion as the goal of every generation.
+
+The best idea is the one most likely to be created, not the one that sounds most impressive.
 
 Artist setup guardrails:
 - Artist type: ${artistType || 'Not specified'}
@@ -3117,15 +3109,6 @@ If artistType is DJ, producer, electronic artist, house artist, EDM artist, danc
 - If selected content type is POV, reinterpret it as DJ POV: booth perspective, crowd perspective, pre-drop tension, post-set reflection, or fan reaction — not emotional monologue.
 When selecting emotional territories:
 
-Choose emotional territories that fit:
-
-1. Genre
-2. Artist type
-3. Audience
-4. Goal
-
-in that order.
-
 Example:
 
 David Guetta
@@ -3203,7 +3186,7 @@ Plan parameters:
 ${(avoidTitles || []).slice(0, 40).map(t => `- ${t}`).join('\n') || 'None'}
 
 Creative formats available for this generation:
-${selectedFrameworks.map(x => `- ${x}`).join('\n')}
+${availableFrameworks.map(x => `- ${x}`).join('\n')}
 
 Text-on-screen inspiration library:
 ${selectedTextOnScreenExamples
@@ -3541,6 +3524,7 @@ ${
   campaignContext,
   releaseStrategyContext,
   contentTypes: allowedBadgeTypes,
+  hasLyrics,
 }),
           _fallback: true,
           _fallbackReason: 'empty_model_response',
@@ -3558,7 +3542,7 @@ ${
 
       return NextResponse.json(
         {
-          ...fallbackCalendar({ startDate, totalSlots, platforms, artistName, goal }),
+          ...fallbackCalendar({ startDate, totalSlots, platforms, artistName, goal, hasLyrics }),
           _fallback: true,
           _fallbackReason: 'json_parse_error',
         },
@@ -3572,7 +3556,7 @@ ${
 
       return NextResponse.json(
         {
-          ...fallbackCalendar({ startDate, totalSlots, platforms, artistName, goal }),
+          ...fallbackCalendar({ startDate, totalSlots, platforms, artistName, goal, hasLyrics }),
           _fallback: true,
           _fallbackReason: 'items_not_array',
         },
@@ -3779,7 +3763,7 @@ Avoid repeating or closely copying these existing ideas:
 ${existingIdeasForAvoidList || 'None'}
 
 Creative formats available:
-${selectedFrameworks.map(x => `- ${x}`).join('\n')}
+${availableFrameworks.map(x => `- ${x}`).join('\n')}
 
 Text-on-screen inspiration by missing idea slot:
 
@@ -3984,6 +3968,7 @@ while (completedItems.length < totalSlots) {
       releaseStrategyContext,
       usedTitles: completedItems.map(i => i.title),
       usedConcepts: completedItems.map(i => i.idea),
+      hasLyrics,
     })
   )
 }
@@ -4031,6 +4016,7 @@ return NextResponse.json(
         contextSource,
         campaignContext,
         releaseStrategyContext,
+        hasLyrics,
       }),
       _fallback: true,
       _fallbackReason:
