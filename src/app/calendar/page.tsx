@@ -4,7 +4,6 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { Toaster, toast } from 'sonner'
-import { CONTENT_FORMAT_GENOME } from '@/lib/ideaFactory/contentFormatGenome'
 import {
   Sparkles,
   Brain,
@@ -762,7 +761,7 @@ const [audienceSize, setAudienceSize] = useState('')
 const [monthlyListeners, setMonthlyListeners] = useState('')
 const [goal, setGoal] = useState('')
 const [tone, setTone] = useState('brand-consistent, concise, human, engaging')
-const [ideaDepth, setIdeaDepth] = useState<IdeaDepth>('balanced')
+const [ideaDepth, setIdeaDepth] = useState<IdeaDepth>('detailed')
 const [lyrics, setLyrics] = useState('')
 const [lyricsFocus, setLyricsFocus] = useState<LyricsFocus>('general')
 const [focusMode, setFocusMode] = useState<CalendarFocus>('general')

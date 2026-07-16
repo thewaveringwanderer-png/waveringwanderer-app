@@ -7,6 +7,9 @@ import { formatIdeaFactoryReasoningPipelineForPrompt } from '@/lib/ideaFactory/r
 import { formatInterferenceEngineForPrompt } from '@/lib/ideaFactory/interferenceEngine'
 import { formatConceptEngineForPrompt } from '@/lib/ideaFactory/conceptEngine'
 import { formatExecutionEngineForPrompt } from '@/lib/ideaFactory/executionEngine'
+import { formatPresentationEngineForPrompt } from '@/lib/ideaFactory/presentationEngine'
+import { formatDecisionEngineForPrompt } from "@/lib/ideaFactory/decisionEngine"
+import { formatBatchIntelligenceEngineForPrompt } from '@/lib/ideaFactory/batchIntelligenceEngine'
 import {
   formatCreatorGenomeForPrompt,
   formatCreatorInferenceEngineForPrompt,
@@ -1638,7 +1641,10 @@ const creatorInferenceEngine = formatCreatorInferenceEngineForPrompt()
 const reasoningPipeline = formatIdeaFactoryReasoningPipelineForPrompt()
 const interferenceEngine = formatInterferenceEngineForPrompt()
 const conceptEngine = formatConceptEngineForPrompt()
+const decisionEngine = formatDecisionEngineForPrompt()
+const batchIntelligenceEngine = formatBatchIntelligenceEngineForPrompt()
 const executionEngine = formatExecutionEngineForPrompt()
+const presentationEngine = formatPresentationEngineForPrompt()
 
   const attentionGenome = formatAttentionGenomeForPrompt()
   const systemPrompt = `
@@ -1716,156 +1722,59 @@ For every idea:
 
 ${conceptEngine}
 
+${decisionEngine}
+
+${batchIntelligenceEngine}
+
 ${executionEngine}
 
-CONCEPT QUALITY TEST
-
-A strong concept should make the artist think:
-
-"I actually want to film that."
-
-not
-
-"That's another content idea."
-
-Every concept should contain one memorable creative decision.
-
-Examples:
-
-- an unexpected reveal
-- an unusual filming mechanic
-- audience participation
-- a visual twist
-- a specific object
-- a location
-- a constraint
-- a storytelling device
-
-If the concept could be replaced by "talk to camera," improve it.
+${presentationEngine}
 
 
-Understand the psychological mechanism and create an original execution for this artist.
+IDENTITY KIT AUTHORITY
 
-If an Identity Kit exists, the attention gene must naturally emerge from:
+When Identity Kit context exists, treat it as the primary source of artist-specific
+creative truth.
 
-- audience psychology
-- listener transformation
-- identity anchors
-- recurring themes
-- brand philosophy
-- Creative DNA
+Internally identify:
 
-Vary the Attention Genes across the batch.
+- defining identity anchors;
+- recurring themes;
+- core audience desire and frustration;
+- listener transformation;
+- distinctive belief or philosophy;
+- visual world;
+- content pillars;
+- brand guardrails.
 
-Avoid repeatedly selecting the same psychological mechanism.
+Each idea must use at least one verified identity source such as:
 
-Aim for emotional and psychological variety while remaining true to the artist's identity.
+- lived experience;
+- belief;
+- contradiction;
+- recurring theme;
+- listener transformation;
+- audience psychology;
+- visual motif;
+- content pillar;
+- brand guardrail.
 
-When an Identity Kit is provided:
+The identity source must materially change the premise, mechanic, emotional angle,
+execution or audience relevance.
 
-First identify:
+Do not merely mention Identity Kit language in the caption.
 
-1. Top 5 defining identity anchors
-2. Top 3 recurring themes
-3. Core audience desire
-4. Core audience frustration
-5. Listener transformation
-6. Most distinctive belief or philosophy
-7. Most distinctive visual world
-
-Then generate ideas primarily from those anchors.
-
-At least 80% of ideas must be directly traceable to one or more of these identity anchors.
-
-If identityKitContext is provided, treat it as the primary creative source of truth.
-
-Use its:
-- brand essence
-- positioning
-- artist manifesto
-- USP
-- brand message
-- listener identity
-- audience psychology
-- tone of voice
-- visual system
-- content pillars
-- guardrails
-- identity anchors
-
-Use Identity Kit context to shape the premise, emotional angle, visual choice,
-execution and audience relevance of each idea.
-
-When Identity Kit context exists, every idea must use at least one specific
-identity source such as:
-
-- lived experience
-- belief or philosophy
-- identity anchor
-- contradiction
-- recurring theme
-- listener transformation
-- audience desire or frustration
-- visual motif
-- content pillar
-- brand guardrail
-
-Do not merely mention an Identity Kit insight in the caption.
-
-The identity source must materially change the concept or execution.
-
-If the idea could be reused for many unrelated artists, personalise it further.
-
-Identity Kit ideas should feel impossible to reuse for another artist.
-
-When Identity Kit context is present, each idea must include at least one specific identity detail in the concept or execution, such as a life experience, belief, visual world, recurring theme, listener transformation, or content pillar.
-
-Do not merely mention the Identity Kit. Use it to shape:
-- the hook
-- the concept
-- the execution
-- the caption angle
-- the reason the idea works
-
-SPECIFICITY RULE
-
-The concept must contain at least one tangible thing.
-
-Examples:
-
-Good:
-- Film in your work uniform while the song plays, using text about creating during limited free time.
-- Place one meaningful object from the artist's world in the centre of the frame and build the visual action around it.
-- Walk through an available location while the camera gradually widens as the song builds.
-- Use verified existing screenshots or footage only when the artist has confirmed they possess them.
-
-Bad:
-- Perform a verse about personal growth.
-- Highlight emotional resilience.
-- Showcase transformation through music.
-- Reflect on success and struggle.
-
-Every concept should contain at least one:
-- moment
-- place
-- object
-- visual action
-- supplied lyric
-- verified piece of existing footage
-- specific audience interaction
-
-If none exist, rewrite the idea.
+If the concept could be reused for many unrelated artists, personalise or replace it.
 
 Rules:
 ${ideaDepthGuidance}
 
-- Mix music-first content pillars: performance, lyrics, sound, visual world, behind-the-scenes, discovery, community.- Avoid near-duplicates. Each slot should feel distinct but on-brand.
+- Keep the batch music-centred and connected to the artist's sound, performance, release or creative world.
+- Avoid near-duplicates. Each slot should feel distinct but on-brand.
 - If an "Avoid list" is provided, do NOT reuse or closely paraphrase those titles/hooks/ideas.
 - Make ideas feel like real platform-native content, not generic marketing suggestions.
-- Prefer strong hooks built on POV, contrast, curiosity, vulnerability, specificity, tension, or relatability.
 - For DETAILED mode, increase specificity, not complexity.
 - Do not make detailed ideas bloated, multi-scene, or overproduced unless the user's brief clearly supports that.
-- Titles should feel scroll-stopping, not bland or corporate.
 - Respect AUDIENCE language and interests.
 - Respect the artist's actual creative and performance setup.
 - Do NOT suggest instruments, band performance ideas, DJ actions, or music-making workflows unless they clearly fit the stated artist type or performance style.
@@ -1876,75 +1785,18 @@ ${ideaDepthGuidance}
 - If focusMode is "old_release", generate ideas for catalogue revival and renewed attention rather than new-release hype.
 - When campaign context is present, the ideas should feel like they belong to the campaign world, not like generic standalone ideas.
 - When release strategy context is present, the ideas should reflect the broader rollout logic and priorities.
-- Every item must be meaningfully distinct from the others in hook, concept, and execution.
-- Do not produce the same idea with small wording changes.
-- If two ideas could be mistaken for the same post, make one of them more distinct or replace it entirely.
-- Across the batch, vary the content angle, not just the wording.
 - When lyrics or release context are provided, extract the deeper human experiences behind the song before creating ideas.
 - Turn themes into audience-relatable experiences that point back to the song, lyric, performance, or release.
-- Example: a song about success after losing someone is not just "success" or "grief"; it contains experiences like wanting to share a win with someone who is gone, feeling proud and empty at the same time, or reaching a goal that cost you something.
 - Build POV ideas around those experiences, not just around the song title.
 - POV content does not have to mean lip-syncing.
 - POV execution can use facial expression, body language, hand gestures, walking shots, stillness, environment, contrast, or visual metaphor.
 - Avoid defaulting every music idea to lip-sync performance.
-- For early-stage artists, especially 0-3k followers, include some low-lift slideshow ideas.
-- Slideshow ideas can use selfies, still images, text overlays, lyric screenshots, camera roll moments, or simple contrast posts.
-- A useful structure is: Slide 1 = stoic face / tension / relatable problem. Slide 2 = smile, shift, lyric, realisation, or emotional payoff.
-- These should feel easy to make without filming a full video.
-- When suggesting captions or post framing, think in terms of 2 broad hashtags and 3 specific hashtags.
-- Broad hashtags should describe the general lane, such as music, rap, singer songwriter, indie artist.
-- Specific hashtags should match the actual emotional/content angle, such as grief journey, healing through music, missing someone, chasing dreams, new artist discovery.
-- The music must remain the centre of the content strategy.
 - Personal storytelling should support the song, lyric, sound, performance, release, or artist world — not replace it.
 - Avoid generating too many generic life-story posts that could work without the music.
-- Most ideas should include the track, lyric, performance, sound, visual world, release moment, or listening experience directly.
 - A good idea should make someone more likely to listen, save the song, remember the lyric, or understand the artist world.
-- Do not make the artist famous for personality alone; use personality as a bridge into the music.
-- "hook" and "onScreenText" must never be identical.
-- Hook and onScreenText should express the same emotional idea in different forms.
-- Hook = what the artist says, captions, or opens with.
-- onScreenText = what the viewer reads first while scrolling.
-- Do not copy the hook into onScreenText.
-- If the hook is a sentence, onScreenText should be shorter and more poster-like.
-- If the hook is direct, onScreenText should be more emotional, identity-led, or curiosity-led.
-
-Look for emotional territory that is unique to the song.
-
-Examples:
-
-A heartbreak song:
-- missing someone
-- regret
-- jealousy
-- wanting closure
-
-A success song:
-- confidence
-- validation
-- proving people wrong
-- enjoying the moment
-
-A party song:
-- freedom
-- excitement
-- chaos
-- attraction
-
-Do not force every song into themes of pressure, growth, healing, or perseverance.
-
-Example:
-Hook: "Ever feel like quitting, but it hurts more to stop?"
-onScreenText: "For people who are tired but not finished"
-
-Example:
-Hook: "If you're hearing this before I blow up, you're early."
-onScreenText: "Small artist. Real song. Right algorithm."
 
 
-- The hook should feel like the first spoken line, caption lead, or opening thought.
-- The onScreenText should feel like short overlay text that visually frames the video.
-- If hook and onScreenText would be similar, make the onScreenText shorter, more visual, or more curiosity-driven.
-- Do not repeat the same "why" explanation across multiple ideas.
+
 - Each "why" should explain the specific psychology of that exact idea.
 - If lyrics are provided, analyse them before generating ideas.
 - Identify the strongest emotional lines, phrases, themes, or moments in the lyrics.
@@ -1955,524 +1807,7 @@ onScreenText: "Small artist. Real song. Right algorithm."
 - Never say "select a line", "pick a lyric", "choose a verse", or "use a lyric from your song" when lyrics have been provided.
 - If lyrics are provided, YOU must choose the strongest lyric moment yourself.
 
-TEXT ON SCREEN QUALITY RULES
 
-SCROLL-STOPPING RULES
-
-A good text-on-screen should not simply be relatable.
-
-It should create one of:
-
-- surprise
-- curiosity
-- tension
-- contradiction
-- recognition
-- controversy
-- specificity
-- emotional punch
-
-Weak:
-
-"I've been working hard."
-
-Strong:
-
-"I've spent more hours promoting this song than making it."
-
-Weak:
-
-"Nobody talks about how lonely growth can be."
-
-Strong:
-
-"The people I wanted to impress stopped paying attention."
-
-Weak:
-
-"Trying to promote music is difficult."
-
-Strong:
-
-"I can message 100 people and still feel like nobody heard the song."
-
-Every text-on-screen should contain at least one:
-
-- unexpected detail
-- specific moment
-- contradiction
-- uncomfortable truth
-- strong opinion
-- surprising observation
-
-If the idea feels generic, add specificity.
-
-If the idea feels predictable, add contrast.
-
-If the idea feels safe, add tension.
-
-Text-on-screen ideas must not be generic music marketing advice.
-
-Avoid:
-
-- promote your song
-- show behind the scenes
-- share your process
-- tell people about the release
-- explain the meaning of the track
-
-These are topics, not content ideas.
-
-Every text-on-screen idea should begin with one of:
-
-- a belief
-- an observation
-- a confession
-- a contradiction
-- a mistake
-- a lesson learned
-- an uncomfortable truth
-- a fan insight
-- a lyric realisation
-- a personal moment
-
-Bad:
-
-"Promote your latest song"
-
-"Show the studio session"
-
-"Talk about your creative process"
-
-Good:
-
-"I spent six months fixing a song nobody noticed."
-
-"I thought finishing the song would be the hard part."
-
-"The people I wanted to impress never heard this."
-
-"I nearly deleted the line everyone quotes."
-
-"The song did better after I stopped forcing it."
-
-Every text-on-screen idea should feel like a thought, not a topic.
-
-A viewer should be able to imagine the exact first line appearing on screen.
-
-The on-screen text is the PRIMARY attention grabber.
-
-The hook is SECONDARY.
-
-The viewer should stop because of the on-screen text.
-
-The hook should then deepen, explain, challenge or personalise the idea.
-
-Think of it like:
-
-ON-SCREEN TEXT = billboard
-
-HOOK = conversation
-
-If both fields perform the same job, rewrite one.
-
-The on-screen text should usually be broader.
-
-The hook should usually be more personal.
-
-Some genres naturally lean toward different emotional territories.
-
-House / EDM:
-- excitement
-- anticipation
-- freedom
-- movement
-- nightlife
-- celebration
-- connection
-- euphoria
-
-Pop:
-- attraction
-- romance
-- confidence
-- fun
-- nostalgia
-
-Hip-Hop:
-- ambition
-- confidence
-- struggle
-- identity
-- success
-- loyalty
-
-Do not default every genre toward introspection or emotional healing.
-
-Balance ideas across multiple emotional territories.
-
-Avoid repeatedly generating:
-- lonely growth
-- carrying pressure
-- overthinking
-- tired but determined
-- becoming a better version of yourself
-
-unless these themes are clearly present in the supplied lyrics or context.
-
-Avoid unnecessary emotional repetition across the batch.
-
-However, artist fit and explicit selections take priority over artificial category quotas.
-
-Do not force unrelated emotional territories merely to satisfy variety.
-
-Spread ideas across:
-- Found Early
-- Underdog Artist
-- Identity
-- Relatable Truth
-- Emotional POV
-- Growth
-- Transformation
-- Self Doubt
-- Success Cost
-- Mental Noise
-- Lyric Lead In
-- Contrarian
-
-Bad examples:
-- "New song out now"
-- "Watch until the end"
-- "Studio session"
-- "Rap performance"
-- Descriptions of the video
-
-Good examples:
-- "I'm a small artist so if you're seeing this your algorithm is built different"
-- "POV: you're finally winning but the person you wanted to tell isn't here"
-- "Nobody talks about how lonely growth can be"
-- "You'll either hear this now or six months from now"
-- "Hip-hop for people who overthink everything"
-
-The text-on-screen should feel more important than the hook.
-Do not make onScreenText sound like a content label, format, or execution instruction.
-Bad: "Raw verse outside", "Lyric highlight", "City backdrop", "Rap performance"
-Good: "For people carrying pressure like it’s normal", "Nobody sees the version of you that almost quit"
-
-A viewer should stop scrolling because of the on-screen text even with the audio muted.
-
-Avoid generic summaries of the content.
-Avoid simply describing the video.
-The text on screen should be capable of stopping a scroll by itself.
-
-If two artists have different Creative Fingerprints, they should receive noticeably different concepts even if they share the same genre and audience.
-
-The Creative Fingerprint should influence ideas as strongly as genre.
-
-HOOK FRAMEWORKS
-
-Prefer hooks that sound like:
-
-- Confession
-- Observation
-- Question
-- Admission
-- Story lead-in
-- Personal reaction
-- Uncomfortable truth
-- Unexpected opinion
-
-Avoid turning hooks into poster statements.
-
-Poster statements belong in on-screen text.
-
-CONCEPT GENERATION RULES
-
-If multiple ideas in the batch communicate the same underlying emotional message, replace some of them with ideas from different emotional territories.
-
-Example:
-
-Bad:
-- pressure
-- pressure
-- pressure
-- growth
-- growth
-
-Good:
-- confidence
-- nostalgia
-- attraction
-- ambition
-- pressure
-- freedom
-- humour
-
-Every idea must describe a specific post.
-
-Do not generate themes.
-
-Do not generate categories.
-
-Do not generate creative briefs.
-
-Do not write:
-- "Highlight a lyric about success"
-- "Share a POV about pressure"
-- "Focus on emotional growth"
-- "Explore the hidden cost of success"
-
-Instead write the actual post:
-
-Good:
-- "Rap the line about success scars directly to camera while walking through your city at golden hour."
-- "Show the lyric you nearly removed from the song and explain why it stayed."
-- "Perform the chorus in one take and add text explaining why it still affects you."
-- "Tell the story behind the one lyric listeners quote back to you most."
-
-The reader should instantly know exactly what content they would film.
-
-If the idea could be mistaken for a theme rather than a post, rewrite it.
-
-Every generated idea must include:
-
-- A scroll-stopping hook.
-- A CTA that matches the artist’s audience stage.
-- On-screen text appropriate for short-form platforms.
-- A clear emotional or curiosity trigger.
-- Hooks should feel modern, conversational, and platform-native.
-Hooks should sound like something an artist would genuinely say.
-
-Avoid creator language:
-
-- Check this out
-- Watch this
-- Listen to this
-- Here's my song
-- New music
-- New post
-- Rap performance
-
-Prefer artist language:
-
-- I almost cut this verse.
-- This line aged differently than I expected.
-- I didn't realise what I meant when I wrote this.
-- This part still feels uncomfortable to perform.
-- I wrote this at my lowest.
-- This lyric hits differently now.
-
-The hook should feel human, not generated.
-- Avoid generic engagement bait.
-- Avoid repetitive CTAs.
-Strong hooks often use:
-- curiosity
-- identity
-- relatability
-- emotional honesty
-- tension
-- vulnerability
-- unexpected statements
-- “found early” psychology
-- viewer involvement
-- community belonging
-- anti-marketing honesty
-- humour
-- comment prompts that feel natural, not desperate
-- transformation
-- social proof framing
-Avoid:
-- generic engagement bait
-- vague CTAs
-- corporate wording
-- repetitive “comment below” structures
-- hooks that assume a large fanbase
-- ideas requiring an already engaged audience
-
-Modern artist promo should make the viewer feel involved, not sold to.
-
-Good text-on-screen often does one of these:
-- makes the viewer feel early
-- invites the viewer into a small community
-- asks for a genuine opinion
-- makes promotion feel self-aware
-- turns being a small artist into an advantage
-- gives the viewer a role in the song's journey
-
-Avoid text that feels too basic, watered down, or generic.
-
-Bad:
-- "Cool vibes"
-- "Hot bars"
-- "New song out now"
-- "Listen to my song"
-- "Follow for more music"
-
-Good:
-- "You found this early enough to say you were here first."
-- "Trying to promote music without sounding cringe is harder than making it."
-- "Be honest — what genre would you call this?"
-- "This song has no marketing budget so I'm relying on vibes."
-
-CONTENT ANGLE should describe a specific content concept.
-
-CONTENT ANGLE should never be:
-- a topic
-- a theme
-- a feeling
-- a category
-
-CONTENT ANGLE should be:
-- a post
-- a scene
-- a performance
-- a slideshow
-- a visual execution
-
-The artist should be able to read CONTENT ANGLE and immediately know what they are filming.
-
-Every generated content idea MUST include the following sections in this exact order:
-
-CONTENT ANGLE:
-HOOK:
-ON-SCREEN TEXT:
-VIDEO EXECUTION:
-CAPTION:
-CTA:
-WHY THIS WORKS:
-BEST FOR:
-
-Each idea must feel like a real content post an artist would actually film.
-
-Do not describe topics.
-
-Do not describe themes.
-
-Do not describe categories.
-
-Instead describe a specific piece of content.
-
-Bad:
-"Highlight a lyric about success."
-
-Bad:
-"Share a POV about internal struggles."
-
-Bad:
-"Focus on emotional cost."
-
-Good:
-"Rap the line that made you realise success can feel lonely."
-
-Good:
-"Perform the verse while walking through your city at night explaining why you almost quit."
-
-Good:
-"Show the lyric you nearly removed from the song and explain why it stayed."
-
-Good:
-"Tell the story behind the one line listeners quote back to you most."
-
-IMPORTANT:
-
-Do not reuse exact hook phrases.
-
-Avoid generic creator phrases such as:
-- not viral yet
-- honest enough to matter
-- algorithm finally found me
-- before everyone else finds me
-
-Every idea should come from a different emotional angle.
-
-Rotate between:
-- artist struggles
-- discovery
-- curiosity
-- identity
-- audience challenges
-- personal stories
-- contrarian opinions
-
-The hook and text-on-screen must NOT say the same thing.
-
-The hook should grab attention.
-
-The text-on-screen should deepen, challenge or expand the idea.
-
-Guidelines:
-- Hooks must feel scroll-stopping, modern, emotionally intelligent, and platform-native.
-- On-screen text should feel short-form optimised and easy to overlay onto TikTok/Instagram videos.
-- Video execution should explain HOW the content should be filmed or presented.
-- CTAs must align with the artist’s audience stage.
-- Avoid generic engagement bait.
-- Avoid repetitive “comment below” structures.
-- Avoid assuming the artist already has a large audience.
-- WHY THIS WORKS should briefly explain the psychology behind the idea.
-- BEST FOR should explain what type of artist or growth stage the idea suits best.
-
-HOOK RULES:
-
-The hook must be:
-
-- spoken
-- natural
-- conversational
-- something an artist would genuinely say out loud
-
-The hook is NOT the primary scroll stopper.
-
-The hook exists to support the idea once attention has already been captured.
-
-Prefer artist language that is grounded in supplied context:
-
-- "This part still feels personal to me."
-- "I wanted this section to feel unresolved."
-- "This is the energy I was trying to capture."
-- "I made this for people who understand this feeling."
-- "This is the moment where the track changes direction."
-
-Only use lyric-specific or behind-the-song claims when verified by supplied lyrics
-or artist context.
-
-Bad hooks:
-
-- Identity statements
-- Deep observations
-
-
-The hook must NEVER describe the filming.
-
-Bad:
-"Film a contemplative walk outside"
-
-Bad:
-"Record yourself performing outside"
-
-Bad:
-"Show a close-up rap performance"
-
-Good:
-"I didn't realise how much this line meant until now."
-
-Good:
-"This verse got me through a rough month."
-
-Good:
-"I almost removed this from the song."
-
-Format every section clearly using labels and spacing.
-
-Example format:
-
-CONTENT ANGLE:
-...
-
-HOOK:
-...
-
-ON-SCREEN TEXT:
-...
 Output STRICTLY valid JSON with this shape:
 
 {
@@ -2483,10 +1818,9 @@ Output STRICTLY valid JSON with this shape:
             "title": "Short internal card title that labels the idea clearly",
       "short_label": "Very short label",
       "pillar": "Performance" | "POV" | "Lyrics" | "Slideshow" | "Cinematic" | "BTS" | "Discovery" | "Community" | "Humour",
-      Never use "Idea" as pillar.
       "content_type": "Must be exactly one of these selected badge values only: ${allowedBadgeTypes.join(', ')}",
       "hook": "A first spoken line or scroll-stopping opening phrase. It must NOT repeat the title wording.",
-"onScreenText": "Short text overlay for the video. Must be different from the hook. Should use curiosity, identity, tension, relatability, POV, or found-early psychology.","concept": "A short summary of the idea itself, distinct from the hook",
+"onScreenText": "Short text overlay for the video. Must be different from the hook and must express the approved Attention Gene and concept psychology.",
       "execution": "What the artist actually films or shows, step by step if needed",
       "suggested_caption": "A short human caption",
       "cta": "A natural CTA",
@@ -2494,73 +1828,7 @@ Output STRICTLY valid JSON with this shape:
     }
   ]
 }
-
-Audience stage guidance:
-
-If the artist is early-stage (under 250, 250–1k, or 1k–3k):
-- Avoid CTAs that assume an existing fanbase.
-- Avoid ideas that rely on audience participation or existing community engagement.
-- Focus on discovery-based hooks, song moments, lyrics, sound, visual identity, curiosity, and "found early" framing.- Include stronger on-screen text ideas and cold-audience hooks.
-- Prioritise content that earns first attention rather than deep engagement.
-
-If the artist is 3k+:
-
-- Reduce use of "found early" positioning.
-- Reduce use of "small artist" positioning.
-- Reduce use of "before this blows up" positioning.
-- Reduce use of "nobody knows this song" positioning.
-- Reduce use of underdog narratives.
-
-Prioritise:
-- fan culture
-- audience reactions
-- community moments
-- social proof
-- live footage
-- performance energy
-- release promotion
-- audience participation
-- repeat listener behaviour
-- fan identity
-
-For artists at 10k+ followers or 10k+ monthly listeners:
-
-Avoid:
-- "before this blows up"
-- "you're early"
-- "small artist"
-- "nobody knows this song"
-- "future fans"
-- "algorithm found you first"
-
-Treat the artist as established enough to generate:
-- crowd moments
-- fan moments
-- live clips
-- event footage
-- release momentum content
-- community content
-
-Rules:
-- Return ONLY JSON
-- No markdown
-- No commentary
-- No trailing commas
-- Every item must include all required fields
-- Keep content_type short and controlled
-- Keep why as an array of 1 to 2 short strings
-- "title" is a card label, not the spoken hook.
-- "hook" must be different from "title" in wording and purpose.
-- The title should name the idea clearly; the hook should sound like the first line said, shown, or implied in the content.
-- Do not repeat the exact same phrase across title, hook, and concept.
-- "concept" should explain the idea, not restate the title.
-- Titles should read like clear card labels, not like full spoken sentences unless that is genuinely the best fit.
-- Do not overuse the "story" pillar. Unless the user specifically asks for storytelling, no more than 20% of ideas should use pillar: "Story".
-- If the user has selected specific content formats, respect those selected formats over generic storytelling.
-- Every idea should answer: "How does this make someone want to hear, save, remember, or understand the music?"
-At least 80% of generated ideas must use different content frameworks from one another.
-Do not use "idea" as a content_type or format. The content_type must be one of the selected content types only. Never use "idea" as a content_type.
-
+Never use "Idea" as the pillar or content_type.
 
 AUDIENCE OVERRIDE RULE
 
@@ -2597,46 +1865,7 @@ Avoid:
 - emotional recovery
 
 unless explicitly supplied by lyrics or artist context.
-
-DISCOVERY FRAMEWORK RESTRICTIONS
-
-If artist has:
-
-- 10,000+ monthly listeners
-OR
-- 10,000+ followers
-
-Do NOT use:
-
-- found early
-- before this blows up
-- algorithm found you first
-- nobody knows this song
-- hidden gem
-- undiscovered artist
-- future fans
-- small artist positioning
-
-These frameworks are prohibited.
 `.trim()
-
-const selectedTextOnScreenBuckets = getTextOnScreenBuckets({
-  totalSlots,
-  genre,
-  artistType,
-  audience,
-})
-
-const selectedTextOnScreenFrameworks = selectedTextOnScreenBuckets
-  .map((bucket, index) => {
-    const hooks =
-      TEXT_ON_SCREEN_HOOKS[bucket as keyof typeof TEXT_ON_SCREEN_HOOKS] || []
-
-    const hook = hooks[index % hooks.length]
-
-    return `${index + 1}. ${bucket}: ${hook}`
-  })
-  .join('\n')
 
 const LYRIC_ONLY_FRAMEWORKS = new Set([
   'Lyric performance',
@@ -2717,31 +1946,38 @@ Artist type rules:
 Hard rules:
 - Artist type is a hard compatibility rule, but it must operate inside Creative Reality and the artist's explicitly selected content styles.
 - Do not generate ideas that conflict with the selected artist type.
-- Do not mention lyrics, verses, bars, choruses, handwritten lyrics, or lyric explanations unless lyrics content is selected OR lyrics are provided.
+- Do not mention lyrics, verses, bars, choruses, handwritten lyrics or lyric explanations unless actual lyrics were supplied.
 - Do not borrow rapper/singer formats for DJs, producers, or instrumentalists.
 
 Rapper:
-- Use bars, verses, direct-to-camera rap, punchlines, performance, lyrical meaning, identity, and location-based delivery.
+- Use verified performance, flow, delivery, identity, visual world and location-based expression.
+- Use bars, verses or lyrical meaning only when actual lyrics were supplied.
 
 Singer:
-- Use vocal moments, chorus, melody, acoustic/live takes, emotional vocal delivery, demos, and performance.
+- Use verified vocal performance, melody, demos, visual world and emotional delivery.
+- Use chorus or lyric-specific concepts only when actual lyrics were supplied.
 
 Producer:
-- Use beat-making, sound design, sample flips, studio process, beat drops, arrangement, before/after beat moments, and production breakdowns.
+- Use verified beat-making, sound design, arrangement, transitions, process,
+  before-and-after sound moments and production decisions.
 
 DJ:
-- Use drops, transitions, crowd reactions, live footage, soundchecks, backstage, club/festival energy, DJ booth footage, audience anticipation, set moments, and replayable live clips.
-- Avoid singing, rapping, verses, bars, choruses, lyric sheets, acoustic takes, and bedroom confession-style content.
-- Emotional framing should come through energy, anticipation, release, celebration, movement, crowd connection, atmosphere, or nightlife.
+- Use verified drops, transitions, track selection, preparation, energy shifts,
+  atmosphere and listening context.
+- Use crowds, live footage, soundchecks, backstage or booth footage only when explicitly available.
+- Do not use lyrics, singing, rapping, acoustic performance or vocal storytelling
+  without explicit supporting context.
 
 Band:
-- Use rehearsal clips, live performance, group chemistry, instruments, crowd moments, behind-the-scenes, and song sections.
+- Use rehearsals, instruments, arrangement and group performance only when the
+  required members and footage are available.
 
 Instrumentalist:
-- Use playing technique, live takes, solos, tone, practice clips, musical skill, and arrangement details.
+- Use playing technique, tone, practice, performance and arrangement details.
 
 Songwriter:
-- Use writing process, lyric meaning, voice notes, demos, unfinished ideas, and before/after song development.
+- Use writing process, voice notes, demos and song development.
+- Use specific lyrical meaning only when actual lyrics were supplied.
 `
 
   const userPrompt = `
@@ -2856,323 +2092,60 @@ Good:
 
 Every idea should respect the artist's available time, confidence, location, equipment and energy.
 
-SUCCESSFUL CREATIVE REALITY
-
-A successful idea should make the artist think:
-
-"I could genuinely film this tomorrow."
-
-Not:
-
-"I wish I had that setup."
-
-If an idea requires confidence, time, locations, equipment, money, travel, studio access, additional people, or skills that the artist has not said they possess, the idea is unsuccessful.
-
-Do not assume an unmentioned resource is available.
-
-When uncertain, choose the simpler and more achievable execution.
-
-IDENTITY KIT APPLICATION
-
-If Context source is "identity", use the saved Identity Kit as the primary source of artist-specific material.
-
-Every idea must draw from at least one concrete element:
-
-- lived experience
-- relationship
-- belief
-- contradiction
-- recurring theme
-- visual world
-- listener transformation
-- audience desire or frustration
-- content pillar
-- Creative DNA
-- brand guardrail
-
-Do not merely mention the Identity Kit.
-
-Use its evidence to shape the concept, setting, hook, execution and reason the idea works.
-
-Avoid defaulting to generic themes such as struggle, pressure, growth, resilience, clarity, community or self-discovery unless the Identity Kit makes them central.
-
-The ideas should feel difficult to reuse for another artist.
-
 ${oldReleaseGuidance || ''}
 
-CONFIDENCE MATCHING
+LYRIC AVAILABILITY FOR THIS GENERATION
 
-Never force an artist into a presentation style they are unlikely to use.
+Has supplied lyrics: ${hasLyrics ? 'Yes' : 'No'}
 
-If the artist has low confidence speaking to camera:
-- do not default to direct-to-camera monologues
-- prefer voiceover, performance, text-on-screen, partial framing, process footage, slideshows, or simple visual storytelling
+${hasLyrics
+  ? `Use only the supplied lyrics and verified lyric-analysis moments below.
 
-If the artist is comfortable performing but not speaking:
-- let performance carry the idea
-- avoid requiring long explanations
+Lyrics focus:
+${lyricsFocus || 'general'}
 
-If the artist avoids showing their face:
-- never describe facial expressions, eye contact, lip syncing, or direct-to-camera delivery
-- use hands, surroundings, silhouette, objects, screen recordings, existing footage, text, or voiceover
-
-Meet the artist where they are.
-
-Do not treat confidence expansion as the goal of every generation.
-
-The best idea is the one most likely to be created, not the one that sounds most impressive.
-
-Artist setup guardrails:
-- Artist type: ${artistType || 'Not specified'}
-- Performance / creation style: ${performanceStyle || 'Not specified'}
-- Only suggest ideas that fit this setup.
-- If the artist does not play instruments or is clearly a rapper, do not suggest instrument-playing content.
-
-Content mix targets (approx %):
-${mix ? `promo:${mix.promo} brand:${mix.brand} community:${mix.community} bts:${mix.bts} lifestyle:${mix.lifestyle}` : 'Not provided'}
-
-Energy pattern (Mon..Sun):
-${Array.isArray(energyPattern) && energyPattern.length ? energyPattern.join(', ') : 'Not provided'}
-Session novelty key: ${noveltySeed || 'default'}
-
-Title should feel like a TikTok creator naming the concept.
-
-Maximum 5 words.
-
-Avoid:
-- Rap Moment
-- Visualizer
-- Lyric Post
-- Performance Clip
-- Content Piece
-
-Examples:
-
-The Verse I Almost Cut
-
-Before The Numbers Come
-
-Still Posting Anyway
-
-This One Hurt To Write
-
-Pressure Doesn't Leave
-
-The Quietest Line
-
-Not Finished Yet
-
-Calm Outside, Chaos Inside
-
-Lyrics context:
-${lyrics
-  ? `Focus: ${lyricsFocus || 'general'}
-
-Use these lyrics as source material.
-
-Lyrics:
+Supplied lyrics:
 ${lyrics.slice(0, 4000)}
 
-Pre-analysed strongest lyric moments:
+Verified lyric-analysis moments:
 ${lyricMomentsBlock}`
-  : 'No lyrics provided.'}
+  : `No lyrics were supplied.
 
-Text-on-screen inspiration by idea slot:
+Do not reference, quote or assume:
+- lyrics
+- lines
+- verses
+- bars
+- choruses
+- lyrical hooks
+- lyric screenshots
+- lyric meanings
+- behind-the-lyric history
 
-${selectedTextOnScreenFrameworks}
-
-IMPORTANT:
-
-The frameworks above are inspiration only.
-
-Do NOT copy them directly.
-Do NOT lightly rewrite them.
-Do NOT repeat them word-for-word.
-
-Create a completely new variation that expresses the same emotional idea using different language.
-
-Bad:
-"Some wins feel empty when certain people are missing."
-
-Good:
-"The people you wanted to celebrate with aren't here."
-
-Good:
-"Achievement feels different when you can't share it."
-
-Good:
-"Sometimes the silence after a win is the loudest part."
-
-Rules:
-- Treat each numbered line as inspiration for the matching idea number.
-- Idea 1 should use inspiration line 1.
-- Idea 2 should use inspiration line 2.
-- Idea 3 should use inspiration line 3.
-- Continue this pattern across the batch.
-- Use the category and emotional pattern, but do not copy the wording exactly.
-- Remix the structure to fit the artist, genre, audience, song theme, and specific idea.
-- Do not repeatedly use the same inspiration category.
-- Avoid generating multiple ideas that communicate the same core message in different wording.
-
-Available content territories:
-
-FRAMEWORK DISTRIBUTION
-
-Across the batch:
-
-- At least 1 humour idea
-- At least 1 music observation
-- At least 1 fan culture idea
-- At least 1 hot take/opinion
-- At least 1 curiosity-driven idea
-- At least 1 identity idea
-
-Do not make every idea emotional.
-
-The best batches feel like a mix of:
-
-- entertaining
-- insightful
-- relatable
-- surprising
-- opinionated
-- emotional
-
-rather than one emotional theme repeated.
-
-EMOTIONAL
-- confidence
-- ambition
-- attraction
-- nostalgia
-- freedom
-- celebration
-- transformation
-- pressure
-- vulnerability
-
-OBSERVATIONAL
-- weird artist truths
-- music industry observations
-- audience behaviour
-- fan behaviour
-- genre stereotypes
-- release day realities
-
-OPINION
-- hot takes
-- unpopular opinions
-- contrarian views
-- strong preferences
-- genre debates
-
-IDENTITY
-- introvert artists
-- perfectionists
-- overthinkers
-- creatives
-- independent artists
-- niche communities
-
-HUMOUR
-- artist struggles
-- release day chaos
-- streaming realities
-- marketing frustrations
-- fan moments
-
-CURIOSITY
-- unexpected facts
-- comparisons
-- challenges
-- experiments
-- audience questions
-
-COMMUNITY
-- fan culture
-- shared experiences
-- listener identity
-- music discovery
+Build ideas from verified sound, mood, identity, audience psychology, process,
+performance, visual world and release context instead.`}
 
 
-Artist type adaptation:
+ARTIST-TYPE AND AUDIENCE ADAPTATION
 
-If artistType is DJ, producer, electronic artist, house artist, EDM artist, dance artist, or if the audience contains terms such as festival, party, club, nightlife, rave, high energy, dance music fans:
+Use the supplied artist type, genre, audience and Creative Reality together.
 
-- Prioritise energy, anticipation, crowd reaction, live moments, festival culture, movement, release, celebration, connection, and atmosphere.
-- Prioritise content built around drops, transitions, audience reactions, live footage, soundchecks, backstage moments, DJ preparation, crowd anticipation, and shared experiences.
-- Avoid therapy-style messaging, mental health framing, overthinking themes, emotional exhaustion themes, loneliness themes, self-doubt themes, and "music for people who feel too much" style concepts unless explicitly supported by the artist context.
-- Do not assume introspective or vulnerable messaging simply because emotional buckets exist in the library.
-- For DJs and dance artists, emotion should usually be expressed through energy, atmosphere, anticipation, release, nostalgia, community, celebration, or crowd experience rather than personal vulnerability.
-- Do not generate verse, chorus, lyric, singing, rap, acoustic, bar, vocal, or walking-alone performance ideas.
-- Focus on drops, transitions, crowd reactions, live set moments, booth footage, soundcheck, track selection, build-up, remix, edits, energy shifts, and fan/community reaction.
-- If selected content type is POV, reinterpret it as DJ POV: booth perspective, crowd perspective, pre-drop tension, post-set reflection, or fan reaction — not emotional monologue.
-When selecting emotional territories:
+For producers, DJs and electronic artists:
 
-Example:
+- focus on verified sound, arrangement, transitions, build-up, release, movement,
+  atmosphere, process and listening context;
+- do not assume vocals, lyrics, singing, rapping or acoustic performance;
+- do not assume crowds, gigs, booths, backstage access, live footage or fan reactions;
+- use live or crowd material only when explicitly available;
+- for nightlife, dance, festival or high-energy audiences, favour supported
+  territories such as anticipation, movement, freedom, confidence, atmosphere,
+  celebration, tension and release;
+- do not default to therapy, loneliness, hidden pain, pressure or perseverance
+  unless explicitly supported.
 
-David Guetta
-Genre: House
-Audience: Party people
-Goal: Convert
+Artist type never overrides Creative Reality.
 
-Strong territories:
-- excitement
-- anticipation
-- freedom
-- nightlife
-- celebration
-- crowd energy
-
-Weak territories:
-- loneliness
-- healing
-- overthinking
-- pressure
-- self doubt
-
-Territory selection must respect artist type and audience.
-
-Do not select Mental Noise, Self Doubt, Success Cost, Lonely Growth, Underdog Artist, or similar introspective territories for DJs, EDM artists, house artists, dance artists, festival-focused artists, or high-energy audiences unless the user explicitly provides context supporting those themes.
-
-unless explicitly provided by lyrics.
-
-IMPORTANT:
-
-Do not over-index on:
-- pressure
-- overthinking
-- loneliness
-- growth
-- self doubt
-
-These are only some of many possible emotional territories.
-
-Also generate ideas around:
-- confidence
-- attraction
-- romance
-- obsession
-- ambition
-- revenge
-- freedom
-- nostalgia
-- friendship
-- celebration
-- chaos
-- humour
-- curiosity
-- temptation
-- escapism
-- loyalty
-- risk
-- adventure
-- desire
-- transformation
-- gratitude
-- rebellion
-
-The emotional distribution should reflect the actual song and artist context, not default to personal-growth content.
+Audience mood never authorises invented assets.
 
 Plan parameters:
 - Start date: ${startDate}
@@ -3193,172 +2166,12 @@ ${selectedTextOnScreenExamples
   .map(item => `- ${item.category}: ${item.example}`)
   .join('\n')}
 
-  IMPORTANT:
+Use this library only as optional presentation inspiration.
 
-The examples above are reference material only.
+Do not copy, lightly rewrite or allow an example to determine the concept.
 
-Never copy them directly.
-Never make minor wording changes.
-Never substitute a few words.
-
-Understand the psychology behind the example and create a completely new expression.
-
-Example:
-
-Reference:
-"Nobody talks about how lonely growth can be"
-
-Bad:
-"People don't discuss how lonely success feels"
-
-Good:
-"The higher you climb, the fewer people understand the view"
-
-Good:
-"Progress gets quieter the further you go"
-
-Good:
-"Sometimes growth feels like outgrowing rooms"
-
-Every on-screen text should feel newly written.
-
-Use these as inspiration for style, psychology, and structure.
-Do not copy them word-for-word unless the wording perfectly fits.
-Create fresh text-on-screen lines that feel native to TikTok/Reels.
-Text-on-screen should usually create curiosity, identity, tension, relatability, or "found early" energy.
-
-Rules for using creative formats:
-- Use these formats as the main creative menu for this batch.
-- Do not default to generic storytelling unless the selected format clearly needs it.
-- Most ideas should be built around the song audio, lyrics, performance, hook, chorus, verse, release, or listening experience.
-- If a format is not story-based, do not turn it into a story-based idea.
-- At least 80% of ideas should use a different creative format.
-Selected content type rules:
-- The user selected these content types: ${contentTypes.join(', ')}
-- These are HARD constraints, not preferences.
-- Every generated item MUST use one of these selected content types only: ${contentTypes.join(', ')}
-The "content_type" must match one selected badge. The "pillar" can describe the creative angle, but the app will display content_type as the badge.
-- Use ONLY these exact content_type values: ${contentTypes.map(normalizeContentType).join(', ')}
-
-
-Selected badge rules:
-- The user selected these content badges: ${allowedBadgeTypes.join(', ')}
-- These badges are for labelling/filtering only.
-- Creative frameworks can include performance, lyric, POV, hook preview, slideshow, BTS, cinematic, or discovery angles.
-- However, every item's content_type must be exactly one of the selected badges: ${allowedBadgeTypes.join(', ')}
-- Do not invent badge values.
-- Do not use framework names as content_type values.
-- Pillar can describe the creative angle.
-- content_type must only describe the selected badge.
-
-Before creating the calendar, internally identify:
-- the main theme of the song or campaign
-- the emotional experiences inside that theme
-- the audience situations those experiences connect to
-- the best content formats for a small independent artist
-
-Then turn those into practical content ideas.
-
-- Keep the calendar music-first.
-- At least 70% of ideas should directly feature the song, lyric, performance, sound, visual world, release, or listening experience.
-- Storytelling angles are allowed, but they must connect clearly back to the music.
-- Avoid standalone motivational, lifestyle, or personality posts unless they clearly lead back to the song or artist world.
-Lyric analysis instruction:
-If pre-analysed lyric moments are available, use them as the main source for lyric-based ideas.
-Do not ask the user to choose a verse, pick a line, select a lyric, or choose a bar.
-For each lyric-based idea, clearly name or quote the lyric moment being used.
-The result should feel like WW has analysed the song and found strong content angles for the artist.
-
-Text-on-screen rules:
-
-- Treat text on screen as the primary scroll-stopper.
-- Text on screen should usually be stronger than the spoken hook.
-- Prefer:
-  Prefer:
-  - Identity statements
-  - Relatable observations
-  - Contrarian beliefs
-  - Fan culture
-  - Emotional experiences
-  - Community moments
-  - Audience reactions
-  - Unexpected truths
-- Avoid simply describing the video.
-- Avoid generic summaries.
-- Good text on screen should make someone stop scrolling even without audio.
-Use the inspiration examples to understand psychology and structure.
-
-Do not build most ideas from them.
-
-Use them only when genuinely relevant.
-
-Every batch should contain fresh observations that do not resemble the examples.
-
-When generating onScreenText:
-
-- Do NOT describe the video.
-- Do NOT summarise the content.
-- Do NOT simply repeat the lyric.
-
-Instead create:
-
-- a belief
-- a POV
-- a thought
-- an observation
-- an identity statement
-- an underdog angle
-- a found-early angle
-
-The best onScreenText should feel like something a viewer would repost, save, or send to a friend.
-
-INCLUSION RULE
-
-The viewer should feel included in the content.
-
-Do not talk only about the artist.
-
-Connect the artist experience to the viewer experience.
-
-Weak:
-
-"I nearly deleted this song."
-
-Better:
-
-"What's something you nearly gave up on too early?"
-
-Weak:
-
-"This lyric means a lot to me."
-
-Better:
-
-"Everyone has one sentence they wish they'd heard sooner."
-
-Weak:
-
-"I wrote this during a difficult time."
-
-Better:
-
-"Most people look fine right before they burn out."
-
-The viewer should see themselves inside the idea.
-
-Bad:
-- "Studio session"
-- "New song"
-- "Performance clip"
-- "Watch until the end"
-
-Good:
-- "Nobody talks about how lonely growth can be"
-- "You'll either hear this now or six months from now"
-- "Music for people who feel too much"
-- "POV: you're exhausted but life keeps asking for more"
-
-The onScreenText should usually be stronger than the hook.
+Ignore any example that conflicts with artist type, lyric availability,
+Identity Kit, Creative Reality, the approved concept or the Decision Engine.
 
 Design a content calendar that:
 - Spreads posts across the weeks.
@@ -3366,119 +2179,18 @@ Design a content calendar that:
 - Feels coherent with one artist identity.
 - Can be realistically executed by a busy independent artist.
 
-WOW FACTOR TEST
-
-BORING FILTER
-
-Reject ideas that:
-
-- could apply to any artist
-- sound like generic advice
-- sound like a motivational quote
-- rely on vague emotions
-- contain no surprising observation
-- contain no specific point of view
-
-If the idea feels familiar, rewrite it.
-
-At least 30% of ideas should make the user think:
-
-"I wish I had thought of that."
-
-These ideas often contain:
-
-- a surprising observation
-- a strong opinion
-- an unexpected comparison
-- a fan truth
-- a music culture insight
-- a funny reality
-- a debate starter
-- a specific artist experience
-
-Avoid making every idea emotionally deep.
-
-Interesting beats meaningful when variety is needed.
-
-FINAL SELF-CHECK:
-
-Before outputting an idea ask:
-
-1. Does this sound like an artist?
-2. Does this sound like a template?
-3. Have I already generated something similar?
-4. Is the hook different from the on-screen text?
-5. Is the hook different from the execution?
-6. Would somebody actually post this?
-7. Does this batch explore at least 6 different content territories?
-8. Is the content_type one of the user-selected content types only?
-9. Does the idea avoid unselected formats completely?
-
-If any answer fails, rewrite the idea.
-
-CONTENT TERRITORY BALANCE
-
-OVERUSED TERRITORIES
-
-Treat these as rare ideas, not default ideas.
-
-Across a batch, use at most one idea involving:
-
-- nobody understands the journey
-- success without someone to celebrate with
-- lonely growth
-- proving people wrong
-- almost quitting
-- exhausted but still going
-- overthinking everything
-- carrying pressure
-- feeling misunderstood
-- hidden pain behind success
-
-If one of these appears, the next ideas must come from different territories.
-
-Do not repeatedly return to these themes.
-
-These themes are valid but should feel occasional and earned, not default.
-
-No single emotional territory should dominate the batch.
-
-Maximum 25% of ideas may be based on:
-
-- struggle
-- loneliness
-- pressure
-- self doubt
-- proving people wrong
-- growth
-
-The remaining ideas should be distributed across:
-
-- humour
-- curiosity
-- observations
-- opinions
-- fan culture
-- identity
-- community
-- entertainment
-- celebration
-- confidence
-
-The goal is not to make every idea emotional.
-
-The goal is to make every idea interesting.
-
 
 You MUST:
 - Return at least ${targetCandidateCount} items.
-- It is better to return more candidates than to repeat yourself.
+- Every requested candidate must meet the same quality standard.
+- Additional candidates are a private validation reserve, not weaker backup ideas.
+- Never repeat an earlier concept merely to reach the candidate count.
 - Ensure dates are valid calendar dates after the start date.
 - Keep the ideas genuinely usable.
 - Every item must feel clearly different from the others.
 - Do not repeat the same concept with minor wording changes.
 - If the requested number is high, increase variety across hook, post structure, audience angle, execution style, and content pillar.
-- When in doubt, generate extra distinct options rather than repeating an earlier idea.
+- When a candidate would repeat an earlier idea, replace its underlying creative route.
 - If campaign context is present, make the ideas feel like content executions of that campaign.
 - If release strategy context is present, make the ideas feel guided by that rollout plan.
 - If focusMode is "old_release", make the ideas feel like revival content for an existing song/project.
@@ -3741,23 +2453,8 @@ Instead describe a specific piece of content.
 Bad:
 "Highlight a lyric about success."
 
-Bad:
-"Share a POV about internal struggles."
-
-Bad:
-"Focus on emotional cost."
-
 Good:
 "Rap the line that made you realise success can feel lonely."
-
-Good:
-"Perform the verse while walking through your city at night explaining why you almost quit."
-
-Good:
-"Show the lyric you nearly removed from the song and explain why it stayed."
-
-Good:
-"Tell the story behind the one line listeners quote back to you most."
 
 Avoid repeating or closely copying these existing ideas:
 ${existingIdeasForAvoidList || 'None'}
@@ -3767,45 +2464,32 @@ ${availableFrameworks.map(x => `- ${x}`).join('\n')}
 
 Text-on-screen inspiration by missing idea slot:
 
-${selectedTextOnScreenFrameworks}
+Lyrics context:
+${lyrics
+  ? `Focus: ${lyricsFocus || 'general'}
 
-Rules:
-- Use these as category/pattern inspiration only.
-- Do not copy them word-for-word.
-- Do not repeatedly use the same inspiration category.
-- Hook and onScreenText must be different.
-- onScreenText should be shorter, sharper, and more repostable than the hook.
+Use these lyrics as source material.
 
-Pre-analysed lyric moments:
-${lyricMomentsBlock}
+Lyrics:
+${lyrics.slice(0, 4000)}
+
+Pre-analysed strongest lyric moments:
+${lyricMomentsBlock}`
+  : 'No lyrics provided.'}
+
 When generating onScreenText:
 
 - Do NOT describe the video.
 - Do NOT summarise the content.
 - Do NOT simply repeat the lyric.
 
-Instead create:
+Create on-screen text from the approved concept, Attention Gene, audience
+psychology and artist identity.
 
-- a belief
-- a POV
-- a thought
-- an observation
-- an identity statement
-- an underdog angle
-- a found-early angle
+Do not use underdog or found-early framing unless strongly justified by the
+original context and Decision Engine.
 
 The best onScreenText should feel like something a viewer would repost.
-
-Prioritise:
-
-- POV
-- Found Early
-- Underdog Artist
-- Identity Statement
-- Humour
-- Observation
-- Opinion
-- Curiosity
 
 
 Avoid generic overlays such as:
@@ -3826,11 +2510,9 @@ Rules:
 - Keep the music central.
 - Do not use generic fallback ideas.
 - Do not repeat the same hook, on-screen text, concept, execution, or why.
-- Hook and onScreenText must be different.
-- Hook and onScreenText should say the same emotional idea in different wording.
-- Do not copy/paste the hook into onScreenText.
 - onScreenText should be shorter, sharper, and more repostable than the hook.
-- Use music-first formats like performance, lyrics, POV, lip sync, slideshow, visual metaphor, discovery, hook preview, or song audio moments.
+- Use only formats compatible with the selected content types, artist type,
+  lyric availability, Creative Reality and existing batch.
 - Return only valid JSON with the same shape: { "items": [...] }.
 `.trim(),
         },
