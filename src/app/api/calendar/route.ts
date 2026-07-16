@@ -408,29 +408,42 @@ Identify 8-12 strong lyric moments for social media content.
 }
 
 
-function normalizeContentType(type: string) {
+function normalizeContentType(type: unknown): string {
+  if (typeof type !== 'string') {
+    return ''
+  }
+
   const value = type.toLowerCase().trim()
 
   if (value === 'behind the scenes') return 'bts'
+  if (value === 'behind-the-scenes') return 'bts'
   if (value === 'bts') return 'bts'
-  if (value === 'studio / bts') return 'bts'
 
   if (value === 'text on screen') return 'text-on-screen'
   if (value === 'text-on-screen') return 'text-on-screen'
+  if (value === 'text_on_screen') return 'text-on-screen'
 
+  if (value === 'direct performance') return 'direct-performance'
+  if (value === 'direct-performance') return 'direct-performance'
+  if (value === 'performance') return 'direct-performance'
+
+  if (value === 'camera roll') return 'slideshow'
   if (value === 'camera roll / slideshow') return 'slideshow'
+  if (value === 'camera-roll-slideshow') return 'slideshow'
   if (value === 'slideshow') return 'slideshow'
 
-
   if (value === 'talking to camera') return 'talking-to-camera'
-  if (value === 'direct performance') return 'direct-performance'
-  if (value === 'live footage') return 'live-footage'
-  if (value === 'storytelling') return 'storytelling'
+  if (value === 'talking-to-camera') return 'talking-to-camera'
 
   if (value === 'visual / cinematic') return 'visual-cinematic'
-if (value === 'visual') return 'visual-cinematic'
-if (value === 'cinematic') return 'visual-cinematic'
-if (value === 'visual-cinematic') return 'visual-cinematic'
+  if (value === 'visual cinematic') return 'visual-cinematic'
+  if (value === 'visual-cinematic') return 'visual-cinematic'
+  if (value === 'cinematic') return 'visual-cinematic'
+
+  if (value === 'live footage') return 'live-footage'
+  if (value === 'live-footage') return 'live-footage'
+
+  if (value === 'storytelling') return 'storytelling'
 
   return value
 }
@@ -1821,7 +1834,8 @@ Output STRICTLY valid JSON with this shape:
       "content_type": "Must be exactly one of these selected badge values only: ${allowedBadgeTypes.join(', ')}",
       "hook": "A first spoken line or scroll-stopping opening phrase. It must NOT repeat the title wording.",
 "onScreenText": "Short text overlay for the video. Must be different from the hook and must express the approved Attention Gene and concept psychology.",
-      "execution": "What the artist actually films or shows, step by step if needed",
+"idea": "Describe the creative proposition in 2–4 sentences. Explain what the viewer experiences, what changes, reveals or pays off, and why the music is essential. Do not include camera placement, lighting, shot lists, editing instructions or text placement here.",
+      "execution": "Translate the approved concept into exact filming instructions. Include only relevant details such as framing, camera movement, location use, pacing, editing rhythm, lighting, B-roll, transitions and text placement.",
       "suggested_caption": "A short human caption",
       "cta": "A natural CTA",
       "why": ["1 short reason", "optional second short reason"]
@@ -2281,7 +2295,14 @@ ${
 const allowedBadgeSet = new Set(allowedBadgeTypes)
 
 parsed.items = parsed.items.map((item: any, index: number) => {
-  const normalised = normalizeContentType(item.content_type || '')
+  const rawContentType =
+    typeof item?.content_type === 'string'
+      ? item.content_type
+      : typeof item?.format === 'string'
+      ? item.format
+      : ''
+
+  const normalised = normalizeContentType(rawContentType)
 
   return {
     ...item,

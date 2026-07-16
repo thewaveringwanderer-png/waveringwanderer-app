@@ -2,284 +2,673 @@ export function formatConceptEngineForPrompt() {
   return `
 CONCEPT ENGINE
 
-Before writing any content idea, design the CONTENT MECHANIC.
+The Concept Engine designs the underlying post before detailed filming,
+presentation or copy is written.
 
-Do not begin with a broad topic, theme or marketing objective.
+Its job is not to describe footage.
 
-Begin with how the viewer experiences the post.
+Its job is to create a viewer experience that deserves to become footage.
 
-A concept should feel like the creator first thought:
+Run it after:
 
-"That would make a really good video."
+- Creative Reality has been established;
+- the Creator Genome has been inferred;
+- artist-specific source material has been extracted;
+- the batch goal is understood;
+- the content format and Attention Gene have been selected.
 
-rather than:
+Run it before:
 
-"I should talk about this."
+- the Decision Engine;
+- Batch Intelligence;
+- detailed execution;
+- title;
+- hook;
+- on-screen text;
+- caption;
+- CTA;
+- why this works.
 
-The concept must emerge naturally from:
+Never expose internal concept reasoning.
 
-- the Creative Fingerprint
-- the selected content style
-- Creative Reality
-- the Attention Gene
-- Audience Psychology
-- artist-specific identity context
-- the current goal
-- the platform
+==================================================
+1. CONCEPT BEFORE EXECUTION
+==================================================
 
-Do not choose a mechanic merely because it is visually interesting.
+A concept is the creative proposition of the post.
 
-A mechanic is valid only when this artist could realistically and naturally use it.
+It should explain:
 
-Choose ONE primary concept mechanic for every idea.
+- what the viewer experiences;
+- what question, tension or expectation is created;
+- what changes, reveals, resolves or pays off;
+- why the music is necessary;
+- what makes the post worth remembering.
 
-POSSIBLE CONCEPT MECHANICS
+A concept is not:
+
+- a camera angle;
+- a lighting setup;
+- an editing rhythm;
+- a list of shots;
+- a location;
+- a piece of equipment;
+- a broad topic;
+- an emotional theme;
+- a marketing goal.
+
+Weak:
+
+"Film close-ups of the controller and laptop."
+
+Stronger underlying concept:
+
+"Each small adjustment removes part of the track until the final drop reveals
+which sound was carrying the energy."
+
+Weak:
+
+"Show a waveform on the laptop."
+
+Stronger underlying concept:
+
+"The viewer sees the track become visually quieter while hearing it become more
+powerful."
+
+Use these only as structural distinctions.
+
+Do not copy them automatically.
+
+==================================================
+2. INTERNAL CONCEPT ROUTE
+==================================================
+
+For every tentative idea, silently construct:
+
+{
+  "strategicJob": "what this post must achieve",
+  "viewerStateBefore": "what the viewer initially thinks or feels",
+  "viewerStateAfter": "what changes by the end",
+  "attentionPromise": "why the viewer stays",
+  "creativeTerritory": "the part of the artist world this concept opens",
+  "emotionalTerritory": "the supported emotional response",
+  "centralTension": "the question, contrast or unresolved expectation",
+  "musicRole": "how the music completes the concept",
+  "primaryMechanic": "how the viewer experiences the progression",
+  "memorableDecision": "the one choice that makes the concept distinctive",
+  "artistAction": "what the artist actually does at concept level",
+  "tangibleAnchor": "verified object, location, sound, footage or interaction",
+  "conceptSentence": "the complete idea without execution instructions"
+}
+
+Never return this object.
+
+==================================================
+3. START WITH THE STRATEGIC JOB
+==================================================
+
+Before choosing a mechanic, identify what this specific idea contributes.
+
+Possible strategic jobs include:
+
+- prove the music immediately;
+- make a cold viewer curious;
+- create a strong listening occasion;
+- reveal artist identity;
+- make the audience recognise themselves;
+- build anticipation;
+- show a meaningful production decision;
+- deepen emotional connection;
+- create a memorable visual association;
+- invite low-friction participation;
+- communicate a belief;
+- make the artist's process valuable to the viewer;
+- strengthen release momentum;
+- turn a verified limitation into an identity asset.
+
+Do not use a universal quota.
+
+Choose the strongest job for this artist, audience and goal.
+
+The concept mechanic must serve the job.
+
+==================================================
+4. DEFINE THE VIEWER CHANGE
+==================================================
+
+A strong concept changes something for the viewer.
+
+Identify:
+
+VIEWER STATE BEFORE
+
+What does the viewer initially:
+
+- assume;
+- misunderstand;
+- feel;
+- expect;
+- overlook;
+- want to know?
+
+VIEWER STATE AFTER
+
+What do they:
+
+- realise;
+- hear differently;
+- recognise;
+- anticipate;
+- choose;
+- remember;
+- feel invited into?
+
+If the viewer experiences no meaningful change, the concept may be only footage.
+
+Redesign it.
+
+==================================================
+5. CHOOSE A CREATIVE TERRITORY
+==================================================
+
+Every concept should open a distinct part of the artist's world.
+
+Possible territories include:
+
+- music proof;
+- sound or production;
+- performance;
+- artist identity;
+- audience identity;
+- visual world;
+- humour;
+- opinion;
+- experimentation;
+- process;
+- release anticipation;
+- listening occasion;
+- personal philosophy;
+- community;
+- transformation;
+- creative reality;
+- behind-the-scenes truth.
+
+A territory is not the same as a content type.
+
+Two BTS ideas may occupy different territories.
+
+Example:
+
+- one reveals a production decision;
+- one exposes a humorous creator habit;
+- one builds anticipation for the listening occasion.
+
+Conversely, two differently labelled formats may still occupy the same territory.
+
+Do not create a batch dominated by:
+
+- equipment;
+- studio process;
+- walking performances;
+- emotional struggle;
+- found-early discovery;
+- generic relatability.
+
+The Batch Intelligence Engine will perform the final comparison.
+
+The Concept Engine must create routes with enough territory range to make that
+selection possible.
+
+==================================================
+6. CREATE CENTRAL TENSION
+==================================================
+
+A concept should contain a question, contrast, change or unresolved expectation.
+
+Possible tensions include:
+
+- what the viewer sees versus what they hear;
+- control versus release;
+- simplicity versus impact;
+- preparation versus payoff;
+- expectation versus reality;
+- stillness versus movement;
+- repetition versus interruption;
+- private process versus public result;
+- polished result versus messy decision;
+- one small action versus a large sonic change;
+- anticipation versus the delayed drop;
+- confidence versus uncertainty;
+- the obvious version versus the chosen version.
+
+Do not invent drama or biography.
+
+Use tension already supported by:
+
+- the sound;
+- release context;
+- artist identity;
+- audience psychology;
+- process;
+- visual world;
+- Creative Reality.
+
+If the only tension is "will the viewer keep watching?", the concept is too weak.
+
+==================================================
+7. ASSIGN THE MUSIC A FUNCTION
+==================================================
+
+The song or sound must actively complete the concept.
+
+Choose a clear music role:
+
+- immediate proof;
+- reveal;
+- payoff;
+- transformation trigger;
+- contrast;
+- emotional resolution;
+- build-up;
+- interruption;
+- process result;
+- loop mechanism;
+- listening occasion;
+- performance focus;
+- narrative turning point;
+- atmosphere that changes meaning.
+
+Avoid concepts where the song merely plays underneath attractive footage.
+
+Ask:
+
+What becomes incomplete if the music is removed?
+
+If the answer is "only the atmosphere", strengthen the concept.
+
+==================================================
+8. CHOOSE THE PRIMARY MECHANIC
+==================================================
+
+Only after the strategic job, viewer change, territory, tension and music role are
+clear, choose one primary mechanic.
 
 Possible mechanics include:
 
-- Split screen
-- Before vs after
-- Countdown
-- POV
-- Storytime
-- Lyric reveal, only when lyrics are supplied
-- Notebook or journal
-- Whiteboard explanation
-- Screen recording
-- Text conversation
-- Simulated conversation
-- Draft evolution
-- Voice memo
-- Anonymous confession
-- Challenge
-- Timer
-- One take
-- Performance interruption
-- Hidden camera position
-- Green screen
-- Duet invitation
-- Stitch invitation
-- Audience chooses
-- Myth versus reality
-- Expectation versus reality
-- Parallel timelines
-- First-person narration
-- Internal monologue
-- Reverse storytelling
-- Build-up and payoff
-- Comment reply
-- Fan response
-- Live reaction
-- Song breakdown
-- Repeated visual action
-- Object reveal
-- Visual transformation
-- Sound-triggered movement
-- Framing change
-- Environmental contrast
+- progressive reveal;
+- subtraction;
+- accumulation;
+- expectation versus reality;
+- before versus after;
+- repeated action with change;
+- visual loop;
+- delayed payoff;
+- interruption;
+- transformation;
+- comparison;
+- audience choice;
+- challenge;
+- timer;
+- reverse sequence;
+- first-person process;
+- object progression;
+- screen-based reveal;
+- sound-triggered action;
+- one-take progression;
+- internal versus external contrast;
+- hidden versus revealed;
+- myth versus reality;
+- comment response;
+- participation prompt;
+- visual metaphor;
+- controlled pattern break.
 
-These are creative building blocks, not compulsory templates.
+Formats such as slideshow, performance, BTS or text-on-screen are vessels.
 
-Do not use them mechanically.
+They are not the mechanic by themselves.
 
-Interpret the underlying viewer experience and create an original concept for the artist.
+"Close-up montage" is not a mechanic.
 
-LYRIC AVAILABILITY
+"Film the controller" is not a mechanic.
 
-When lyrics have NOT been supplied:
+"Walk while performing" is not a mechanic.
 
-- Never choose lyric reveal.
-- Never invent specific lyrics.
-- Never invent verses.
-- Never invent choruses.
-- Never invent bars.
-- Never invent line histories.
-- Never claim that a lyric changed meaning over time.
-- Never imply that the artist wrote a specific line unless one was supplied.
-- Never instruct the artist to choose, select or display an unspecified lyric.
-- Never make an unspecified lyrical moment the centre of the concept.
+==================================================
+9. MEMORABLE DECISION
+==================================================
 
-Instead, build ideas from:
+Every concept must include one choice that makes it easy to recognise later.
 
-- supplied themes
-- emotions
-- sonic energy
-- audience psychology
-- artist identity
-- performance
-- visual world
-- verified song context
-- release context
-- creator behaviour
+The memorable decision may be:
 
-When lyrics ARE supplied:
+- one sound disappears each time an object is moved;
+- the visual freezes while the track continues changing;
+- the camera reveals that the apparent performance is only preparation;
+- an expected drop is delayed by a repeated physical action;
+- the viewer chooses which version survives;
+- one object returns at every major sound change;
+- the environment moves from calm to energetic without changing location;
+- the final visual contradicts the opening assumption;
+- the same action means something different after the music changes.
 
-- Use only supplied lyrics or verified lyric-analysis moments.
-- Select the relevant lyric yourself.
-- Do not make the artist choose the lyric.
-- Make the lyrical moment materially affect the concept.
-- Do not invent behind-the-song history around the lyric.
+Do not copy these literally.
 
-MECHANIC FIT
+Use them to understand conceptual memorability.
 
-Every mechanic must naturally fit:
+The memorable decision must belong to the premise.
 
-- the artist
-- the platform
-- the selected content style
-- Creative Reality
-- audience psychology
-- the Attention Gene
-- Identity Kit context, when available
-- the artist's performance comfort
-- the artist's editing ability
-- the available time and resources
+It cannot be added later as decorative editing.
 
-Do not force a creator to behave like a different type of creator.
+==================================================
+10. CONCEPT SENTENCE
+==================================================
 
-Examples:
+Before detailed execution, state the concept internally in one or two sentences.
 
-- Do not force a quiet visual creator into an energetic public monologue.
-- Do not force a performer into a static informational slideshow without a strong reason.
-- Do not force a solo creator into a scene requiring another camera operator.
-- Do not force a low-editing creator into complicated split-screen or transition work.
-- Do not force a faceless creator into direct eye-contact performance.
-- Do not assume live, studio or archive footage exists.
+The sentence must describe:
 
-MECHANIC DIVERSITY
+- the premise;
+- the viewer progression;
+- the music role;
+- the memorable decision.
 
-Do not repeatedly use the same mechanic across the batch.
+It must not rely on:
 
-Actively vary:
+- camera height;
+- lighting;
+- lens choice;
+- text placement;
+- cut timing;
+- detailed shot lists.
 
-- viewer experience
-- visual action
-- narrative structure
-- pacing
-- emotional territory
-- reveal pattern
-- use of objects
-- use of setting
-- interaction style
+Test:
 
-Do not create superficial variety by changing only the hook or wording.
+Could an experienced director understand why the post is interesting before
+discussing how to film it?
 
-Two ideas are too similar when they would result in essentially the same filmed post.
+If no, the concept is still execution-first.
 
-Artist fit is more important than forced variety.
+==================================================
+11. ARTIST OWNERSHIP
+==================================================
 
-If a different mechanic would weaken the artist fit, preserve the better mechanic but create a meaningfully different emotional or visual execution.
+The concept must use verified artist-specific evidence.
 
-MUSIC CONNECTION
+Possible sources:
 
-Every concept must make the music essential.
+- Creator Genome;
+- Identity Kit;
+- artist beliefs;
+- lived experience;
+- recurring theme;
+- contradiction;
+- audience psychology;
+- listener transformation;
+- visual motif;
+- current release context;
+- Creative Reality;
+- verified recurring environment;
+- supplied process or behaviour.
 
-Ask internally:
+Artist ownership should materially affect:
 
-Would the visual or narrative create curiosity before the viewer fully understands the song?
+- the strategic job;
+- tension;
+- mechanic;
+- music role;
+- viewer experience;
+- memorable decision.
 
-Then ask:
+Genre alone is not enough.
 
-Does hearing the song make the concept more complete, meaningful or memorable?
+Artist type alone is not enough.
 
-If the concept would work equally well with unrelated audio, strengthen the connection to:
+A controller does not automatically personalise a producer concept.
 
-- the song
-- the sound
-- the performance
-- the release
-- the artist's visual world
-- the listening experience
-- the emotional effect of the music
+A side-profile performance does not automatically personalise a rapper concept.
 
-Personality may bring the viewer into the content.
+==================================================
+12. CREATIVE REALITY
+==================================================
 
-The music must remain the destination.
+The concept must remain possible before execution begins.
 
-CONCEPT SPECIFICITY
+Use only verified:
 
-Every concept must contain at least one tangible element:
+- locations;
+- equipment;
+- footage;
+- people;
+- skills;
+- time;
+- confidence;
+- editing ability;
+- recurring assets.
 
-- a real moment
-- a verified location
-- an available object
-- a visual action
-- a sound-triggered action
-- a supplied lyric
-- a verified piece of existing footage
-- a recognisable environment
-- a specific audience interaction
-- a deliberate filming constraint
+Do not invent:
 
-Avoid abstract concepts such as:
+- collaborators;
+- crowds;
+- fans;
+- pets;
+- mirrors;
+- instruments;
+- studios;
+- archive footage;
+- live footage;
+- camera operators;
+- props;
+- personal events.
 
-- talk about growth
-- share the meaning of the song
-- make a post about pressure
-- show your creative process
-- create content about confidence
-- highlight the emotion of the track
+An ordinary available object may become creatively important.
 
-These are topics, not concepts.
+Do not require an unsupported object merely because it would improve the idea.
 
-The artist should be able to picture the post.
+==================================================
+13. ARTIST-TYPE FIT
+==================================================
 
-If the concept remains abstract, rewrite it around a scene, action, object, progression or viewer interaction.
+Artist type changes the available source material.
 
-MEMORABLE CREATIVE DECISION
+For producers and DJs, prefer verified concepts involving:
 
-Every concept must contain one memorable creative decision.
+- sound;
+- arrangement;
+- transition;
+- anticipation;
+- movement;
+- production choice;
+- listening context;
+- energy;
+- process;
+- contrast;
+- release.
 
-This could be:
+Do not assume vocals, lyrics, crowds or live environments.
 
-- an unexpected reveal
-- unusual framing
-- a repeated object
-- a controlled camera movement
-- a visual contrast
-- an environmental change
-- a sound-triggered action
-- an audience choice
-- a constraint
-- a narrative reversal
-- a visual payoff
-- a pattern interruption
+For rappers and singers, use performance, delivery, sound, visual world and
+verified lyrical material where supplied.
 
-"Perform to camera" is not a memorable creative decision.
+For bands, use group behaviour only when the required members are available.
 
-"Use text over footage" is not a memorable creative decision.
+For faceless creators, the concept must remain compelling without facial
+performance.
 
-The decision must be specific enough that the artist can immediately imagine it.
+For low-confidence creators, avoid concepts whose value depends on charismatic
+explanation.
 
-Do not force novelty that conflicts with the artist's identity or Creative Reality.
+==================================================
+14. LYRIC AVAILABILITY
+==================================================
 
-CONCEPT QUALITY TEST
+When lyrics are unavailable, no concept may depend on:
 
-A strong concept should make the artist think:
+- a lyric;
+- a line;
+- a verse;
+- a bar;
+- a chorus;
+- lyrical meaning;
+- words appearing from the song;
+- lyric history;
+- a phrase being removed or rewritten.
 
-"I actually want to film that."
+Do not replace missing lyrics with instructions to choose one.
 
-not:
+Build from verified:
 
-"That's another content idea."
+- sound;
+- mood;
+- identity;
+- process;
+- audience psychology;
+- release context;
+- performance atmosphere;
+- visual world;
+- listening experience.
 
-Before approving each concept, silently ask:
+When lyrics are supplied:
 
-- Is this a specific post rather than a topic?
-- Is the viewer experience clear?
-- Does the mechanic fit the Creative Fingerprint?
-- Does it respect Creative Reality?
-- Does it stay inside the selected content style?
-- Does it support the Attention Gene?
-- Does it contain one memorable creative decision?
-- Is the music essential to the concept?
-- Does it use verified artist-specific material where available?
-- Is it meaningfully different from the rest of the batch?
-- Could the artist picture filming it without guessing?
-- Would this artist realistically want to make it?
+- use only supplied lyrics or verified lyric-analysis moments;
+- choose the relevant moment yourself;
+- make it structurally important to the concept;
+- do not invent the story behind it;
+- do not make every concept lyric-led.
 
-If any answer is no, redesign the concept before writing the communication or execution layers.
+==================================================
+15. VIEWER VALUE
+==================================================
 
-Do not output the selected mechanic, internal test answers or reasoning process.
+The viewer must receive something before being asked to support the artist.
+
+Possible value:
+
+- musical proof;
+- curiosity;
+- recognition;
+- humour;
+- participation;
+- a satisfying reveal;
+- a useful insight;
+- emotional release;
+- visual satisfaction;
+- a new way to hear the track;
+- a memorable artist-world detail.
+
+A vague question is not automatically participation.
+
+A studio close-up is not automatically visual value.
+
+A personal confession is not automatically emotional value.
+
+Specify what makes the viewer stay.
+
+==================================================
+16. PLATFORM AND FORMAT FIT
+==================================================
+
+The concept must fit:
+
+- the selected content style;
+- platform behaviour;
+- Creator Genome;
+- Attention Gene;
+- Creative Reality;
+- audience;
+- current goal.
+
+Do not introduce an unselected content type to manufacture variety.
+
+Do not allow the selected format to determine the premise.
+
+The concept determines how the format should be used.
+
+==================================================
+17. CONCEPT VARIETY
+==================================================
+
+Across tentative routes, vary:
+
+- strategic job;
+- creative territory;
+- viewer change;
+- emotional territory;
+- central tension;
+- music role;
+- primary mechanic;
+- artist behaviour;
+- memorable decision;
+- level of participation.
+
+Do not create five variants of:
+
+- showing equipment;
+- walking while performing;
+- studio process;
+- emotional recognition;
+- found-early discovery;
+- lyric performance;
+- camera-roll atmosphere.
+
+If two concepts can be swapped without changing the batch's value, one must be
+replaced.
+
+==================================================
+18. CONCEPT REJECTION
+==================================================
+
+Reject and rebuild a concept when it is:
+
+- only a topic;
+- only a location;
+- only a piece of equipment;
+- only an execution description;
+- only a hook premise;
+- predictable from beginning to end;
+- emotionally generic;
+- unsupported by supplied context;
+- disconnected from the music;
+- too similar to another tentative route;
+- dependent on Presentation to create interest;
+- dependent on Execution to create memorability.
+
+Do not rescue a weak concept with:
+
+- louder text;
+- more cinematic lighting;
+- faster edits;
+- additional camera movement;
+- a stronger CTA;
+- a dramatic title.
+
+Change the premise.
+
+==================================================
+19. FINAL CONCEPT VALIDATION
+==================================================
+
+Before passing the concept to the Decision Engine, silently confirm:
+
+- The strategic job is clear.
+- The viewer changes state.
+- The concept occupies a useful creative territory.
+- A supported tension exists.
+- The music has a necessary function.
+- The mechanic is more than a filming technique.
+- One memorable decision is built into the premise.
+- The concept sentence remains interesting without execution details.
+- Artist-specific evidence materially changes the idea.
+- Creative Reality is respected.
+- Artist type is respected.
+- Lyric use matches actual availability.
+- Viewer value is clear.
+- The format is selected because it serves the concept.
+- The route adds something meaningfully different to the tentative batch.
+- The artist could genuinely want to make it.
+
+If any answer is no, redesign or replace the underlying route before continuing.
+
+Never output the internal route, territory label, mechanic selection, validation
+answers or rejected alternatives.
 `.trim()
 }

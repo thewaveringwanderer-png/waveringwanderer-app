@@ -579,6 +579,66 @@ If two ideas are redundant:
 Do not preserve a weaker idea merely because its wording differs.
 
 ==================================================
+18A. TERRITORY COLLAPSE REJECTION
+==================================================
+
+Creative Reality may limit the available location, equipment and footage.
+
+Do not mistake repeated resources for repeated concepts.
+
+The same bedroom, laptop, headphones or controller may appear across several
+ideas when those are the artist's verified resources.
+
+However, the concepts must still provide meaningfully different reasons to
+watch.
+
+Treat these as one overlapping territory unless their strategic jobs, viewer
+experiences and music roles are materially different:
+
+- controller close-ups;
+- laptop or waveform footage;
+- headphone interactions;
+- knob and fader adjustments;
+- generic studio preparation;
+- producer listening or nodding;
+- track-build footage;
+- bedroom equipment montages.
+
+For a five-idea batch, no more than two final concepts should primarily revolve
+around equipment or generic production-process observation.
+
+When three or more tentative concepts occupy that territory:
+
+1. Keep the strongest one or two.
+2. Identify what value the batch is missing.
+3. Replace the remaining concepts with different territories that still fit the
+   same Creative Reality and selected content styles.
+
+Possible replacement territories include:
+
+- listening occasion;
+- audience recognition;
+- artist philosophy;
+- experimentation;
+- visual-world transformation;
+- humour;
+- opinion;
+- viewer choice;
+- sound comparison;
+- release anticipation;
+- identity;
+- emotional or physical response to the music.
+
+A BTS concept does not have to be about equipment.
+
+A text-on-screen concept does not have to use a static studio visual.
+
+Different objects, camera angles or titles do not automatically create different
+concepts.
+
+Each surviving idea must offer a different reason to watch.
+
+==================================================
 19. MISSING-VALUE TEST
 ==================================================
 
@@ -697,6 +757,8 @@ Presentation Engines, silently confirm:
 - No follower-count shortcut dictated the batch.
 - Underdog or found-early framing is absent or tightly limited.
 - Lyric use matches actual lyric availability.
+- No more than two ideas primarily occupy equipment or generic studio-process territory.
+- The five ideas open at least three meaningfully different territories into the artist's world.
 - No idea is redundant.
 - No idea feels like filler.
 - The five ideas still feel recognisably connected to one artist.

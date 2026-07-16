@@ -419,6 +419,12 @@ border border-ww-blue/20 bg-gradient-to-br from-ww-blue/[0.10] via-white/[0.03] 
         name: "Sophie Maybies",
         role: "Independent Artist · Founding Crew",
       },
+      {
+  quote:
+    "I was worried AI-generated ideas would feel generic, but they were surprisingly well thought out. The suggestions felt tailored to my content and genuinely useful.",
+  name: "Jizu",
+  role: "Independent Artist · Founding Crew",
+},
     ].map((testimonial) => (
       <div
         key={testimonial.name}

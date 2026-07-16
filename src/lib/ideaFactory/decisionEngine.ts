@@ -43,7 +43,9 @@ For every tentative concept, silently construct:
   "identityValue": "low | medium | high",
   "creativeCost": "low | medium | high",
   "memorability": "low | medium | high",
-  "failureReasons": [
+"creativeTerritory": "the distinct part of the artist world this concept occupies",
+"territoryOverlap": "none | partial | strong",
+"failureReasons": [
     "specific reasons the route should not continue"
   ],
   "preserve": [
@@ -91,12 +93,14 @@ Immediately replace a concept when it:
 - depends on a generic small-artist cliché;
 - could be sent to many unrelated artists with minimal changes;
 - repeats another concept's main viewer experience;
+- repeats another concept's creative territory without adding a meaningfully different strategic job;
 - uses personality without creating interest in the music;
 - has no clear reason for a viewer to stop;
 - has no memorable creative decision;
 - is only a topic, theme or emotional label;
 - requires the Presentation Engine to rescue it with a louder hook;
 - requires the Execution Engine to rescue it with decorative filming detail.
+- is primarily a different shot of the same equipment, environment or behaviour already used elsewhere;
 
 Do not adapt a fundamentally weak route.
 
@@ -595,59 +599,113 @@ A simple concept still needs a strong creative decision.
 
 Ask:
 
-What is the least predictable part of this concept?
+What would the viewer not correctly predict after reading only the title and
+first second?
 
-If nothing surprises either the artist or the viewer...
+If the entire concept is immediately predictable, redesign it.
+
+A concept is not surprising merely because it uses:
+
+- close-ups;
+- a pull-back reveal;
+- text appearing on screen;
+- a beat-synchronised cut;
+- a final fade;
+- cinematic lighting.
+
+These are execution techniques, not conceptual surprise.
+
+Every idea should contain ONE thing the viewer didn't expect.
+
+Unexpected can come from:
+
+• perspective
+• story
+• structure
+• editing
+• reveal
+• emotion
+• humour
+• audience participation
+• visual mechanic
+
+If the concept can be predicted after reading the title...
 
 redesign it.
 
-The surprise can come from:
-
-- the mechanic
-- the structure
-- the reveal
-- the framing
-- the setting
-- the audience interaction
-- the object
-- the timing
-- the contrast
-
-Do not add randomness.
-
-Do not become weird for the sake of being different.
-
-The surprise should strengthen the concept itself.
-
-If replacing one creative decision would make the idea significantly more memorable...
-
-replace it before continuing.
-
 ==================================================
-18. OPPORTUNITY-COST TEST
+18. TERRITORY AND OPPORTUNITY-COST TEST
 ==================================================
 
-Imagine the batch has room for only one more concept.
+Identify the primary creative territory of the concept.
 
-Would this concept survive?
+Possible territories include:
+
+- immediate music proof;
+- sound or production process;
+- artist identity;
+- audience recognition;
+- visual world;
+- humour;
+- opinion;
+- experimentation;
+- education;
+- release anticipation;
+- listening occasion;
+- personal philosophy;
+- community participation;
+- challenge;
+- transformation;
+- behind-the-scenes reality.
+
+These are not quotas.
+
+They describe what part of the artist's world the concept allows the viewer to
+enter.
 
 Ask:
 
-- Does it provide value another idea does not?
-- Is its viewer experience distinct?
-- Is its music role distinct?
-- Is its emotional territory needed?
-- Is it a stronger use of the selected format than available alternatives?
+Does another tentative concept already occupy essentially the same territory?
 
-When another concept already performs the same job more effectively:
+Examples of strong overlap:
 
-- keep the stronger concept;
-- replace the weaker route;
-- do not preserve both because their wording differs.
+- several close-ups of production equipment;
+- several studio-process observations;
+- several side-profile performances;
+- several emotional-recognition overlays;
+- several concepts about the same drop;
+- several concepts whose only difference is the object being filmed.
 
-The Batch Intelligence Engine will perform the full comparison.
+If yes, compare their:
 
-The Decision Engine should still reject obvious redundancy early.
+- viewer value;
+- music role;
+- mechanic;
+- memorable decision;
+- artist fit;
+- strategic job.
+
+Keep the stronger route.
+
+Replace the weaker route with a concept that opens a meaningfully different door
+into the artist's world.
+
+A different camera angle does not create a different territory.
+
+A different piece of equipment does not create a different territory.
+
+A different hook does not create a different territory.
+
+Now imagine the batch has room for only one more concept.
+
+Would this concept survive?
+
+It should survive because it provides value the other concepts do not.
+
+The Batch Intelligence Engine will perform the full batch comparison.
+
+The Decision Engine must still reject obvious territory overlap before detailed
+execution begins.
 
 ==================================================
 19. REDESIGN RULE
@@ -742,6 +800,7 @@ Approve the concept only when:
 - the viewer receives value;
 - the viewer relationship fits;
 - creative cost is justified;
+- it occupies a meaningfully distinct creative territory;
 - it earns space in the batch;
 - the Lighthouse would recommend it.
 

@@ -35,7 +35,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
-const CURRENT_UPDATE = 'v1.1'
+const CURRENT_UPDATE = 'v1.3'
 
 type CardTone = 'violet' | 'blue' | 'emerald' | 'amber' | 'neutral'
 
@@ -52,25 +52,10 @@ type Card = {
 
 
 function DashboardPageInner() {
-  const UPDATE_STORAGE_KEY = 'ww-update-v1.2-foundations-dismissed'
 
-const [showUpdate, setShowUpdate] = useState(false)
-
-useEffect(() => {
-  const hasDismissedUpdate =
-    window.localStorage.getItem(UPDATE_STORAGE_KEY) === 'true'
-
-  if (!hasDismissedUpdate) {
-    setShowUpdate(true)
-  }
-}, [])
-
-function dismissUpdate() {
-  window.localStorage.setItem(UPDATE_STORAGE_KEY, 'true')
-  setShowUpdate(false)
-}
 
   const [dismissedIdentityBanner, setDismissedIdentityBanner] = useState(false)
+  const [showUpdate, setShowUpdate] = useState(false)
   const router = useRouter()
   const [checking, setChecking] = useState(true)
   const [activatingPlan, setActivatingPlan] = useState(false)
@@ -138,15 +123,15 @@ useEffect(() => {
   }
 }, [])
 
-useEffect(() => {
-  if (!paymentSuccess) return
-
-  let cancelled = false
-
 function dismissUpdate() {
   localStorage.setItem('ww_last_seen_update', CURRENT_UPDATE)
   setShowUpdate(false)
 }
+
+useEffect(() => {
+  if (!paymentSuccess) return
+
+  let cancelled = false
 
   async function confirmUpgrade() {
     setActivatingPlan(true)

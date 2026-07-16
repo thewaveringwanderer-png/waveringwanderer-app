@@ -1689,7 +1689,7 @@ Return:
 {
   Each Creative Constitution entry should contain:
 
-section
+sections
 
 principle
 
