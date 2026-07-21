@@ -72,7 +72,7 @@ attentionReason?: string
   hook?: string
   onScreenText?: string
   concept?: string
-  execution?: string
+  execution?: unknown
   caption?: string
   cta?: string
   why?: string[]
@@ -89,7 +89,7 @@ attentionReason?: string
   hook?: string
   onScreenText?: string
   concept?: string
-  execution?: string
+  execution?: unknown
   caption?: string
   cta?: string
   why?: string[]
@@ -115,6 +115,79 @@ type ReleaseStrategyContextLite = {
   inputs?: any
   result?: any
 }
+
+type AudienceStage =
+  | 'discovery'
+  | 'awareness'
+  | 'connection'
+  | 'community'
+  | 'release-support'
+  | 'conversion'
+
+type CameraConfidence =
+  | 'love-camera'
+  | 'comfortable'
+  | 'neutral'
+  | 'prefer-not'
+  | 'faceless'
+
+type SpeakingConfidence =
+  | 'love-speaking'
+  | 'comfortable'
+  | 'short-scripted'
+  | 'voiceover-only'
+  | 'never-speak'
+
+type PerformanceConfidence =
+  | 'love-performing'
+  | 'comfortable'
+  | 'sometimes'
+  | 'rarely'
+  | 'avoid-performance'
+
+type EditingConfidence =
+  | 'very-simple'
+  | 'moderate'
+  | 'advanced'
+
+type AvailableTime =
+  | '10-minutes'
+  | '30-minutes'
+  | '1-hour'
+  | 'half-day'
+  | 'flexible'
+
+type ContentProductionStyle =
+  | 'Raw and authentic'
+  | 'Minimal'
+  | 'Cinematic'
+  | 'Documentary'
+  | 'Story-driven'
+  | 'Educational'
+  | 'Humorous'
+  | 'Experimental'
+  | 'Highly polished'
+
+type SlideshowSlide = {
+  slide: number
+  visual: string
+  text: string
+  purpose: string
+  transition?: string
+}
+
+const CONTENT_PRODUCTION_STYLE_OPTIONS: ContentProductionStyle[] = [
+  'Raw and authentic',
+  'Minimal',
+  'Cinematic',
+  'Documentary',
+  'Story-driven',
+  'Educational',
+  'Humorous',
+  'Experimental',
+  'Highly polished',
+]
+
 
 const ALL_PLATFORMS: Array<{ key: string; label: string }> = [
   { key: 'instagram', label: 'Instagram' },
@@ -154,6 +227,8 @@ const CONTENT_STYLE_OPTIONS = [
   'Visual / cinematic',
 ]
 
+
+
 const CONTENT_ENERGY_OPTIONS = [
   'Balanced',
   'High energy',
@@ -173,6 +248,8 @@ const IDEA_FACTORY_GENERATING_MESSAGES = [
   'Turning your direction into usable content...',
   'Adding new points to your creative map...',
 ]
+
+
 
 // ---------- Helpers ----------
 function dateKey(d: Date) {
@@ -292,7 +369,6 @@ function pickTitle(it: ApiCalendarItem) {
 
 return contentType || 'Content'
 
-  return 'Content idea'
 }
 
 function toggleInArray(arr: string[], value: string) {
@@ -454,6 +530,295 @@ function sourceBadgeClass(label: string) {
   return 'border-white/10 bg-black/40 text-white/65'
 }
 
+function extractInstruction(value: unknown): string {
+  if (typeof value === 'string') {
+    return value.trim()
+  }
+
+  if (!value || typeof value !== 'object') {
+    return ''
+  }
+
+  const record = value as Record<string, unknown>
+
+  const possibleValues = [
+    record.step,
+    record.instruction,
+    record.description,
+    record.action,
+    record.text,
+    record.execution,
+  ]
+
+  const matchingValue = possibleValues.find(
+    (item): item is string =>
+      typeof item === 'string' && item.trim().length > 0,
+  )
+
+  return matchingValue?.trim() ?? ''
+}
+
+function splitExecutionSteps(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map(extractInstruction)
+      .filter((step): step is string => step.length > 0)
+  }
+
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>
+
+    const nestedSteps =
+      record.steps ??
+      record.instructions ??
+      record.executionSteps ??
+      record.videoExecution
+
+    if (Array.isArray(nestedSteps)) {
+      return nestedSteps
+        .map(extractInstruction)
+        .filter((step): step is string => step.length > 0)
+    }
+
+    const singleInstruction = extractInstruction(value)
+
+    return singleInstruction ? [singleInstruction] : []
+  }
+
+  if (typeof value !== 'string') {
+    return []
+  }
+
+  const trimmed = value.trim()
+
+  if (!trimmed) {
+    return []
+  }
+
+  // Handle a JSON string containing an array or object.
+  try {
+    const parsed: unknown = JSON.parse(
+      trimmed
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```$/, ''),
+    )
+
+    const parsedSteps = splitExecutionSteps(parsed)
+
+    if (parsedSteps.length > 0) {
+      return parsedSteps
+    }
+  } catch {
+    // Continue with normal text parsing.
+  }
+
+  const withoutHeading = trimmed
+    .replace(/^VIDEO EXECUTION\s*:?\s*/i, '')
+    .replace(/^EXECUTION\s*:?\s*/i, '')
+
+  // Split explicit numbered or bulleted instructions.
+  const explicitSteps = withoutHeading
+    .split(
+      /\n(?=\s*(?:\d+[.)]|step\s+\d+\s*[:.)-]|[-•])\s*)|(?=\s+step\s+\d+\s*[:.)-])/gi,
+    )
+    .map((step) =>
+      step
+        .replace(/^\s*(?:\d+[.)]|step\s+\d+\s*[:.)-]|[-•])\s*/i, '')
+        .trim(),
+    )
+    .filter(Boolean)
+
+  if (explicitSteps.length > 1) {
+    return explicitSteps
+  }
+
+  // Fallback for model output returned as one long paragraph.
+  const sentenceSteps =
+    withoutHeading.match(/[^.!?]+[.!?]+(?:["'”’])?|[^.!?]+$/g) ?? []
+
+  return sentenceSteps
+    .map((step) => step.trim())
+    .filter((step) => step.length > 0)
+}
+
+function safeExecutionText(value: unknown): string {
+  if (typeof value === 'string') {
+    return value
+  }
+
+  const steps = splitExecutionSteps(value)
+
+  return steps.join('\n')
+}
+
+function getRecordString(
+  record: Record<string, unknown>,
+  keys: string[],
+): string {
+  for (const key of keys) {
+    const value = record[key]
+
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim()
+    }
+  }
+
+  return ''
+}
+
+function normaliseSlideshowSlide(
+  value: unknown,
+  index: number,
+): SlideshowSlide | null {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+
+  const record = value as Record<string, unknown>
+
+  const visual = getRecordString(record, [
+    'visual',
+    'visualDirection',
+    'image',
+    'imageDirection',
+    'description',
+  ])
+
+  const text = getRecordString(record, [
+    'text',
+    'exampleText',
+    'onScreenText',
+    'overlayText',
+    'caption',
+  ])
+
+  const purpose = getRecordString(record, [
+    'purpose',
+    'role',
+    'objective',
+  ])
+
+  const transition =
+    getRecordString(record, [
+      'transition',
+      'transitionDirection',
+    ]) || undefined
+
+  if (!visual && !text && !purpose) {
+    return null
+  }
+
+  return {
+    slide:
+      typeof record.slide === 'number'
+        ? record.slide
+        : typeof record.slideNumber === 'number'
+          ? record.slideNumber
+          : index + 1,
+    visual,
+    text,
+    purpose,
+    transition,
+  }
+}
+
+function parseTextSlideshowSlides(value: string): SlideshowSlide[] {
+  const cleaned = value
+    .replace(/^SLIDE PLAN\s*:?\s*/i, '')
+    .replace(/^VIDEO EXECUTION\s*:?\s*/i, '')
+    .trim()
+
+  const blocks = cleaned
+    .split(/(?=Slide\s*\d+\s*(?:—|-|:))/gi)
+    .map((block) => block.trim())
+    .filter(Boolean)
+
+  return blocks.reduce<SlideshowSlide[]>((slides, block, index) => {
+    const slideMatch = block.match(/Slide\s*(\d+)/i)
+    const visualMatch = block.match(
+      /Visual\s*:\s*(.*?)(?=\s*\|\s*Text\s*:|\s+Text\s*:|$)/i,
+    )
+    const textMatch = block.match(
+      /Text\s*:\s*(.*?)(?=\s*\|\s*Purpose\s*:|\s+Purpose\s*:|$)/i,
+    )
+    const purposeMatch = block.match(
+      /Purpose\s*:\s*(.*?)(?=\s*\|\s*Transition\s*:|\s+Transition\s*:|$)/i,
+    )
+    const transitionMatch = block.match(
+      /Transition\s*:\s*(.*)$/i,
+    )
+
+    const visual = visualMatch?.[1]?.trim() ?? ''
+    const text = textMatch?.[1]?.trim() ?? ''
+    const purpose = purposeMatch?.[1]?.trim() ?? ''
+    const transition = transitionMatch?.[1]?.trim() || undefined
+
+    if (!visual && !text && !purpose) {
+      return slides
+    }
+
+    slides.push({
+      slide: slideMatch ? Number(slideMatch[1]) : index + 1,
+      visual,
+      text,
+      purpose,
+      transition,
+    })
+
+    return slides
+  }, [])
+}
+
+function parseSlideshowSlides(value: unknown): SlideshowSlide[] {
+  let source: unknown = value
+
+  if (typeof source === 'string') {
+    const trimmed = source
+      .trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '')
+
+    if (!trimmed) {
+      return []
+    }
+
+    try {
+      source = JSON.parse(trimmed)
+    } catch {
+      return parseTextSlideshowSlides(trimmed)
+    }
+  }
+
+  if (
+    source &&
+    typeof source === 'object' &&
+    !Array.isArray(source)
+  ) {
+    const record = source as Record<string, unknown>
+
+    source =
+      record.slides ??
+      record.slidePlan ??
+      record.slideshow ??
+      record.execution ??
+      source
+  }
+
+  if (!Array.isArray(source)) {
+    return []
+  }
+
+  return source.reduce<SlideshowSlide[]>((slides, item, index) => {
+    const slide = normaliseSlideshowSlide(item, index)
+
+    if (slide) {
+      slides.push(slide)
+    }
+
+    return slides
+  }, [])
+}
+
 // ---------- Component ----------
 
 function InputSection({
@@ -493,6 +858,93 @@ function InputSection({
   )
 }
 
+function SlideshowPlan({
+  slides,
+}: {
+  slides: SlideshowSlide[]
+}) {
+  return (
+    <div
+      className="
+        flex gap-3 overflow-x-auto pb-3
+        snap-x snap-mandatory
+        [scrollbar-width:thin]
+        [scrollbar-color:rgba(186,85,211,0.45)_transparent]
+      "
+    >
+      {slides.map((slide) => (
+        <article
+          key={slide.slide}
+          className="
+            w-[250px] min-w-[250px]
+            snap-start
+            rounded-2xl
+            border border-white/10
+            bg-black/30
+            p-4
+          "
+        >
+          <div className="mb-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ww-violet">
+              Slide {slide.slide}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {slide.visual ? (
+              <div>
+                <p className="mb-1 text-[10px] uppercase tracking-[0.16em] text-white/35">
+                  Visual
+                </p>
+
+                <p className="text-sm leading-relaxed text-white/75">
+                  {slide.visual}
+                </p>
+              </div>
+            ) : null}
+
+            {slide.text ? (
+              <div className="rounded-xl border border-white/10 bg-black/35 p-3">
+                <p className="mb-1 text-[10px] uppercase tracking-[0.16em] text-white/35">
+                  Text
+                </p>
+
+                <p className="text-sm italic leading-relaxed text-white/85">
+                  {slide.text}
+                </p>
+              </div>
+            ) : null}
+
+            {slide.purpose ? (
+              <div>
+                <p className="mb-1 text-[10px] uppercase tracking-[0.16em] text-white/35">
+                  Purpose
+                </p>
+
+                <p className="text-sm leading-relaxed text-white/65">
+                  {slide.purpose}
+                </p>
+              </div>
+            ) : null}
+
+            {slide.transition ? (
+              <div>
+                <p className="mb-1 text-[10px] uppercase tracking-[0.16em] text-white/35">
+                  Transition
+                </p>
+
+                <p className="text-sm leading-relaxed text-white/65">
+                  {slide.transition}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </article>
+      ))}
+    </div>
+  )
+}
+
 function IdeaResultCard({
   item,
   onOpen,
@@ -520,10 +972,9 @@ const concept =
   'A platform-ready content idea built from your artist brief.'
 
 const rawHook = safeString(structured?.hook).trim() || ''
-const attentionStrategy = safeString(structured?.attentionStrategy).trim()
-const attentionReason = safeString(structured?.attentionReason).trim()
 const titleLower = title.toLowerCase()
 const conceptLower = concept.toLowerCase()
+
 
 const hook =
   rawHook && rawHook.toLowerCase() !== titleLower
@@ -532,11 +983,19 @@ const hook =
     ? concept
     : ''
 
-const execution =
-  safeString(structured?.execution).trim() ||
-  parsed.angle ||
-  parsed.captionBody ||
-  'Open the card to view the full idea.'
+const structuredExecution = structured?.execution
+
+const execution: unknown =
+  structuredExecution !== undefined &&
+  structuredExecution !== null &&
+  !(
+    typeof structuredExecution === 'string' &&
+    structuredExecution.trim() === ''
+  )
+    ? structuredExecution
+    : parsed.angle ||
+      parsed.captionBody ||
+      'Open the card to view the full idea.' 
 
 const cta =
   safeString(structured?.cta).trim() ||
@@ -552,12 +1011,31 @@ const whyLines =
 
 const formatLabel =
   safeString(item.metadata?.api?.content_type).trim() ||
+  safeString(item.metadata?.api?.contentType).trim() ||
+  safeString(item.metadata?.api?.format).trim() ||
   safeString(structured?.contentType).trim() ||
+  parsed.format ||
   'Content'
 
-const sourceTag = sourceLabel(item)
+const normalizedFormatLabel = formatLabel
+  .toLowerCase()
+  .replace(/[_–—]/g, '-')
+  .replace(/\s+/g, ' ')
+  .trim()
 
-const searchParams = useSearchParams()
+const isSlideshow =
+  normalizedFormatLabel.includes('slideshow') ||
+  normalizedFormatLabel.includes('camera roll') ||
+  normalizedFormatLabel.includes('camera-roll') ||
+  normalizedFormatLabel.includes('carousel')
+
+const slideshowSlides = isSlideshow
+  ? parseSlideshowSlides(execution)
+  : []
+
+const executionSteps = isSlideshow
+  ? []
+  : splitExecutionSteps(execution)
 
 
 
@@ -606,14 +1084,58 @@ const searchParams = useSearchParams()
   </div>
 ) : null}
 
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.16em] text-white/40 mb-1.5">
-            Video execution
-          </p>
-          <p className="text-sm leading-relaxed text-white/72">
-            {execution}
+        {isSlideshow ? (
+  slideshowSlides.length > 0 ? (
+    <div>
+      <div className="mb-3 flex items-center justify-between gap-3">
+  <p className="text-[11px] uppercase tracking-[0.16em] text-white/40">
+    Slide plan
+  </p>
+
+  {slideshowSlides.length > 1 ? (
+    <p className="text-[10px] text-white/30">
+      Scroll to view all {slideshowSlides.length} slides →
+    </p>
+  ) : null}
+</div>
+
+      <SlideshowPlan slides={slideshowSlides} />
+    </div>
+  ) : safeExecutionText(execution) ? (
+    <div>
+      <p className="mb-3 text-[11px] uppercase tracking-[0.16em] text-white/40">
+        Slide plan
+      </p>
+
+      <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/72">
+        {safeExecutionText(execution)}
+      </p>
+    </div>
+  ) : null
+) : executionSteps.length > 0 ? (
+  <div>
+    <p className="mb-3 text-[11px] uppercase tracking-[0.16em] text-white/40">
+      Video execution
+    </p>
+
+    <div className="space-y-2.5">
+      {executionSteps.map((step, index) => (
+        <div
+          key={`${index}-${step}`}
+          className="flex items-start gap-3"
+        >
+          <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-ww-violet/30 bg-ww-violet/10 text-[10px] text-ww-violet">
+            {index + 1}
+          </span>
+
+          <p className="pt-[1px] text-sm leading-relaxed text-white/72">
+            {step}
           </p>
         </div>
+      ))}
+    </div>
+  </div>
+) : null}
 
         {cta ? (
   <div>
@@ -671,6 +1193,104 @@ const searchParams = useSearchParams()
     </div>
   )
 }
+
+const PRIMARY_GOAL_OPTIONS = [
+  'Reach new listeners',
+  'Deepen fan connection',
+  'Promote a release',
+  'Increase streams',
+  'Build consistency',
+  'Grow my mailing list',
+  'Sell tickets',
+  'Build community',
+  'Test new content ideas',
+  'Other',
+]
+
+const PRODUCTION_STYLE_OPTIONS = [
+  'Raw',
+  'Minimal',
+  'Cinematic',
+  'Story-driven',
+  'Documentary',
+  'Humorous',
+  'Educational',
+  'Experimental',
+  'Highly polished',
+]
+
+const EQUIPMENT_OPTIONS = [
+  'Phone',
+  'Laptop',
+  'Tripod',
+  'Microphone',
+  'DSLR / camera',
+  'Lighting',
+  'Screen recording',
+  'Other',
+]
+
+const LOCATION_OPTIONS = [
+  'Bedroom',
+  'Home studio',
+  'Living room',
+  'Car',
+  'Outside',
+  'Live venue',
+  'Workplace',
+  'Multiple locations',
+]
+
+const AUDIENCE_STAGE_OPTIONS: Array<{
+  value: AudienceStage
+  label: string
+  description: string
+  guidance: string
+}> = [
+  {
+    value: 'discovery',
+    label: 'Discovery',
+    description: "Most people don't know me yet.",
+    guidance:
+      'WW will prioritise immediate recognition, curiosity and music-first introductions.',
+  },
+  {
+    value: 'awareness',
+    label: 'Awareness',
+    description: 'Some people recognise my name or music.',
+    guidance:
+      'WW will help turn recognition into repeat listening and stronger familiarity.',
+  },
+  {
+    value: 'connection',
+    label: 'Connection',
+    description:
+      "People listen, but they don't feel closely connected to me yet.",
+    guidance:
+      'WW will focus on personality, beliefs, process and emotional recognition.',
+  },
+  {
+    value: 'community',
+    label: 'Community',
+    description: 'I have genuine fans who regularly engage with me.',
+    guidance:
+      'WW will prioritise participation, shared language and stronger fan rituals.',
+  },
+  {
+    value: 'release-support',
+    label: 'Release support',
+    description: 'I want to activate existing listeners around a release.',
+    guidance:
+      'WW will focus on anticipation, reminders, momentum and release participation.',
+  },
+  {
+    value: 'conversion',
+    label: 'Conversion',
+    description: 'I want listeners to take one meaningful next step.',
+    guidance:
+      'WW will build each idea around one clear action without overwhelming the viewer.',
+  },
+]
 
 function CalendarPageInner() {
   const router = useRouter()
@@ -779,6 +1399,40 @@ const [showPerformanceStyleHelp, setShowPerformanceStyleHelp] = useState(false)
 const [showAdvancedInputs, setShowAdvancedInputs] = useState(false)
 const [sortMode, setSortMode] = useState<'newest' | 'platform' | 'content_type' | 'source'>('newest')
 const [identityKitContext, setIdentityKitContext] = useState<any>(null)
+const [mobilePanel, setMobilePanel] =
+  useState<'create' | 'results'>('create')
+
+const [audienceStage, setAudienceStage] =
+  useState<AudienceStage>('discovery')
+
+const [goalPreset, setGoalPreset] = useState('')
+
+const [cameraConfidence, setCameraConfidence] =
+  useState<CameraConfidence>('comfortable')
+
+const [speakingConfidence, setSpeakingConfidence] =
+  useState<SpeakingConfidence>('comfortable')
+
+const [performanceConfidence, setPerformanceConfidence] =
+  useState<PerformanceConfidence>('comfortable')
+
+const [editingConfidence, setEditingConfidence] =
+  useState<EditingConfidence>('very-simple')
+
+const [productionStyles, setProductionStyles] = useState<string[]>([])
+
+const [availableTime, setAvailableTime] = useState('30 minutes')
+
+const [equipment, setEquipment] = useState<string[]>(['Phone'])
+
+const [locations, setLocations] = useState<string[]>([])
+
+const [budget, setBudget] = useState('No budget')
+
+const [worksAlone, setWorksAlone] = useState('Yes')
+
+const [existingFootage, setExistingFootage] = useState('No')
+
   // ---------- Data state ----------
   const [loadingItems, setLoadingItems] = useState(true)
   const [items, setItems] = useState<CalendarItem[]>([])
@@ -1141,6 +1795,17 @@ const generatingMessage = useGeneratingMessages(
   setContentStyles(prev => toggleInArray(prev, value))
 }
 
+function toggleArrayValue(
+  value: string,
+  setter: React.Dispatch<React.SetStateAction<string[]>>
+) {
+  setter(current =>
+    current.includes(value)
+      ? current.filter(item => item !== value)
+      : [...current, value]
+  )
+}
+
 
 
 function applyCampaignContext(row: CampaignContextLite) {
@@ -1280,17 +1945,29 @@ if (selectedContentStyles.length > 2) {
         .filter(Boolean)
         .slice(0, 60)
 
+        
+
       const res = await fetch('/api/calendar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          audienceSize,
-monthlyListeners,
+          audienceStage,
+cameraConfidence,
+speakingConfidence,
+performanceConfidence,
+editingConfidence,
+productionStyles,
+availableTime,
+equipment,
+locations,
+budget,
+worksAlone,
+existingFootage,
+creativeReality: buildCreativeRealitySummary(),
           artistName,
           genre,
           artistType,
           performanceStyle,
-          creativeReality,
           contentStyles: selectedContentStyles,
 contentEnergy,
           audience,
@@ -1430,6 +2107,35 @@ format: safeString((it as any).content_type),
       setGenerating(false)
     }
   }
+
+  function buildCreativeRealitySummary() {
+  return [
+    `Available time: ${availableTime}`,
+    `Equipment: ${
+      equipment.length ? equipment.join(', ') : 'Not specified'
+    }`,
+    `Locations: ${
+      locations.length ? locations.join(', ') : 'Not specified'
+    }`,
+    `Budget: ${budget}`,
+    `Works alone: ${worksAlone}`,
+    `Existing footage: ${existingFootage}`,
+    `Camera confidence: ${cameraConfidence}`,
+    `Speaking confidence: ${speakingConfidence}`,
+    `Performance confidence: ${performanceConfidence}`,
+    `Editing confidence: ${editingConfidence}`,
+    `Production style: ${
+      productionStyles.length
+        ? productionStyles.join(', ')
+        : 'Not specified'
+    }`,
+    creativeReality.trim()
+      ? `Restrictions and additional context: ${creativeReality.trim()}`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
+}
 
   async function handleDeleteIdeaCard(id: string) {
   const ok = window.confirm('Delete this idea card?')
@@ -1582,7 +2288,12 @@ format: safeString((it as any).content_type),
     .filter(Boolean)
 }
 
-const [mobilePanel, setMobilePanel] = useState<'create' | 'results'>('create')
+
+
+const selectedAudienceStage =
+  AUDIENCE_STAGE_OPTIONS.find(
+    option => option.value === audienceStage
+  ) ?? AUDIENCE_STAGE_OPTIONS[0]
 
   return (
   <main className="min-h-screen bg-black text-white">
@@ -1907,24 +2618,38 @@ Share where you are in your journey, how you create, and what you want to build.
 </div>
          <InputSection
   title="Starting Point"
-hint="Set where you are today so WW can guide ideas that fit your current stage."
+  hint="Set where you are today so WW can guide ideas that fit your current stage."
 >
   <div className="grid gap-3 md:grid-cols-2">
     <div className="space-y-1">
       <p className={labelClass}>Artist name</p>
-      <input className={selectClass} placeholder="e.g. natestapes" value={artistName} onChange={e => setArtistName(e.target.value)} />
+      <input
+        className={selectClass}
+        placeholder="e.g. natestapes"
+        value={artistName}
+        onChange={e => setArtistName(e.target.value)}
+      />
     </div>
 
     <div className="space-y-1">
       <p className={labelClass}>Genre / lane</p>
-      <input className={selectClass} placeholder="e.g. introspective UK rap" value={genre} onChange={e => setGenre(e.target.value)} />
+      <input
+        className={selectClass}
+        placeholder="e.g. introspective UK rap"
+        value={genre}
+        onChange={e => setGenre(e.target.value)}
+      />
     </div>
   </div>
 
   <div className="grid gap-3 md:grid-cols-2">
     <div className="space-y-1">
       <p className={labelClass}>Artist type</p>
-      <select className={selectClass} value={artistType} onChange={e => setArtistType(e.target.value)}>
+      <select
+        className={selectClass}
+        value={artistType}
+        onChange={e => setArtistType(e.target.value)}
+      >
         <option value="rapper">Rapper</option>
         <option value="singer">Singer</option>
         <option value="producer">Producer</option>
@@ -1932,45 +2657,69 @@ hint="Set where you are today so WW can guide ideas that fit your current stage.
         <option value="band">Band</option>
         <option value="instrumentalist">Instrumentalist</option>
         <option value="singer-songwriter">Singer-songwriter</option>
+        <option value="composer">Composer</option>
         <option value="other">Other</option>
       </select>
     </div>
 
     <div className="space-y-1">
-      <p className={labelClass}>Guidance level</p>
-      <select className={selectClass} value={ideaDepth} onChange={e => setIdeaDepth(e.target.value as IdeaDepth)}>
-        <option value="simple">Simple</option>
+      <p className={labelClass}>Idea detail</p>
+      <select
+        className={selectClass}
+        value={ideaDepth}
+        onChange={e => setIdeaDepth(e.target.value as IdeaDepth)}
+      >
+        <option value="simple">Quick</option>
         <option value="balanced">Balanced</option>
         <option value="detailed">Detailed</option>
       </select>
     </div>
   </div>
 
-  <div className="grid gap-3 md:grid-cols-2">
-    <div className="space-y-1">
-      <p className={labelClass}>Current audience size</p>
-      <select className={selectClass} value={audienceSize} onChange={e => setAudienceSize(e.target.value)}>
-        <option value="">Select audience stage...</option>
-        <option value="under_250">Under 250 followers</option>
-        <option value="250_1k">250–1k followers</option>
-        <option value="1k_3k">1k–3k followers</option>
-        <option value="3k_6k">3k–6k followers</option>
-        <option value="6k_10k">6k–10k followers</option>
-        <option value="10k_plus">10k+ followers</option>
-      </select>
+  <div className="space-y-3">
+    <div>
+      <p className={labelClass}>Audience stage</p>
+      <p className="mt-1 text-xs leading-relaxed text-white/45">
+        Choose the relationship most people currently have with you and your
+        music.
+      </p>
     </div>
 
-    <div className="space-y-1">
-      <p className={labelClass}>Spotify monthly listeners</p>
-      <select className={selectClass} value={monthlyListeners} onChange={e => setMonthlyListeners(e.target.value)}>
-        <option value="">Select monthly listeners...</option>
-        <option value="under_100">Under 100</option>
-        <option value="100_500">100–500</option>
-        <option value="500_1k">500–1k</option>
-        <option value="1k_5k">1k–5k</option>
-        <option value="5k_10k">5k–10k</option>
-        <option value="10k_plus">10k+</option>
-      </select>
+    <div className="grid gap-2 md:grid-cols-2">
+      {AUDIENCE_STAGE_OPTIONS.map(option => {
+        const active = audienceStage === option.value
+
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => setAudienceStage(option.value)}
+            className={`rounded-xl border p-3 text-left transition ${
+              active
+                ? 'border-ww-violet/60 bg-ww-violet/15 shadow-[0_0_18px_rgba(168,85,247,0.16)]'
+                : 'border-white/8 bg-white/[0.025] hover:border-ww-violet/30'
+            }`}
+          >
+            <p
+              className={`text-sm font-medium ${
+                active ? 'text-white' : 'text-white/75'
+              }`}
+            >
+              {option.label}
+            </p>
+
+            <p className="mt-1 text-xs leading-relaxed text-white/45">
+              {option.description}
+            </p>
+          </button>
+        )
+      })}
+    </div>
+
+    <div className="rounded-xl border border-ww-violet/20 bg-ww-violet/[0.06] px-3 py-2.5">
+      <p className="text-xs leading-relaxed text-ww-lilac/90">
+        {selectedAudienceStage.guidance}
+      </p>
     </div>
   </div>
 </InputSection>
@@ -1980,29 +2729,59 @@ hint="Set where you are today so WW can guide ideas that fit your current stage.
   hint="Define who you are guiding toward your world and what you want this content to create."
 >
   <div className="space-y-1">
-    <p className={labelClass}>Audience</p>
-    <input className={selectClass} placeholder="Who are you talking to?" value={audience} onChange={e => setAudience(e.target.value)} />
+    <p className={labelClass}>Who are you trying to reach?</p>
+    <input
+      className={selectClass}
+      placeholder="Describe the listener this content should connect with."
+      value={audience}
+      onChange={e => setAudience(e.target.value)}
+    />
   </div>
 
   <div className="space-y-1">
-    <p className={labelClass}>Goal</p>
-    <input className={selectClass} placeholder="Grow, deepen, convert, test a concept…" value={goal} onChange={e => setGoal(e.target.value)} />
-  </div>
+  <p className={labelClass}>Primary goal</p>
 
+  <select
+    className={selectClass}
+    value={goalPreset}
+    onChange={e => {
+      const value = e.target.value
+      setGoalPreset(value)
+
+      if (value !== 'Other') {
+        setGoal(value)
+      } else {
+        setGoal('')
+      }
+    }}
+  >
+    <option value="">Choose a primary goal...</option>
+
+    {PRIMARY_GOAL_OPTIONS.map(option => (
+      <option key={option} value={option}>
+        {option}
+      </option>
+    ))}
+  </select>
+</div>
+
+{goalPreset === 'Other' ? (
   <div className="space-y-1">
-    <p className={labelClass}>Content energy</p>
-    <select className={selectClass} value={contentEnergy} onChange={e => setContentEnergy(e.target.value)}>
-      {CONTENT_ENERGY_OPTIONS.map(option => (
-        <option key={option} value={option}>{option}</option>
-      ))}
-    </select>
+    <p className={labelClass}>Describe your goal</p>
+    <input
+      className={selectClass}
+      placeholder="What should this content help you achieve?"
+      value={goal}
+      onChange={e => setGoal(e.target.value)}
+    />
   </div>
+) : null}
 </InputSection>
 
 
           <InputSection
-  title="Creation style"
-  hint="Tell WW how you naturally create so every idea fits your style, resources, and journey."
+  title="Creator Profile"
+  hint="Tell WW how you naturally create so every idea feels like something you would actually enjoy making."
 >
   <div
     className={`rounded-2xl border ${
@@ -2015,9 +2794,11 @@ hint="Set where you are today so WW can guide ideas that fit your current stage.
       <div>
         <p className={labelClass}>How do you usually create content?</p>
         <p className="mt-1 text-xs text-white/45">
-          The better this answer, the better your ideas. Tell WW how you actually make music content.
+          Describe what you genuinely make now, rather than what you think you
+          should be making.
         </p>
       </div>
+
       <span className="rounded-full border border-ww-violet/40 bg-ww-violet/15 px-2 py-1 text-[9px] uppercase tracking-[0.16em] text-ww-lilac">
         Required
       </span>
@@ -2025,122 +2806,357 @@ hint="Set where you are today so WW can guide ideas that fit your current stage.
 
     <input
       className={selectClass}
-      placeholder="e.g. I rap to camera over beats, use lyrics on screen, film clips outside..."
+      placeholder="e.g. I make simple slideshow posts, film alone and rarely speak to camera..."
       value={performanceStyle}
       onChange={e => setPerformanceStyle(e.target.value)}
     />
 
-   <div className="relative">
-  <button
-    type="button"
-    onClick={() =>
-      examplesRef.current?.scrollBy({
-        left: -400,
-        behavior: 'smooth',
-      })
-    }
-    className="hidden md:flex absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/90 p-2 text-white/70 backdrop-blur transition hover:border-ww-violet/40 hover:text-white"
-  >
-    ←
-  </button>
-
-  <button
-    type="button"
-    onClick={() =>
-      examplesRef.current?.scrollBy({
-        left: 400,
-        behavior: 'smooth',
-      })
-    }
-    className="hidden md:flex absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/90 p-2 text-white/70 backdrop-blur transition hover:border-ww-violet/40 hover:text-white"
-  >
-    →
-  </button>
-
-  <div
-    ref={examplesRef}
-    className="flex gap-3 overflow-x-auto pb-3 px-10 scrollbar-hide"
-  >
-    {PERFORMANCE_STYLE_EXAMPLES.map(example => (
+    <div className="relative">
       <button
-        key={example}
         type="button"
-        onClick={() => setPerformanceStyle(example)}
-        className="min-w-[360px] max-w-[360px] flex-shrink-0 rounded-xl border border-white/8 bg-white/[0.03] p-4 text-left text-xs leading-relaxed text-white/70 transition hover:border-ww-violet/40 hover:bg-ww-violet/10"
+        onClick={() =>
+          examplesRef.current?.scrollBy({
+            left: -400,
+            behavior: 'smooth',
+          })
+        }
+        className="absolute left-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-white/10 bg-black/90 p-2 text-white/70 backdrop-blur transition hover:border-ww-violet/40 hover:text-white md:flex"
       >
-        {example}
+        ←
       </button>
-    ))}
+
+      <button
+        type="button"
+        onClick={() =>
+          examplesRef.current?.scrollBy({
+            left: 400,
+            behavior: 'smooth',
+          })
+        }
+        className="absolute right-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-white/10 bg-black/90 p-2 text-white/70 backdrop-blur transition hover:border-ww-violet/40 hover:text-white md:flex"
+      >
+        →
+      </button>
+
+      <div
+        ref={examplesRef}
+        className="scrollbar-hide flex gap-3 overflow-x-auto px-10 pb-3"
+      >
+        {PERFORMANCE_STYLE_EXAMPLES.map(example => (
+          <button
+            key={example}
+            type="button"
+            onClick={() => setPerformanceStyle(example)}
+            className="min-w-[360px] max-w-[360px] flex-shrink-0 rounded-xl border border-white/8 bg-white/[0.03] p-4 text-left text-xs leading-relaxed text-white/70 transition hover:border-ww-violet/40 hover:bg-ww-violet/10"
+          >
+            {example}
+          </button>
+        ))}
+      </div>
+    </div>
   </div>
-</div>
-<div className="space-y-3">
-  <div>
-    <p className={labelClass}>Content style</p>
-    <p className="mt-1 text-xs text-white/45">
-  Choose up to 2 content styles so WW can generate a stronger, more focused mix of ideas.
-</p>
+
+  <div className="grid gap-4 md:grid-cols-2">
+    <div className="space-y-1">
+      <p className={labelClass}>Camera confidence</p>
+      <select
+        className={selectClass}
+        value={cameraConfidence}
+        onChange={e =>
+          setCameraConfidence(e.target.value as CameraConfidence)
+        }
+      >
+        <option value="love-camera">Love being on camera</option>
+        <option value="comfortable">Comfortable</option>
+        <option value="neutral">Neutral</option>
+        <option value="prefer-not">Prefer not to show my face</option>
+        <option value="faceless">Never show my face</option>
+      </select>
+    </div>
+
+    <div className="space-y-1">
+      <p className={labelClass}>Speaking confidence</p>
+      <select
+        className={selectClass}
+        value={speakingConfidence}
+        onChange={e =>
+          setSpeakingConfidence(e.target.value as SpeakingConfidence)
+        }
+      >
+        <option value="love-talking">Love talking</option>
+        <option value="comfortable">Comfortable</option>
+        <option value="short-scripted">Short scripted clips</option>
+        <option value="voice-over">Voice-over only</option>
+        <option value="never-speak">Never speak</option>
+      </select>
+    </div>
+
+    <div className="space-y-1">
+      <p className={labelClass}>Performance confidence</p>
+      <select
+        className={selectClass}
+        value={performanceConfidence}
+        onChange={e =>
+          setPerformanceConfidence(
+            e.target.value as PerformanceConfidence
+          )
+        }
+      >
+        <option value="love-performing">Love performing</option>
+        <option value="comfortable">Comfortable</option>
+        <option value="sometimes">Sometimes</option>
+        <option value="rarely">Rarely</option>
+        <option value="avoid-performance">Avoid performance</option>
+      </select>
+    </div>
+
+    <div className="space-y-1">
+      <p className={labelClass}>Editing confidence</p>
+      <select
+        className={selectClass}
+        value={editingConfidence}
+        onChange={e =>
+          setEditingConfidence(e.target.value as EditingConfidence)
+        }
+      >
+        <option value="very-simple">Very simple</option>
+        <option value="moderate">Moderate</option>
+        <option value="advanced">Advanced</option>
+      </select>
+    </div>
   </div>
 
-  <div className="flex flex-wrap gap-2">
-    {CONTENT_STYLE_OPTIONS.map(option => {
-      const active = selectedContentStyles.includes(option)
+  <div className="space-y-3">
+    <div>
+      <p className={labelClass}>Production style</p>
+      <p className="mt-1 text-xs text-white/45">
+        Choose up to three qualities that describe how you prefer content to
+        feel.
+      </p>
+    </div>
 
-      return (
-        <button
-          key={option}
-          type="button"
-          onClick={() => {
-  if (!active && selectedContentStyles.length >= 2) {
-    toast.info('Choose up to 2 content styles for a stronger mix.')
-    return
-  }
+    <div className="flex flex-wrap gap-2">
+      {PRODUCTION_STYLE_OPTIONS.map(option => {
+        const active = productionStyles.includes(option)
 
-  setSelectedContentStyles(current =>
-    active
-      ? current.filter(item => item !== option)
-      : [...current, option]
-  )
-}}
-          className={`rounded-full px-4 py-2 text-xs transition ${
-            active
-              ? 'bg-ww-violet text-white shadow-[0_0_20px_rgba(168,85,247,0.45)]'
-              : 'border border-white/10 bg-white/[0.03] text-white/65 hover:border-ww-violet/40 hover:text-white'
-          }`}
-        >
-          {option}
-        </button>
-      )
-    })}
-  </div>
-</div>
+        return (
+          <button
+            key={option}
+            type="button"
+            onClick={() => {
+              if (!active && productionStyles.length >= 3) {
+                toast.info('Choose up to 3 production styles.')
+                return
+              }
 
-<div className="mt-5 border-t border-white/10 pt-5">
-  <p className={labelClass}>Creative Reality</p>
-
-  <p className="mt-1 text-xs text-white/45">
-    Tell WW what your ideas need to work around. The more honest you are, the more usable your ideas become.
-  </p>
-
-  <textarea
-    className={`${selectClass} mt-3 min-h-[110px] resize-none`}
-    placeholder="Examples:
-• I only film in my bedroom
-• I don't show my face
-• I only use my phone
-• I only have 20 minutes
-• I can't film outside
-• I don't feel confident talking to camera
-• I don't have anyone to film me"
-    value={creativeReality}
-    onChange={(e) => setCreativeReality(e.target.value)}
-  />
-
-  <p className="mt-2 text-xs text-ww-violet/80">
-    WW will treat this as your creative reality — not a limitation.
-  </p>
-</div>
+              toggleArrayValue(option, setProductionStyles)
+            }}
+            className={`rounded-full px-4 py-2 text-xs transition ${
+              active
+                ? 'bg-ww-violet text-white shadow-[0_0_20px_rgba(168,85,247,0.45)]'
+                : 'border border-white/10 bg-white/[0.03] text-white/65 hover:border-ww-violet/40 hover:text-white'
+            }`}
+          >
+            {option}
+          </button>
+        )
+      })}
+    </div>
   </div>
 </InputSection>
+
+<InputSection
+  title="Creative Reality"
+  hint="Give WW the practical boundaries it must respect when designing your ideas."
+>
+  <div className="grid gap-3 md:grid-cols-2">
+    <div className="space-y-1">
+      <p className={labelClass}>Available time</p>
+      <select
+        className={selectClass}
+        value={availableTime}
+        onChange={e => setAvailableTime(e.target.value)}
+      >
+        <option value="10 minutes">10 minutes</option>
+        <option value="30 minutes">30 minutes</option>
+        <option value="1 hour">1 hour</option>
+        <option value="Half day">Half day</option>
+        <option value="Flexible">Flexible</option>
+      </select>
+    </div>
+
+    <div className="space-y-1">
+      <p className={labelClass}>Budget</p>
+      <select
+        className={selectClass}
+        value={budget}
+        onChange={e => setBudget(e.target.value)}
+      >
+        <option value="No budget">No budget</option>
+        <option value="Small budget">Small budget</option>
+        <option value="Flexible budget">Flexible budget</option>
+      </select>
+    </div>
+
+    <div className="space-y-1">
+      <p className={labelClass}>Do you normally work alone?</p>
+      <select
+        className={selectClass}
+        value={worksAlone}
+        onChange={e => setWorksAlone(e.target.value)}
+      >
+        <option value="Yes">Yes</option>
+        <option value="Sometimes">Sometimes</option>
+        <option value="Usually with others">Usually with others</option>
+      </select>
+    </div>
+
+    <div className="space-y-1">
+      <p className={labelClass}>Do you have existing footage?</p>
+      <select
+        className={selectClass}
+        value={existingFootage}
+        onChange={e => setExistingFootage(e.target.value)}
+      >
+        <option value="No">No</option>
+        <option value="A small amount">A small amount</option>
+        <option value="Yes">Yes</option>
+      </select>
+    </div>
+  </div>
+
+  <div className="space-y-3">
+    <div>
+      <p className={labelClass}>Available equipment</p>
+      <p className="mt-1 text-xs text-white/45">
+        Only select equipment you can realistically use.
+      </p>
+    </div>
+
+    <div className="flex flex-wrap gap-2">
+      {EQUIPMENT_OPTIONS.map(option => {
+        const active = equipment.includes(option)
+
+        return (
+          <button
+            key={option}
+            type="button"
+            onClick={() => toggleArrayValue(option, setEquipment)}
+            className={`rounded-full px-4 py-2 text-xs transition ${
+              active
+                ? 'bg-ww-violet text-white shadow-[0_0_20px_rgba(168,85,247,0.35)]'
+                : 'border border-white/10 bg-white/[0.03] text-white/65 hover:border-ww-violet/40 hover:text-white'
+            }`}
+          >
+            {option}
+          </button>
+        )
+      })}
+    </div>
+  </div>
+
+  <div className="space-y-3">
+    <div>
+      <p className={labelClass}>Available locations</p>
+      <p className="mt-1 text-xs text-white/45">
+        Select places you can genuinely film without extra planning.
+      </p>
+    </div>
+
+    <div className="flex flex-wrap gap-2">
+      {LOCATION_OPTIONS.map(option => {
+        const active = locations.includes(option)
+
+        return (
+          <button
+            key={option}
+            type="button"
+            onClick={() => toggleArrayValue(option, setLocations)}
+            className={`rounded-full px-4 py-2 text-xs transition ${
+              active
+                ? 'bg-ww-violet text-white shadow-[0_0_20px_rgba(168,85,247,0.35)]'
+                : 'border border-white/10 bg-white/[0.03] text-white/65 hover:border-ww-violet/40 hover:text-white'
+            }`}
+          >
+            {option}
+          </button>
+        )
+      })}
+    </div>
+  </div>
+
+  <div className="space-y-1">
+    <p className={labelClass}>Restrictions and extra context</p>
+    <p className="mt-1 text-xs leading-relaxed text-white/45">
+      Add anything WW must never assume or ask you to do.
+    </p>
+
+    <textarea
+      className={`${selectClass} mt-3 min-h-[120px] resize-none`}
+      placeholder={`Examples:
+• I do not show my face
+• I cannot film outside
+• I do not have anyone to film me
+• Do not use archive footage
+• I am not comfortable speaking`}
+      value={creativeReality}
+      onChange={e => setCreativeReality(e.target.value)}
+    />
+
+    <p className="mt-2 text-xs text-ww-violet/80">
+      WW will treat this as your creative reality — not a limitation.
+    </p>
+  </div>
+</InputSection>
+
+<InputSection
+  title="Content Style"
+  hint="Choose the formats you want WW to use when building this batch."
+>
+  <div className="space-y-3">
+    <div>
+      <p className={labelClass}>Choose up to two styles</p>
+      <p className="mt-1 text-xs text-white/45">
+        WW will stay inside these selected formats instead of choosing randomly.
+      </p>
+    </div>
+
+    <div className="flex flex-wrap gap-2">
+      {CONTENT_STYLE_OPTIONS.map(option => {
+        const active = selectedContentStyles.includes(option)
+
+        return (
+          <button
+            key={option}
+            type="button"
+            onClick={() => {
+              if (!active && selectedContentStyles.length >= 2) {
+                toast.info(
+                  'Choose up to 2 content styles for a stronger mix.'
+                )
+                return
+              }
+
+              setSelectedContentStyles(current =>
+                active
+                  ? current.filter(item => item !== option)
+                  : [...current, option]
+              )
+            }}
+            className={`rounded-full px-4 py-2 text-xs transition ${
+              active
+                ? 'bg-ww-violet text-white shadow-[0_0_20px_rgba(168,85,247,0.45)]'
+                : 'border border-white/10 bg-white/[0.03] text-white/65 hover:border-ww-violet/40 hover:text-white'
+            }`}
+          >
+            {option}
+          </button>
+        )
+      })}
+    </div>
+  </div>
+</InputSection>
+
 
          <div className="rounded-2xl border border-white/8 bg-black/35 p-4 transition">
   <button
@@ -2169,38 +3185,39 @@ hint="Set where you are today so WW can guide ideas that fit your current stage.
   {showAdvancedInputs ? (
     <div className="mt-4 space-y-4 border-t border-white/8 pt-4">
       <div className="space-y-1">
-        <p className={labelClass}>Content focus context</p>
+        <p className={labelClass}>Song / project context</p>
         <input
           className={selectClass}
-          placeholder="Song name, release angle, old release note, gig, theme..."
+          placeholder="Song title, release context, story, theme, sound or campaign focus..."
           value={releaseContext}
           onChange={e => setReleaseContext(e.target.value)}
         />
       </div>
 
       <div className="space-y-1">
-        <p className={labelClass}>Tone</p>
+        <p className={labelClass}>Desired mood</p>
         <input
           className={selectClass}
-          placeholder="brand-consistent, concise, human, engaging"
+          placeholder="e.g. nocturnal, playful, intimate, defiant, reflective..."
           value={tone}
           onChange={e => setTone(e.target.value)}
         />
       </div>
 
       <div className="space-y-1">
-        <p className={labelClass}>Lyrics focus</p>
-        <select
-          className={selectClass}
-          value={lyricsFocus}
-          onChange={e => setLyricsFocus(e.target.value as LyricsFocus)}
-        >
-          <option value="general">Use lyrics (general)</option>
-          <option value="hook">Focus on hook</option>
-          <option value="chorus">Focus on chorus</option>
-          <option value="verse">Focus on verse</option>
-        </select>
-      </div>
+  <p className={labelClass}>How should WW use lyrics?</p>
+
+  <select
+    className={selectClass}
+    value={lyricsFocus}
+    onChange={e => setLyricsFocus(e.target.value as LyricsFocus)}
+  >
+    <option value="general">General themes only</option>
+    <option value="hook">Focus on the supplied hook</option>
+    <option value="chorus">Focus on the supplied chorus</option>
+    <option value="verse">Focus on the supplied verse</option>
+  </select>
+</div>
 
       <div className="space-y-1">
         <p className={labelClass}>Lyrics</p>

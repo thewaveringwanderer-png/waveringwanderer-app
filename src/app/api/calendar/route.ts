@@ -10,6 +10,7 @@ import { formatExecutionEngineForPrompt } from '@/lib/ideaFactory/executionEngin
 import { formatPresentationEngineForPrompt } from '@/lib/ideaFactory/presentationEngine'
 import { formatDecisionEngineForPrompt } from "@/lib/ideaFactory/decisionEngine"
 import { formatBatchIntelligenceEngineForPrompt } from '@/lib/ideaFactory/batchIntelligenceEngine'
+import { formatCreativeCompassForPrompt } from '@/lib/ideaFactory/creativeCompass'
 import {
   formatCreatorGenomeForPrompt,
   formatCreatorInferenceEngineForPrompt,
@@ -213,6 +214,47 @@ type CalendarRequest = {
   performanceStyle?: string
   creativeReality?: string
   audience?: string
+    audienceStage?:
+    | 'discovery'
+    | 'awareness'
+    | 'connection'
+    | 'community'
+    | 'release-support'
+    | 'conversion'
+
+  cameraConfidence?:
+    | 'love-camera'
+    | 'comfortable'
+    | 'neutral'
+    | 'prefer-not'
+    | 'faceless'
+
+  speakingConfidence?:
+    | 'love-speaking'
+    | 'comfortable'
+    | 'short-scripted'
+    | 'voiceover-only'
+    | 'never-speak'
+
+  performanceConfidence?:
+    | 'love-performing'
+    | 'comfortable'
+    | 'sometimes'
+    | 'rarely'
+    | 'avoid-performance'
+
+  editingConfidence?:
+    | 'very-simple'
+    | 'moderate'
+    | 'advanced'
+
+  productionStyles?: string[]
+  availableTime?: string
+  equipment?: string[]
+  locations?: string[]
+  budget?: string
+  worksAlone?: string
+  existingFootage?: string
   identityKitContext?: any | null
 selectedIdentityKitId?: string | null
   goal?: string
@@ -934,6 +976,110 @@ function safeString(x: unknown) {
   return typeof x === 'string' ? x : x == null ? '' : String(x)
 }
 
+function wordCount(value: unknown) {
+  return safeString(value)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .length
+}
+
+function conceptContainsExecutionLanguage(value: unknown) {
+  const text = safeString(value).toLowerCase()
+
+  const executionPhrases = [
+    'film ',
+    'record ',
+    'place the phone',
+    'position the phone',
+    'position the camera',
+    'set the phone',
+    'set camera',
+    'use a close-up',
+    'shoot ',
+    'capture ',
+    'overlay text',
+    'add text',
+    'place text',
+    'edit ',
+    'frame ',
+    'framing ',
+    'lighting ',
+    'camera angle',
+    'single take',
+    'continuous shot',
+  ]
+
+  return executionPhrases.some(phrase => text.includes(phrase))
+}
+
+function isValidConcept(value: unknown) {
+  const concept = safeString(value).trim()
+  const words = wordCount(concept)
+
+  if (!concept) return false
+  if (words < 6) return false
+  if (words > 30) return false
+  if (conceptContainsExecutionLanguage(concept)) return false
+
+  return true
+}
+
+function looksLikeLeakedJson(value: unknown) {
+  const text = safeString(value).trim()
+
+  if (!text) return false
+
+  const jsonMarkers = [
+    '"items"',
+    '"date"',
+    '"platform"',
+    '"title"',
+    '"short_label"',
+    '"pillar"',
+    '"content_type"',
+    '"hook"',
+    '"onScreenText"',
+    '"concept"',
+    '"execution"',
+    '"suggested_caption"',
+    '"cta"',
+    '"why"',
+  ]
+
+  const markerCount = jsonMarkers.filter(marker =>
+    text.includes(marker)
+  ).length
+
+  const containsObjectSequence =
+    text.includes('},{') ||
+    text.includes('}, {') ||
+    text.includes('],"date"') ||
+    text.includes('],"title"')
+
+  const looksLikeWholeJson =
+    (text.startsWith('{') || text.startsWith('[')) &&
+    markerCount >= 3
+
+  return markerCount >= 4 || containsObjectSequence || looksLikeWholeJson
+}
+
+function itemContainsLeakedJson(item: AiCalendarItem) {
+  const fields = [
+    item.title,
+    item.short_label,
+    item.hook,
+    item.onScreenText,
+    item.on_screen_text,
+    item.concept,
+    item.execution,
+    item.suggested_caption,
+    item.cta,
+  ]
+
+  return fields.some(looksLikeLeakedJson)
+}
+
 function bulletList(items: string[]) {
   return items.filter(Boolean).map(x => `- ${x}`).join('\n') || 'None'
 }
@@ -1429,13 +1575,28 @@ export async function POST(req: Request) {
   } catch {}
 
     const {
-    artistName = 'the artist',
-    genre = '',
-    artistType = '',
-    performanceStyle = '',
-    creativeReality = '',
-    audience = '',
-    goal = '',
+  artistName = 'the artist',
+  genre = '',
+  artistType = '',
+  performanceStyle = '',
+  creativeReality = '',
+  audience = '',
+  audienceStage = 'discovery',
+
+  cameraConfidence = 'comfortable',
+  speakingConfidence = 'comfortable',
+  performanceConfidence = 'comfortable',
+  editingConfidence = 'very-simple',
+
+  productionStyles = [],
+  availableTime = '30 minutes',
+  equipment = [],
+  locations = [],
+  budget = 'No budget',
+  worksAlone = 'Yes',
+  existingFootage = 'No',
+
+  goal = '',
 
     identityKitContext = null,
   selectedIdentityKitId = null,
@@ -1461,6 +1622,18 @@ contentTypes = [],    avoidTitles = [],
     campaignContext = null,
     releaseStrategyContext = null,
   } = body
+
+  const safeProductionStyles = Array.isArray(productionStyles)
+  ? productionStyles.map(safeString).filter(Boolean)
+  : []
+
+const safeEquipment = Array.isArray(equipment)
+  ? equipment.map(safeString).filter(Boolean)
+  : []
+
+const safeLocations = Array.isArray(locations)
+  ? locations.map(safeString).filter(Boolean)
+  : []
 
   if (!startDate) {
     return NextResponse.json({ error: 'Missing startDate (ISO string)' }, { status: 400 })
@@ -1501,7 +1674,10 @@ if (!allowedBadgeTypes.length) {
 
 const allowedBadgeSet = new Set(allowedBadgeTypes)
 
-const targetCandidateCount = Math.max(totalSlots + 10, Math.ceil(totalSlots * 2.5))
+const targetCandidateCount = Math.max(
+  totalSlots + 3,
+  Math.ceil(totalSlots * 1.6)
+)
   const ideaDepthGuidance =
   ideaDepth === 'simple'
     ? `
@@ -1563,15 +1739,331 @@ Idea depth mode: BALANCED
     )
   }
 
-  
+  const audienceStageGuidance = (() => {
+  switch (audienceStage) {
+    case 'discovery':
+      return `
+AUDIENCE STAGE: DISCOVERY
+
+Most viewers do not know the artist yet.
+
+Prioritise:
+- immediate context;
+- curiosity;
+- music-first proof;
+- clear emotional recognition;
+- low-friction CTAs;
+- concepts that work without prior fan knowledge.
+
+Avoid:
+- unexplained artist lore;
+- inside jokes;
+- long introductions;
+- assuming viewers already care;
+- high-commitment CTAs.
+`.trim()
+
+    case 'awareness':
+      return `
+AUDIENCE STAGE: AWARENESS
+
+Some viewers recognise the artist or music but are not regular listeners yet.
+
+Prioritise:
+- recognisable recurring identity;
+- stronger familiarity;
+- repeat exposure;
+- memorable creative motifs;
+- clear reasons to return;
+- turning recognition into interest.
+
+Avoid:
+- acting as though recognition already equals loyalty;
+- asking for major commitment too early.
+`.trim()
+
+    case 'connection':
+      return `
+AUDIENCE STAGE: CONNECTION
+
+The audience knows the music, but the relationship is still shallow.
+
+Prioritise:
+- personality;
+- beliefs;
+- process;
+- lived experience;
+- emotional recognition;
+- the relationship between the artist and the music.
+
+Avoid:
+- reducing every idea to streams, links or release promotion.
+`.trim()
+
+    case 'community':
+      return `
+AUDIENCE STAGE: COMMUNITY
+
+The artist has genuine listeners who regularly engage.
+
+Prioritise:
+- participation;
+- shared language;
+- recurring rituals;
+- fan recognition;
+- choices;
+- comment-led mechanics;
+- contribution to the artist world.
+
+Do not let audience interaction replace the music entirely.
+`.trim()
+
+    case 'release-support':
+      return `
+AUDIENCE STAGE: RELEASE SUPPORT
+
+The artist is activating existing listeners around a current release.
+
+Prioritise:
+- anticipation;
+- reminders with fresh value;
+- release momentum;
+- context;
+- repeated exposure without repetition;
+- clear release-related actions.
+
+Avoid treating every post as a generic announcement.
+`.trim()
+
+    case 'conversion':
+      return `
+AUDIENCE STAGE: CONVERSION
+
+The goal is to encourage one meaningful next action.
+
+Prioritise:
+- one clear CTA;
+- trust;
+- relevance;
+- urgency only when genuine;
+- reducing friction;
+- a strong reason to act now.
+
+Never combine several competing CTAs in the same idea.
+`.trim()
+
+    default:
+      return ''
+  }
+})()
+
+const creatorBehaviourGuidance = `
+CREATOR BEHAVIOUR FOR THIS GENERATION
+
+Camera confidence: ${cameraConfidence}
+Speaking confidence: ${speakingConfidence}
+Performance confidence: ${performanceConfidence}
+Editing confidence: ${editingConfidence}
+Preferred production styles: ${
+  safeProductionStyles.length
+    ? safeProductionStyles.join(', ')
+    : 'Not specified'
+}
+
+Interpret these as follows:
+
+CAMERA CONFIDENCE
+
+love-camera:
+- direct facial framing is welcome;
+- allow eye contact, reaction, expression and direct presence.
+
+comfortable:
+- normal camera-led concepts are acceptable.
+
+neutral:
+- do not over-rely on facial performance;
+- balance face-led and non-face-led execution.
+
+prefer-not:
+- avoid close, sustained facial framing;
+- prefer side profile, cropped framing, partial framing, hands, objects,
+  environment or brief appearances.
+
+faceless:
+- never show the face;
+- use hands, silhouette, back-of-head framing, objects, screens,
+  environments, clothing details, shadows or first-person framing.
+
+SPEAKING CONFIDENCE
+
+love-speaking:
+- direct address, improvisation and conversational delivery are welcome.
+
+comfortable:
+- normal spoken concepts are acceptable.
+
+short-scripted:
+- use one or two concise scripted sentences;
+- avoid long monologues.
+
+voiceover-only:
+- do not require direct speaking to camera;
+- use voiceover supported by visuals.
+
+never-speak:
+- prohibit spoken delivery and voiceover;
+- use music, text, visuals, objects and performance where suitable.
+
+PERFORMANCE CONFIDENCE
+
+love-performing:
+- performance-led concepts are welcome when compatible with selected styles.
+
+comfortable:
+- normal performance concepts are acceptable.
+
+sometimes:
+- use performance selectively rather than across the entire batch.
+
+rarely:
+- keep performance brief, partial, distant or low-pressure.
+
+avoid-performance:
+- do not require singing, rapping, lip-syncing, instrumental playing
+  or staged musical performance.
+
+EDITING CONFIDENCE
+
+very-simple:
+- prefer one take, native text, slideshows, static framing or two to three cuts;
+- prohibit complex transitions, masking, compositing and layered editing.
+
+moderate:
+- allow simple pacing, clean cuts, basic transitions and light sound syncing.
+
+advanced:
+- more ambitious editing is allowed when time and format support it.
+
+Production style describes how the finished content should feel.
+It does not authorise unavailable equipment, locations, people or editing skills.
+`.trim()
+
+const structuredCreativeRealityGuidance = `
+STRUCTURED CREATIVE REALITY
+
+Available time: ${availableTime}
+
+Available equipment:
+${
+  safeEquipment.length
+    ? safeEquipment.map(item => `- ${item}`).join('\n')
+    : '- No equipment explicitly confirmed'
+}
+
+Available locations:
+${
+  safeLocations.length
+    ? safeLocations.map(item => `- ${item}`).join('\n')
+    : '- No locations explicitly confirmed'
+}
+
+Budget: ${budget}
+Usually works alone: ${worksAlone}
+Existing footage: ${existingFootage}
+
+Additional restrictions:
+${creativeReality || 'None supplied'}
+
+HARD INTERPRETATION RULES
+
+- Only require equipment explicitly confirmed by the artist.
+- You may naturally use ordinary features of any confirmed environment.
+Examples include walls, ceilings, floors, furniture, doors, windows, mirrors, shelves, tables, everyday objects, natural light, existing shadows or architectural features.
+- Do not build an idea around one specific object unless the artist confirmed it exists.
+- Prefer flexible wording such as:
+
+"a nearby object"
+
+"something on your desk"
+
+"a textured surface"
+
+"a reflective object"
+
+"a source of natural light"
+
+"a corner of the room"
+
+instead of assuming one exact item.
+- Ideas should still work even if one expected object is missing.
+- Do not infer a tripod from the presence of a phone.
+- Do not infer studio access from artist type.
+- Do not infer outdoor access from a cinematic production preference.
+- Do not infer camera-roll material when existing footage is unavailable.
+- Do not infer another person when the artist works alone.
+- Do not prescribe footage captured earlier unless existing footage is confirmed.
+- Available time controls the total production burden, not only the filming length.
+`.trim()
 
   const contextLines: string[] = []
-  if (genre) contextLines.push(`Genre / lane: ${genre}`)
-  if (artistType) contextLines.push(`Artist type: ${artistType}`)
-  if (performanceStyle) contextLines.push(`Performance / creation style: ${performanceStyle}`)
-  if (creativeReality) contextLines.push(`Creative reality: ${creativeReality}`)
-  if (audience) contextLines.push(`Audience: ${audience}`)
-  if (goal) contextLines.push(`Primary goal: ${goal}`)
+
+if (genre) {
+  contextLines.push(`Genre / lane: ${genre}`)
+}
+
+if (artistType) {
+  contextLines.push(`Artist type: ${artistType}`)
+}
+
+if (audienceStage) {
+  contextLines.push(`Audience relationship stage: ${audienceStage}`)
+}
+
+if (audience) {
+  contextLines.push(`Target audience: ${audience}`)
+}
+
+if (goal) {
+  contextLines.push(`Primary goal: ${goal}`)
+}
+
+if (performanceStyle) {
+  contextLines.push(
+    `How the artist normally creates content: ${performanceStyle}`
+  )
+}
+
+contextLines.push(`
+CREATOR BEHAVIOUR
+
+Camera confidence: ${cameraConfidence}
+Speaking confidence: ${speakingConfidence}
+Performance confidence: ${performanceConfidence}
+Editing confidence: ${editingConfidence}
+Preferred production style: ${
+  safeProductionStyles.length
+    ? safeProductionStyles.join(', ')
+    : 'Not specified'
+}
+`.trim())
+
+contextLines.push(`
+STRUCTURED CREATIVE REALITY
+
+Available time: ${availableTime}
+Available equipment: ${
+  safeEquipment.length ? safeEquipment.join(', ') : 'Not specified'
+}
+Available locations: ${
+  safeLocations.length ? safeLocations.join(', ') : 'Not specified'
+}
+Budget: ${budget}
+Usually works alone: ${worksAlone}
+Existing footage: ${existingFootage}
+Additional restrictions:
+${creativeReality || 'None supplied'}
+`.trim())
 
   const contextBlock = contextLines.length
     ? contextLines.join('\n')
@@ -1627,7 +2119,83 @@ ${moment.why}
       .join('\n\n')
   : 'No lyric moments identified.'  
   
-  const contentFormatKnowledge = CONTENT_FORMAT_GENOME.map((format) => {
+const contentFormatKnowledge = CONTENT_FORMAT_GENOME.map((format) => {
+const mechanicsBlock = format.mechanics?.length
+  ? `
+AVAILABLE FORMAT MECHANICS:
+
+${format.mechanics
+  .map((mechanic) => {
+    const slideBlueprintBlock = mechanic.slideBlueprint?.length
+      ? `
+SLIDE BLUEPRINT:
+
+${mechanic.slideBlueprint
+  .map((step) => {
+    return `
+SLIDE ${step.slide}
+
+PURPOSE:
+${step.purpose}
+
+VISUAL DIRECTION:
+${step.visualDirection}
+
+EXAMPLE TEXT:
+${step.exampleText}
+
+TRANSITION / PACING:
+${step.transitionDirection || 'Choose a simple transition that supports the progression.'}
+`.trim()
+  })
+  .join('\n\n')}
+`.trim()
+      : ''
+
+      const spokenOutlineBlock = mechanic.spokenOutline
+  ? `
+SPOKEN OUTLINE:
+
+OPENING LINE:
+${mechanic.spokenOutline.openingLine}
+
+TALKING POINTS:
+${mechanic.spokenOutline.talkingPoints
+  .map((point) => `- ${point}`)
+  .join('\n')}
+
+CLOSING LINE:
+${mechanic.spokenOutline.closingLine}
+`.trim()
+  : ''
+
+    return `
+MECHANIC ID: ${mechanic.id}
+MECHANIC NAME: ${mechanic.name}
+
+VIEWER EXPERIENCE:
+${mechanic.viewerExperience}
+
+STRUCTURE:
+${mechanic.structure.map((item) => `- ${item}`).join('\n')}
+
+BEST WHEN:
+${mechanic.bestWhen.map((item) => `- ${item}`).join('\n')}
+
+AVOID WHEN:
+${mechanic.avoidWhen.map((item) => `- ${item}`).join('\n')}
+
+REPEAT / SERIES POTENTIAL:
+${mechanic.repeatPotential || 'Not specified'}
+
+${slideBlueprintBlock}
+${spokenOutlineBlock}
+
+`.trim()
+  })
+  .join('\n\n')}
+`.trim()
+  : 'No predefined mechanics. Develop one that fits the format and verified Creative Reality.'
   return `
 FORMAT ID: ${format.id}
 FORMAT NAME: ${format.name}
@@ -1638,7 +2206,7 @@ ${format.bestFor.map((item) => `- ${item}`).join('\n')}
 WHY THIS FORMAT WORKS:
 ${format.psychology}
 
-STRUCTURE:
+CORE STRUCTURE:
 ${format.structure.map((item) => `- ${item}`).join('\n')}
 
 AVOID:
@@ -1646,8 +2214,13 @@ ${format.avoid.map((item) => `- ${item}`).join('\n')}
 
 EXAMPLE DIRECTION:
 ${format.exampleDirection}
+
+${mechanicsBlock}
 `.trim()
 }).join('\n\n')
+
+
+
 
 const creatorGenomeKnowledge = formatCreatorGenomeForPrompt()
 const creatorInferenceEngine = formatCreatorInferenceEngineForPrompt()
@@ -1658,6 +2231,7 @@ const decisionEngine = formatDecisionEngineForPrompt()
 const batchIntelligenceEngine = formatBatchIntelligenceEngineForPrompt()
 const executionEngine = formatExecutionEngineForPrompt()
 const presentationEngine = formatPresentationEngineForPrompt()
+const creativeCompass = formatCreativeCompassForPrompt()
 
   const attentionGenome = formatAttentionGenomeForPrompt()
   const systemPrompt = `
@@ -1672,10 +2246,6 @@ CREATOR GENOME KNOWLEDGE
 ${creatorGenomeKnowledge}
 
 ${creatorInferenceEngine}
-
-INTERFERENCE ENGINE
-
-${interferenceEngine}
 
 ATTENTION ENGINE
 
@@ -1699,7 +2269,150 @@ Do not simply reuse patterns.
 
 Understand why they work, then create something original for this specific artist.
 
+## CREATIVE EXPANSION ENGINE
+
+Before generating any concepts, deliberately expand the artist's perceived creative possibilities.
+
+Artists often believe their constraints reduce their options. Your job is to prove the opposite.
+
+Treat Creative Reality as a creative playground, not a limitation.
+
+Do NOT immediately generate ideas.
+
+Instead, first identify as many fundamentally different creative directions as realistically exist inside the artist's available reality.
+
+Possible creative territories include (when appropriate):
+
+• Environment
+• Objects already available in the space
+• Existing light and shadow
+• Camera movement
+• Camera stillness
+• Perspective
+• Framing
+• Focus
+• Editing mechanics
+• Visual progression
+• Symbolism
+• Curiosity
+• Narrative
+• Transformation
+• Contrast
+• Repetition
+• Pattern recognition
+• Scale
+• Viewer interaction
+• Music synchronisation
+• Emotional tension
+• Unexpected reveals
+• Physical movement
+• Visual rhythm
+• Texture
+• Colour
+• Negative space
+• Time
+• Routine
+• Reflection
+• Everyday moments
+• Sound interaction
+
+Do NOT attempt to use every territory.
+
+Instead, discover which territories naturally exist for THIS artist.
+
+The goal is to maximise creative possibility while remaining realistic.
+
+Think:
+
+"What different kinds of videos could this artist make?"
+
+NOT
+
+"What different versions of the same video could this artist make?"
+
+Before generating concepts, create an internal Diversity Plan.
+
+Assign every generated idea a different primary creative territory.
+
+Example:
+
+Idea 1 → Environmental storytelling
+
+Idea 2 → Camera movement
+
+Idea 3 → Symbolism
+
+Idea 4 → Curiosity mechanic
+
+Idea 5 → Music interaction
+
+Do not reveal this plan.
+
+Use it only to maximise variety.
+
+## CREATIVE OPPORTUNITY ENGINE
+
+After identifying the artist's constraints, deliberately search for creative opportunities already hidden inside their reality.
+
+Do not only ask:
+
+"What can't this artist do?"
+
+Also ask:
+
+"What does this artist already have that could become interesting?"
+
+Look for opportunities inside:
+
+• their genre
+• their environment
+• their routine
+• their available locations
+• their available time
+• their personality
+• their confidence
+• their identity
+• their audience
+• their music
+• their creative process
+• their limitations
+• their visual world
+• their existing habits
+• their everyday surroundings
+
+Treat ordinary life as raw creative material.
+
+Every artist has opportunities that another artist does not.
+
+Your job is to discover them.
+
+Examples:
+
+A small room can become intimacy.
+
+Working alone can become intentional stillness.
+
+Minimal editing can become authenticity.
+
+Faceless filming can become mystery.
+
+Limited time can become concise storytelling.
+
+An everyday environment can become recognisable visual identity.
+
+Do not expose this reasoning.
+
+Quietly allow it to influence every generated concept.
+
 CONTENT FORMAT ENGINE
+
+Every concept must originate from a different creative territory identified by the Creative Expansion Engine.
+
+Do not create multiple concepts that rely on the same primary mechanic.
+
+Changing only the object, location, wording, camera angle or editing does NOT create a new concept.
+
+The central creative experience must be different.
 
 The following Content Format Genome explains how different content formats work, who they suit, and how they should be structured.
 
@@ -1735,13 +2448,89 @@ For every idea:
 
 ${conceptEngine}
 
+${interferenceEngine}
+
 ${decisionEngine}
+
+${creativeCompass}
 
 ${batchIntelligenceEngine}
 
 ${executionEngine}
 
 ${presentationEngine}
+
+CONCEPT AND EXECUTION OUTPUT CONTRACT
+
+The concept and execution fields must contain different information.
+
+CONCEPT
+
+- Write exactly one concise sentence.
+- Aim for 12–24 words.
+- Never exceed 30 words.
+- Express only the central creative premise.
+- Explain what changes, reveals, contrasts or pays off.
+- Make the role of the music understandable.
+- Be direct rather than poetic or explanatory.
+
+Do not include:
+
+- camera placement;
+- framing;
+- lighting;
+- editing;
+- text positioning;
+- shot lists;
+- timing instructions;
+- equipment setup;
+- filming measurements;
+- production steps.
+
+Do not use production verbs such as:
+
+- film;
+- record;
+- position;
+- place;
+- frame;
+- shoot;
+- edit;
+- overlay;
+- capture.
+
+Do not explain:
+
+- why the idea fits the artist;
+- why the audience will respond;
+- the entire visual atmosphere;
+- the filming process.
+
+EXECUTION
+
+- Explain how to create the approved concept.
+- Use only verified equipment, locations, people, time, skills and footage.
+- Give the minimum practical sequence needed.
+- Include only useful framing, movement, pacing, music timing, text placement
+  and simple editing instructions.
+- Keep execution direct and usable.
+- Avoid unnecessarily precise measurements unless genuinely required.
+
+FINAL SEPARATION CHECK
+
+Before returning each item:
+
+1. Confirm concept is one sentence.
+2. Confirm concept is no more than 30 words.
+3. Confirm concept contains no filming instructions.
+4. Confirm execution explains how to produce it.
+5. Remove any sentence or explanation repeated across both fields.
+
+Concept explains the idea.
+
+Execution explains the process.
+
+Never copy, paraphrase or expand one field into the other.
 
 
 IDENTITY KIT AUTHORITY
@@ -1780,8 +2569,22 @@ Do not merely mention Identity Kit language in the caption.
 If the concept could be reused for many unrelated artists, personalise or replace it.
 
 Rules:
+
 ${ideaDepthGuidance}
 
+${audienceStageGuidance}
+
+${creatorBehaviourGuidance}
+
+${structuredCreativeRealityGuidance}
+
+- The CTA must match the supplied audience stage.
+- Discovery CTAs should be low friction.
+- Awareness CTAs should encourage return, recognition or another listen.
+- Connection CTAs may invite reflection or personal response.
+- Community CTAs may invite participation, choice or shared language.
+- Release-support CTAs should support one release-related action.
+- Conversion CTAs must ask for exactly one meaningful next step.
 - Keep the batch music-centred and connected to the artist's sound, performance, release or creative world.
 - Avoid near-duplicates. Each slot should feel distinct but on-brand.
 - If an "Avoid list" is provided, do NOT reuse or closely paraphrase those titles/hooks/ideas.
@@ -1834,8 +2637,13 @@ Output STRICTLY valid JSON with this shape:
       "content_type": "Must be exactly one of these selected badge values only: ${allowedBadgeTypes.join(', ')}",
       "hook": "A first spoken line or scroll-stopping opening phrase. It must NOT repeat the title wording.",
 "onScreenText": "Short text overlay for the video. Must be different from the hook and must express the approved Attention Gene and concept psychology.",
-"idea": "Describe the creative proposition in 2–4 sentences. Explain what the viewer experiences, what changes, reveals or pays off, and why the music is essential. Do not include camera placement, lighting, shot lists, editing instructions or text placement here.",
-      "execution": "Translate the approved concept into exact filming instructions. Include only relevant details such as framing, camera movement, location use, pacing, editing rhythm, lighting, B-roll, transitions and text placement.",
+"concept": "Exactly one concise sentence of 12–24 words, with a hard maximum of 30 words. State only the central creative premise, transformation, contrast, reveal or payoff. Do not include filming, camera, lighting, editing, text-placement or production instructions.",
+"execution": "Direct practical instructions for producing the approved concept with verified resources. Explain the minimum filming sequence, framing, movement, music timing, text placement and simple editing. Do not repeat, paraphrase or re-explain the concept. For Camera Roll / Slideshow, each execution array item must represent exactly
+one slide and use this format:
+
+"Slide 1 — Visual: [direction] | Text: [exact example text] | Purpose: [role] | Transition: [optional guidance]"
+
+Do not return general slideshow instructions as execution items. ",
       "suggested_caption": "A short human caption",
       "cta": "A natural CTA",
       "why": ["1 short reason", "optional second short reason"]
@@ -1952,10 +2760,24 @@ const selectedTextOnScreenExamples = [
 
 const artistTypeRules = `
 Artist type rules:
+
 - Selected artist type: ${artistType || 'Not specified'}
 - Selected genre/lane: ${genre || 'Not specified'}
 - Selected audience: ${audience || 'Not specified'}
-- Selected content types: ${contentTypes.join(', ')}
+- Audience stage: ${audienceStage || 'Not specified'}
+- Selected content types: ${allowedBadgeTypes.join(', ')}
+
+Creator behaviour:
+
+- Camera confidence: ${cameraConfidence}
+- Speaking confidence: ${speakingConfidence}
+- Performance confidence: ${performanceConfidence}
+- Editing confidence: ${editingConfidence}
+- Production style: ${
+  safeProductionStyles.length
+    ? safeProductionStyles.join(', ')
+    : 'Not specified'
+}
 
 Hard rules:
 - Artist type is a hard compatibility rule, but it must operate inside Creative Reality and the artist's explicitly selected content styles.
@@ -1994,10 +2816,21 @@ Songwriter:
 - Use specific lyrical meaning only when actual lyrics were supplied.
 `
 
-  const userPrompt = `
+const userPrompt = `
 Artist: ${artistName}
+
+ARTIST CONTEXT
+
 ${contextBlock}
+
 ${artistTypeRules}
+
+${audienceStageGuidance}
+
+${creatorBehaviourGuidance}
+
+${structuredCreativeRealityGuidance}
+
 Tone: ${tone}
 Idea depth: ${ideaDepth}
 Depth interpretation:
@@ -2032,71 +2865,34 @@ ${identityKitContextBlock}
 
 CREATIVE REALITY FOR THIS GENERATION
 
-Treat the artist's stated Creative Reality as hard production requirements.
-
-Do not assume access to:
-
-- other people
-- extra equipment
-- outdoor locations
-- studio access
-- money
-- travel
-- advanced editing
-- confidence speaking or performing
-
-unless the artist explicitly provides it.
-
-Every idea must be realistically achievable within the supplied time, confidence, location, equipment, energy and budget.
-
-When uncertain, choose the simpler execution.
+${structuredCreativeRealityGuidance}
 
 CONSTRAINT TRANSFORMATION
 
-Whenever the artist describes a limitation:
-
-1. Identify the limitation.
-2. Identify the hidden creative advantage.
-3. Choose a suitable format and concept mechanic.
-4. Build the idea around that advantage.
-5. Keep the final execution inside the original limitation.
+Treat every verified constraint as a design ingredient.
 
 Examples:
 
-Small bedroom
-→ intimacy, closeness, repetition, recognisable setting
+Limited time
+→ one strong visual beat, one repeatable setup or one short sequence
 
-No face
-→ mystery, hands, objects, environments, silhouette, text, voiceover
+Works alone
+→ fixed phone, first-person framing, screen recording, controlled movement,
+object-led execution or self-filmed shots
 
-Phone camera only
-→ immediacy, authenticity, handheld energy
+Low editing confidence
+→ one take, slideshow, static composition, native text or two to three cuts
 
-No budget
-→ resourcefulness, simplicity, repeatable formats
+Faceless creator
+→ hands, silhouette, back-of-head framing, screens, objects, environment,
+shadows or first-person perspective
 
-Low confidence on camera
-→ voiceover, text overlays, slideshow, process footage, partial framing
+No existing footage
+→ create something filmable now rather than referring to archive material
 
-Only 10–20 minutes
-→ single-take videos, recurring series, one-location ideas, reusable setups
+Do not remove, reinterpret or work around a hard constraint.
 
-No tripod
-→ handheld footage, fixed phone placement, natural movement
-
-No helpers
-→ solo storytelling, screen recordings, self-filmed close-ups, existing footage
-
-Cannot film outside
-→ bedroom, desk, doorway, mirror, window, wall, floor, notebook, phone screen
-
-Never remove the original limitation while transforming it.
-
-For example, do not respond to "I cannot film outside" by suggesting an easier outdoor location.
-
-The strongest ideas make the artist's creative reality feel intentional rather than limiting.
-
-Good ideas should feel realistic for the artist to make this week.
+Transform the limitation without inventing a new resource.
 
 Bad:
 "Film a cinematic outdoor sequence."
@@ -2294,6 +3090,19 @@ ${
 
 const allowedBadgeSet = new Set(allowedBadgeTypes)
 
+parsed.items = parsed.items.filter(item => {
+  const corrupted = itemContainsLeakedJson(item)
+
+  if (corrupted) {
+    console.error(
+      '[calendar-api] rejected item containing leaked JSON:',
+      item?.title || 'Untitled item'
+    )
+  }
+
+  return !corrupted
+})
+
 parsed.items = parsed.items.map((item: any, index: number) => {
   const rawContentType =
     typeof item?.content_type === 'string'
@@ -2353,9 +3162,14 @@ const contentType =
       ? rawItem.why.filter(Boolean).slice(0, 2)
       : []
 
-    const title = rawItem.title?.trim() || `Idea ${index + 1}`
-    const concept = rawItem.concept?.trim() || rawItem.execution?.trim() || ''
-    const execution = rawItem.execution?.trim() || rawItem.concept?.trim() || ''
+   const title = safeString(rawItem.title).trim() || `Idea ${index + 1}`
+
+const concept =
+  safeString(rawItem.concept).trim() ||
+  safeString(rawItem.idea).trim()
+
+const execution =
+  safeString(rawItem.execution).trim()
 
     const onScreenText =
       rawItem.on_screen_text?.trim() ||
@@ -2415,12 +3229,15 @@ const contentType =
   .filter(item => {
     const hasTitle = !!item.title?.trim()
 
-    const hasSomeUsableContent =
-      !!item.structured?.concept?.trim() ||
-      !!item.structured?.execution?.trim() ||
-      !!item.idea?.trim()
+    const concept = item.structured?.concept
+const execution = item.structured?.execution
 
-    if (!hasTitle || !hasSomeUsableContent) return false
+const hasValidConcept = isValidConcept(concept)
+const hasExecution = !!execution?.trim()
+
+if (!hasTitle || !hasValidConcept || !hasExecution) {
+  return false
+}
 
     if (violatesArtistType(item as any, artistType, genre)) return false
 
@@ -2519,6 +3336,21 @@ Avoid generic overlays such as:
 - "Studio session"
 - "Performance clip"
 - "Watch until the end"
+
+CONCEPT AND EXECUTION
+
+- concept must be exactly one concise sentence;
+- concept should contain 12–24 words;
+- concept must never exceed 30 words;
+- concept should state only the central creative premise;
+- concept must not contain filming or production instructions;
+- concept must not use words such as film, record, place, position, frame,
+  shoot, capture, overlay or edit;
+- execution must explain the practical production process;
+- execution must not repeat or paraphrase the concept;
+- both fields are mandatory;
+- never return JSON syntax inside any string field.
+
 Rules:
 - Return exactly ${missingCount} items.
 - The user selected these content types: ${contentTypes.join(', ')}
@@ -2549,6 +3381,9 @@ Rules:
       const replacementParsed = JSON.parse(replacementRaw) as CalendarResponse
 
       if (Array.isArray(replacementParsed.items)) {
+        replacementParsed.items = replacementParsed.items.filter(
+  item => !itemContainsLeakedJson(item)
+)
         const replacementItems = (replacementParsed.items as CalendarItem[])
           .map((item, index) => {
             const rawItem = item as any
@@ -2576,8 +3411,12 @@ const contentType = safeContentTypes.includes(normalisedContentType)
               : []
 
             const title = rawItem.title?.trim() || `Idea ${completedItems.length + index + 1}`
-            const concept = rawItem.concept?.trim() || rawItem.execution?.trim() || ''
-            const execution = rawItem.execution?.trim() || rawItem.concept?.trim() || ''
+            const concept =
+  safeString(rawItem.concept).trim() ||
+  safeString(rawItem.idea).trim()
+
+const execution =
+  safeString(rawItem.execution).trim()
 
             const rawHook = rawItem.hook?.trim() || ''
             const onScreenText =

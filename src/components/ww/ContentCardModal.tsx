@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { toast } from 'sonner'
 import { X, Loader2, Download, Sparkles, Send, Edit3, Check, CalendarDays } from 'lucide-react'
@@ -122,6 +121,14 @@ type Props = {
   showPdfExport?: boolean
 }
 
+type SlideshowSlide = {
+  slide: number
+  visual: string
+  text: string
+  purpose: string
+  transition?: string
+}
+
 // ---------- UI helpers ----------
 function platformLabel(p: string | null | undefined) {
   if (!p) return 'Unspecified'
@@ -233,6 +240,275 @@ function buildCardPdfLines(item: ContentCard): PdfLine[] {
   return lines
 }
 
+function modalRecordString(
+  record: Record<string, unknown>,
+  keys: string[],
+): string {
+  for (const key of keys) {
+    const value = record[key]
+
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim()
+    }
+  }
+
+  return ''
+}
+
+function normaliseModalSlide(
+  value: unknown,
+  index: number,
+): SlideshowSlide | null {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+
+  const record = value as Record<string, unknown>
+
+  const visual = modalRecordString(record, [
+    'visual',
+    'visualDirection',
+    'image',
+    'imageDirection',
+    'description',
+  ])
+
+  const text = modalRecordString(record, [
+    'text',
+    'exampleText',
+    'onScreenText',
+    'overlayText',
+    'caption',
+  ])
+
+  const purpose = modalRecordString(record, [
+    'purpose',
+    'role',
+    'objective',
+  ])
+
+  const transition =
+    modalRecordString(record, [
+      'transition',
+      'transitionDirection',
+    ]) || undefined
+
+  if (!visual && !text && !purpose) {
+    return null
+  }
+
+  return {
+    slide:
+      typeof record.slide === 'number'
+        ? record.slide
+        : typeof record.slideNumber === 'number'
+          ? record.slideNumber
+          : index + 1,
+    visual,
+    text,
+    purpose,
+    transition,
+  }
+}
+
+function parseModalTextSlides(value: string): SlideshowSlide[] {
+  const cleaned = value
+    .replace(/^SLIDE PLAN\s*:?\s*/i, '')
+    .replace(/^VIDEO EXECUTION\s*:?\s*/i, '')
+    .trim()
+
+  const blocks = cleaned
+    .split(/(?=Slide\s*\d+\s*(?:—|-|:))/gi)
+    .map((block) => block.trim())
+    .filter(Boolean)
+
+  return blocks.reduce<SlideshowSlide[]>((slides, block, index) => {
+    const slideMatch = block.match(/Slide\s*(\d+)/i)
+
+    const visualMatch = block.match(
+      /Visual\s*:\s*(.*?)(?=\s*\|\s*Text\s*:|\s+Text\s*:|$)/i,
+    )
+
+    const textMatch = block.match(
+      /Text\s*:\s*(.*?)(?=\s*\|\s*Purpose\s*:|\s+Purpose\s*:|$)/i,
+    )
+
+    const purposeMatch = block.match(
+      /Purpose\s*:\s*(.*?)(?=\s*\|\s*Transition\s*:|\s+Transition\s*:|$)/i,
+    )
+
+    const transitionMatch = block.match(
+      /Transition\s*:\s*(.*)$/i,
+    )
+
+    const visual = visualMatch?.[1]?.trim() ?? ''
+    const text = textMatch?.[1]?.trim() ?? ''
+    const purpose = purposeMatch?.[1]?.trim() ?? ''
+    const transition = transitionMatch?.[1]?.trim() || undefined
+
+    if (!visual && !text && !purpose) {
+      return slides
+    }
+
+    slides.push({
+      slide: slideMatch ? Number(slideMatch[1]) : index + 1,
+      visual,
+      text,
+      purpose,
+      transition,
+    })
+
+    return slides
+  }, [])
+}
+
+function parseModalSlideshowSlides(value: unknown): SlideshowSlide[] {
+  let source: unknown = value
+
+  if (typeof source === 'string') {
+    const trimmed = source
+      .trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '')
+
+    if (!trimmed) {
+      return []
+    }
+
+    try {
+      source = JSON.parse(trimmed)
+    } catch {
+      return parseModalTextSlides(trimmed)
+    }
+  }
+
+  if (
+    source &&
+    typeof source === 'object' &&
+    !Array.isArray(source)
+  ) {
+    const record = source as Record<string, unknown>
+
+    source =
+      record.slides ??
+      record.slidePlan ??
+      record.slideshow ??
+      record.execution ??
+      source
+  }
+
+  if (!Array.isArray(source)) {
+    return []
+  }
+
+  return source.reduce<SlideshowSlide[]>((slides, item, index) => {
+    const slide = normaliseModalSlide(item, index)
+
+    if (slide) {
+      slides.push(slide)
+    }
+
+    return slides
+  }, [])
+}
+
+function ModalSlideshowPlan({
+  slides,
+}: {
+  slides: SlideshowSlide[]
+}) {
+  return (
+    <div>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="text-[0.65rem] uppercase tracking-wide text-white/45">
+          Slide Plan
+        </p>
+
+        <p className="text-[0.65rem] text-white/35">
+          {slides.length} {slides.length === 1 ? 'slide' : 'slides'} · scroll →
+        </p>
+      </div>
+
+      <div
+        className="
+          flex gap-3 overflow-x-auto pb-3
+          snap-x snap-mandatory
+          [scrollbar-width:thin]
+          [scrollbar-color:rgba(186,85,211,0.45)_transparent]
+        "
+      >
+        {slides.map(slide => (
+          <article
+            key={slide.slide}
+            className="
+              w-[250px] min-w-[250px]
+              snap-start
+              rounded-2xl
+              border border-white/10
+              bg-black/35
+              p-4
+            "
+          >
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-ww-violet">
+              Slide {slide.slide}
+            </p>
+
+            <div className="space-y-4">
+              {slide.visual ? (
+                <div>
+                  <p className="mb-1 text-[0.65rem] uppercase tracking-wide text-white/40">
+                    Visual
+                  </p>
+
+                  <p className="text-sm leading-relaxed text-white/75">
+                    {slide.visual}
+                  </p>
+                </div>
+              ) : null}
+
+              {slide.text ? (
+                <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+                  <p className="mb-1 text-[0.65rem] uppercase tracking-wide text-white/40">
+                    Text
+                  </p>
+
+                  <p className="text-sm italic leading-relaxed text-white/85">
+                    {slide.text}
+                  </p>
+                </div>
+              ) : null}
+
+              {slide.purpose ? (
+                <div>
+                  <p className="mb-1 text-[0.65rem] uppercase tracking-wide text-white/40">
+                    Purpose
+                  </p>
+
+                  <p className="text-sm leading-relaxed text-white/65">
+                    {slide.purpose}
+                  </p>
+                </div>
+              ) : null}
+
+              {slide.transition ? (
+                <div>
+                  <p className="mb-1 text-[0.65rem] uppercase tracking-wide text-white/40">
+                    Transition
+                  </p>
+
+                  <p className="text-sm leading-relaxed text-white/65">
+                    {slide.transition}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ---------- Component ----------
 export default function ContentCardModal({
   open,
@@ -245,7 +521,7 @@ export default function ContentCardModal({
   showPdfExport = true,
 }: Props) {
 
-    const router = useRouter()
+
 
   const outlineBtn =
     'inline-flex items-center gap-2 px-4 h-9 rounded-full border border-white/20 text-white/85 text-xs ' +
@@ -287,11 +563,46 @@ export default function ContentCardModal({
     })
   }, [item.scheduled_at])
 
-  const refinedCaption = item.metadata?.refined_caption_text || ''
+const refinedCaption = item.metadata?.refined_caption_text || ''
 const isRefinedCaption = !!item.metadata?.caption_refined
-const structured = item.metadata?.structured || null
 
-    const hasAttachedCaption = !!item.caption?.trim()
+const structured =
+  item.metadata?.structured &&
+  typeof item.metadata.structured === 'object'
+    ? item.metadata.structured
+    : null
+
+const formatValue =
+  String(item.metadata?.api?.content_type || '') ||
+  String(item.metadata?.api?.contentType || '') ||
+  String(item.metadata?.api?.format || '') ||
+  String(structured?.contentType || '') ||
+  String(structured?.format || '') ||
+  String(item.metadata?.format || '') ||
+  String(item.feature || '')
+
+const normalizedFormat = formatValue
+  .toLowerCase()
+  .replace(/[_–—]/g, '-')
+  .replace(/\s+/g, ' ')
+  .trim()
+
+const isSlideshow =
+  normalizedFormat.includes('slideshow') ||
+  normalizedFormat.includes('camera roll') ||
+  normalizedFormat.includes('camera-roll') ||
+  normalizedFormat.includes('carousel')
+
+const rawExecution =
+  structured?.execution ??
+  item.metadata?.execution ??
+  ''
+
+const modalSlides = isSlideshow
+  ? parseModalSlideshowSlides(rawExecution)
+  : []
+
+const hasAttachedCaption = !!item.caption?.trim()
 
   useEffect(() => {
     if (!open) return
@@ -458,7 +769,9 @@ const structured = item.metadata?.structured || null
       aria-modal="true"
     >
       <div
-  className="max-w-lg w-full rounded-2xl border border-white/15 bg-black/95 p-5 flex flex-col max-h-[85vh]"
+  className={`${
+  isSlideshow ? 'max-w-4xl' : 'max-w-lg'
+} w-full rounded-2xl border border-white/15 bg-black/95 p-5 flex flex-col max-h-[85vh]`}
   onClick={e => e.stopPropagation()}
 >
 
@@ -582,13 +895,42 @@ const structured = item.metadata?.structured || null
  if (structured && typeof structured === 'object') {
   return (
     <div className="space-y-2">
-      {structured.hook ? <Section label="Hook">{structured.hook}</Section> : null}
+      {structured.hook ? (
+        <Section label="Hook">{structured.hook}</Section>
+      ) : null}
+
       {structured.onScreenText ? (
-  <Section label="On-Screen Text">{structured.onScreenText}</Section>
-) : null}
-      {structured.concept ? <Section label="Content Angle">{structured.concept}</Section> : null}
-      {structured.execution ? <Section label="Video Execution">{structured.execution}</Section> : null}
-      {structured.cta ? <Section label="CTA">{refinedCaption || structured.cta}</Section> : null}
+        <Section label="On-Screen Text">
+          {structured.onScreenText}
+        </Section>
+      ) : null}
+
+      {structured.concept ? (
+        <Section label="Content Angle">
+          {structured.concept}
+        </Section>
+      ) : null}
+
+      {isSlideshow && modalSlides.length > 0 ? (
+        <ModalSlideshowPlan slides={modalSlides} />
+      ) : structured.execution ? (
+        <Section label="Video Execution">
+          <div className="whitespace-pre-wrap">
+            {formatNumberedSteps(
+              typeof structured.execution === 'string'
+                ? structured.execution
+                : ''
+            )}
+          </div>
+        </Section>
+      ) : null}
+
+      {structured.cta ? (
+        <Section label="CTA">
+          {refinedCaption || structured.cta}
+        </Section>
+      ) : null}
+
       {Array.isArray(structured.why) && structured.why.length ? (
         <Section label="Why This Works">
           <ul className="space-y-1">
@@ -616,8 +958,14 @@ const structured = item.metadata?.structured || null
   <Section label="On-Screen Text">{s.onScreenText}</Section>
 ) : null}
 
-{s.videoExecution ? (
-  <Section label="Video Execution">{s.videoExecution}</Section>
+{isSlideshow && modalSlides.length > 0 ? (
+  <ModalSlideshowPlan slides={modalSlides} />
+) : s.videoExecution ? (
+  <Section label="Video Execution">
+    <div className="whitespace-pre-wrap">
+      {formatNumberedSteps(s.videoExecution)}
+    </div>
+  </Section>
 ) : null}
 
 {s.caption ? (

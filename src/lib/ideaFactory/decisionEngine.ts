@@ -44,7 +44,12 @@ For every tentative concept, silently construct:
   "creativeCost": "low | medium | high",
   "memorability": "low | medium | high",
 "creativeTerritory": "the distinct part of the artist world this concept occupies",
+"primaryMechanic": "the central creative mechanism that creates the viewer experience",
+"expansionRoute": "the Creative Expansion territory from which the concept originated",
+"viewerExperience": "what the viewer actually experiences from beginning to payoff",
+"musicRole": "the essential job performed by the music",
 "territoryOverlap": "none | partial | strong",
+"mechanicOverlap": "none | partial | strong",
 "failureReasons": [
     "specific reasons the route should not continue"
   ],
@@ -174,6 +179,106 @@ The concept should express:
 - why the music matters.
 
 If the idea disappears when filming language is removed, redesign it.
+
+==================================================
+5A. CONCEPT-EXECUTION SEPARATION TEST
+==================================================
+
+Concept and execution perform different jobs.
+
+They must not repeat, paraphrase or expand the same description.
+
+CONCEPT
+
+The concept is the shortest possible expression of the creative premise.
+
+It should answer:
+
+- What is the central idea?
+- What changes, reveals, contrasts or pays off?
+- What role does the music play?
+
+Concept rules:
+
+- Write exactly one concise sentence.
+- Aim for 12–24 words.
+- Never exceed 30 words.
+- Describe the creative premise, not the production process.
+- Mention only the central action, transformation, contrast or viewer experience.
+- Do not explain why the idea fits the artist.
+- Do not explain the audience psychology.
+- Do not describe the visual mood in several different ways.
+- Do not summarise the execution.
+
+CONCEPT must not contain:
+
+- camera placement;
+- framing instructions;
+- lighting instructions;
+- editing instructions;
+- text placement;
+- shot lists;
+- timing instructions;
+- equipment setup;
+- filming measurements;
+- phrases such as "film", "record", "place the phone", "use a close-up",
+  "position the camera", "add text", or "edit".
+
+The concept should make the artist think:
+
+"I understand the idea immediately."
+
+Good concept:
+
+"Small movements in the room reveal each new layer of the track."
+
+Bad concept:
+
+"Film close-up bedroom details that move gradually with each new layer of the
+track, using dim lighting and slow transitions to create an immersive visual
+experience."
+
+EXECUTION
+
+Execution explains how the artist makes the approved premise.
+
+It may describe:
+
+- what to film;
+- sequence;
+- location;
+- framing;
+- camera position;
+- movement;
+- timing;
+- editing;
+- music synchronisation;
+- text placement.
+
+Execution should be practical and direct.
+
+It must not repeat:
+
+- the full concept sentence;
+- what the idea symbolises;
+- why the premise is emotionally interesting;
+- the viewer psychology;
+- extended descriptions of atmosphere already established elsewhere.
+
+FINAL CHECK
+
+Before approving the idea:
+
+1. Confirm concept is one sentence.
+2. Confirm concept is no more than 30 words.
+3. Confirm concept contains no filming instructions.
+4. Confirm execution gives practical production directions.
+5. Confirm execution does not paraphrase the concept sentence.
+
+If concept and execution still communicate substantially the same information,
+rewrite the concept more briefly.
+
+Do not fix repetition by adding more detail.
 
 ==================================================
 6. MEMORABILITY TEST
@@ -641,6 +746,37 @@ Identify the primary creative territory of the concept.
 
 Possible territories include:
 
+Creative territories are intentionally broad.
+
+A territory is not a filming style.
+
+A territory is not an object.
+
+A territory is not a location.
+
+A territory is not an editing technique.
+
+A territory represents the primary way the viewer experiences the idea.
+
+For example:
+
+A reveal.
+A mystery.
+A transformation.
+A comparison.
+A ritual.
+A pattern.
+A contradiction.
+A discovery.
+A visual metaphor.
+A challenge.
+A conversation.
+A progression.
+A game.
+A piece of world-building.
+
+Several ideas may use the same room, camera and music while still occupying completely different territories.
+
 - immediate music proof;
 - sound or production process;
 - artist identity;
@@ -667,14 +803,48 @@ Ask:
 
 Does another tentative concept already occupy essentially the same territory?
 
-Examples of strong overlap:
+Strong overlap occurs when multiple concepts rely on essentially the same:
 
-- several close-ups of production equipment;
-- several studio-process observations;
-- several side-profile performances;
-- several emotional-recognition overlays;
-- several concepts about the same drop;
-- several concepts whose only difference is the object being filmed.
+- central creative mechanic;
+- viewer experience;
+- progression or reveal;
+- storytelling structure;
+- visual transformation;
+- audience interaction;
+- emotional payoff;
+- music function;
+- repeated behaviour;
+- primary asset;
+- attention strategy;
+- creative twist;
+- strategic job.
+
+Changing surface details does not create a new concept.
+
+The following changes are not enough on their own:
+
+- a different location;
+- a different object;
+- a different camera angle;
+- a different caption;
+- a different hook;
+- a different platform;
+- a different piece of equipment;
+- a different visual style;
+- a different section of the same process.
+
+Creative Reality should expand imagination rather than reduce it.
+
+If the current batch mostly explores one part of the artist's reality, deliberately search for unexplored creative territories before approving another similar concept.
+
+Artists should finish a generation feeling that their creative possibilities became larger, not smaller.
+
+Ask:
+
+"If the surface details were removed, would these ideas still give the viewer
+fundamentally different experiences?"
+
+If not, keep the stronger concept and redesign or replace the weaker one.
 
 If yes, compare their:
 
@@ -701,6 +871,14 @@ Now imagine the batch has room for only one more concept.
 Would this concept survive?
 
 It should survive because it provides value the other concepts do not.
+
+Every approved concept should open a different door into the artist's world.
+
+Imagine inviting five different people into the artist's creative universe.
+
+Each visitor should leave having discovered a different reason to care.
+
+Do not repeatedly invite every viewer through the same door.
 
 The Batch Intelligence Engine will perform the full batch comparison.
 

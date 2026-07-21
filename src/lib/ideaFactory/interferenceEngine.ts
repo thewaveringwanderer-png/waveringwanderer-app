@@ -1,6 +1,7 @@
 export type InterferenceConflictType =
   | 'explicit-instruction'
   | 'creative-reality'
+  | 'unsupported-assumption'
   | 'selected-style'
   | 'creator-comfort'
   | 'identity'
@@ -11,7 +12,7 @@ export type InterferenceConflictType =
   | 'lyrics'
   | 'artist-type'
   | 'execution'
-  | 'batch-variety'
+
 
 export type InterferenceSeverity =
   | 'low'
@@ -63,6 +64,38 @@ Run it before writing:
 - CTA
 - why this works
 
+The engine performs two passes.
+
+PASS A — CONCEPT INTERFERENCE
+
+Inspect the proposed:
+
+- strategic job
+- Attention Gene
+- content format
+- emotional territory
+- concept mechanic
+- artist behaviour
+- required assets
+- music role
+- tangible anchor
+
+Resolve any conflict before the concept reaches the Decision Engine.
+
+PASS B — EXECUTION INTERFERENCE
+
+After the Execution Engine develops the approved concept, silently re-check:
+
+- resources
+- creator comfort
+- filming coherence
+- factual grounding
+- format accuracy
+- lyric availability
+
+If detailed execution introduces a new contradiction, adapt the execution without
+changing the approved concept unless the concept itself caused the conflict.
+
 The engine performs four internal operations:
 
 1. DETECT
@@ -78,20 +111,23 @@ Do not return its internal analysis.
 
 When evidence conflicts, use this authority order:
 
-1. Explicit prohibitions and user instructions
+1. Explicit prohibitions and direct user instructions
 2. Hard Creative Reality
-3. Explicitly selected content styles
-4. Explicit creator behaviour, confidence and comfort
-5. Supplied factual source material, including lyrics
-6. Creative Constitution and brand guardrails
-7. Identity Kit and artist-specific source material
-8. Audience Psychology
-9. Creator Genome
-10. Current goal and audience journey stage
-11. Attention Gene
-12. Content Format Gene
-13. Genre-based assumptions
-14. Batch variety
+3. Actual supplied facts, assets and lyric availability
+4. Explicitly selected content styles
+5. Explicit artist type
+6. Explicit creator behaviour, confidence and comfort
+7. Current goal, focus mode and audience journey stage
+8. Creative Constitution and brand guardrails
+9. Identity Kit and artist-specific source material
+10. Audience Psychology
+11. Creator Genome inference
+12. Attention Gene
+13. Content Format Gene
+14. Genre-based assumptions
+15. Batch variety
+
+Higher authorities always overrule lower authorities.
 
 Higher authorities always overrule lower authorities.
 
@@ -121,11 +157,14 @@ For each tentative direction, detect conflicts between:
 - artist type and assumed musical behaviour
 - supplied lyrics and lyric references
 - available assets and required footage
+- supplied facts and invented personal, musical or production details
 - idea depth and production complexity
-- current idea and the rest of the batch
+
 
 A conflict exists when the idea:
 
+- introduces a specific object, software, pet, personal event, production decision
+  or backstory that the artist did not supply;
 - requires something unavailable;
 - assumes something not supplied;
 - asks the artist to behave unnaturally;
@@ -134,7 +173,6 @@ A conflict exists when the idea:
 - targets the wrong audience emotion;
 - applies an unsuitable CTA;
 - weakens or contradicts artist identity;
-- duplicates another idea’s viewer experience;
 - contains incompatible filming instructions.
 
 ==================================================
@@ -277,12 +315,14 @@ LOW BUDGET
 
 Prefer:
 
-- available rooms;
-- streets or public environments already accessible;
-- windows, mirrors, doorways, hallways and existing objects;
-- natural light;
+- locations explicitly confirmed by the artist;
+- objects and equipment explicitly confirmed by the artist;
+- available room light or natural light when actually present;
 - phone footage;
-- creative constraints.
+- simple creative constraints.
+
+Do not introduce a street, mirror, window, doorway, hallway or prop merely
+because it would be inexpensive.
 
 Avoid:
 
@@ -296,7 +336,7 @@ WORKS ALONE
 
 Prefer:
 
-- tripod or fixed-phone shots;
+- a fixed phone placed on an available stable surface, or a tripod only when confirmed;
 - object-led concepts;
 - first-person framing;
 - voice-over;
@@ -426,25 +466,20 @@ provided the music remains central.
 8. IDENTITY AND CONSTITUTION CONFLICTS
 ==================================================
 
-Every idea should use at least one meaningful artist-specific source when
-Identity Kit context is available.
+When Identity Kit context exists, check whether the tentative concept contradicts
+or misrepresents it.
 
-Possible sources:
+A conflict exists when the concept:
 
-- lived experience;
-- belief;
-- contradiction;
-- recurring theme;
-- listener transformation;
-- audience tension;
-- visual motif;
-- cultural influence;
-- recurring environment;
-- Creative Constitution principle.
+- opposes a Creative Constitution principle;
+- violates a brand guardrail;
+- invents an identity detail;
+- distorts an artist belief;
+- uses an emotional territory the supplied identity does not support;
+- copies an influence instead of interpreting its underlying trait.
 
 Reject or rewrite ideas that:
 
-- could belong to almost any artist;
 - use vulnerability that the artist has not expressed;
 - make the artist sound desperate;
 - contradict brand guardrails;
@@ -644,35 +679,7 @@ The artist should be able to picture:
 - how the video ends.
 
 ==================================================
-13. MEMORABLE DECISION TEST
-==================================================
-
-Every approved idea must contain one memorable creative decision.
-
-This can be:
-
-- camera movement;
-- visual reveal;
-- repeated object;
-- unusual framing;
-- specific location behaviour;
-- audience interaction;
-- visual transformation;
-- sound-triggered action;
-- constraint;
-- narrative reversal;
-- pattern interruption.
-
-"Perform to camera" is not a memorable decision.
-
-"Use text over footage" is not a memorable decision.
-
-The decision must be specific enough that the artist can picture it.
-
-Do not force novelty that conflicts with the artist.
-
-==================================================
-14. INTERNAL DECISION OBJECT
+13. INTERNAL DECISION OBJECT
 ==================================================
 
 For every tentative direction, construct this silently:
@@ -701,7 +708,7 @@ For every tentative direction, construct this silently:
 Never return this object.
 
 ==================================================
-15. FINAL INTERFERENCE VALIDATION
+14. FINAL INTERFERENCE VALIDATION
 ==================================================
 
 Before writing the final idea, confirm:
@@ -717,10 +724,10 @@ Before writing the final idea, confirm:
 - Its Attention Gene fits the complete idea.
 - Its format matches the actual execution.
 - Its filming instructions do not contradict one another.
-- It contains one memorable creative decision.
-- It remains meaningfully different from the rest of the batch.
 - The artist could understand what to film without guessing.
-- The artist could realistically want to make it.
+- Every specific asset, location, person, object and factual claim is verified.
+- No lower-authority inference overrules explicit user input.
+- No later execution detail reintroduces a conflict already resolved at concept level.
 
 If any answer is no, adapt or replace the direction before continuing.
 `.trim()

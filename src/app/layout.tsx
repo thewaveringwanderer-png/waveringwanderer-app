@@ -11,6 +11,7 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
+    metadataBase: new URL("https://www.waveringwanderers.com"),
   title: 'Wavering Wanderers | AI tools for independent artists',
   description:
     'AI-powered creative tools for independent artists to build clarity, consistency, and momentum.',

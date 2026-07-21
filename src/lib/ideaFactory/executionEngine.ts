@@ -2,8 +2,13 @@ export function formatExecutionEngineForPrompt() {
   return `
 EXECUTION ENGINE
 
-The Execution Engine turns an approved concept into a filming plan the artist
-can immediately picture and realistically create.
+The Execution Engine turns an approved concept into simple filming instructions.
+
+Its job is not to impress the artist.
+
+Its job is to remove uncertainty.
+
+Every sentence should make the artist feel one step closer to pressing Record.
 
 Run it after:
 
@@ -49,6 +54,59 @@ They need confidence to start.
 The best execution is one that makes the artist think:
 
 "I could film this right now."
+
+DIRECTOR PRINCIPLE
+
+Write execution as though an experienced creative director is giving instructions moments before filming begins.
+
+Execution should sound spoken, not written.
+
+The artist should be able to read one sentence, perform it, then naturally move to the next.
+
+Prefer chronological actions over descriptive paragraphs.
+
+Bad:
+
+"Use expressive body language while gradually increasing emotional intensity under soft natural light."
+
+Good:
+
+"Start standing still.
+
+Deliver the first four bars quietly.
+
+When the beat builds, take one step towards the camera.
+
+Finish the last line looking directly into the lens."
+
+Describe actions.
+
+Not atmosphere.
+
+Describe decisions.
+
+Not interpretations.
+
+The concept explains why.
+
+Execution explains what.
+
+STEP-BY-STEP RULE
+
+Write execution in the order the artist experiences filming.
+
+Follow this sequence whenever appropriate:
+
+1. Set the phone.
+2. Start position.
+3. First action.
+4. Progression.
+5. Ending.
+6. Text placement if needed.
+
+Do not jump backwards and forwards through the filming process.
+
+The artist should never need to mentally rearrange the instructions.
 
 EXECUTION TEST
 
@@ -656,6 +714,37 @@ Execution must specify:
 
 Do not prescribe a long monologue.
 
+TALKING TO CAMERA EXECUTION
+
+The execution must focus primarily on spoken guidance.
+
+Required order:
+
+1. Simple filming setup.
+2. Exact opening sentence.
+3. Talking point one.
+4. Talking point two.
+5. Talking point three when useful.
+6. Natural closing sentence.
+7. Optional text placement.
+
+Rules:
+
+- use no more than two filming setup instructions;
+- do not direct facial expressions or small body movements unless genuinely
+  essential;
+- do not say:
+  - nod slightly;
+  - look downward;
+  - smile invitingly;
+  - turn slowly;
+  - use warm body language;
+- do not instruct the artist to rap, sing, lip-sync or perform;
+- keep the artist’s voice natural rather than writing a polished speech;
+- do not invent personal facts;
+- when a personal example is required but not verified, describe the type of
+  example the artist should choose rather than inventing one.
+
 TEXT ON SCREEN
 
 The visual must remain interesting even though the overlay is primary.
@@ -668,17 +757,52 @@ Specify:
 - when the song enters;
 - whether the visual repeats or changes.
 
-SLIDESHOW
 
-Specify:
+SLIDESHOW 
 
-- number of slides;
-- purpose of each slide;
-- image source;
-- progression;
-- final payoff.
 
-Do not assume images exist unless they are verified or easily creatable now.
+When the selected format is Camera Roll / Slideshow, do not return ordinary
+video instructions.
+
+Do not compress the idea into general steps such as:
+
+- create five slides;
+- add text to each image;
+- synchronise slides to the music.
+
+Instead, preserve and output an individual plan for every slide.
+
+Required structure:
+
+Slide 1
+Visual: the exact photograph or flexible image category to use
+Text: one complete example line
+Purpose: what this slide contributes
+Transition: optional pacing or transition instruction
+
+Slide 2
+Visual:
+Text:
+Purpose:
+Transition:
+
+Continue until the final slide.
+
+Rules:
+
+- use five slides by default;
+- every slide must be independently actionable;
+- visuals must be concrete and observable;
+- do not describe invisible symbolism;
+- replace abstract directions with visible choices;
+- do not say "an image representing resilience";
+- say what the artist should actually photograph or select;
+- do not invent an existing photograph;
+- when uncertain, say "choose an existing camera-roll image of..." rather than
+  claiming the image already exists;
+- keep text short enough to read on one slide;
+- the final slide must have a clear visual and textual function;
+- do not add a promotional cover slide unless the concept genuinely requires it.
 
 VISUAL / CINEMATIC
 
@@ -716,6 +840,14 @@ Specify:
 - ending payoff.
 
 A statement without progression is not a story.
+
+For Camera Roll / Slideshow:
+
+- Every slide has its own visual direction.
+- Every slide has its own example text.
+- Every slide has a distinct purpose.
+- The execution has not been flattened into general slideshow instructions.
+- Abstract symbolism has been converted into concrete image choices.
 
 ==================================================
 15. MEMORABLE FILMING DECISION
@@ -783,6 +915,85 @@ ADVANCED
 Never use advanced as a synonym for better.
 
 The best execution is the strongest one the artist will actually make.
+
+==================================================
+16A. SIMPLE LANGUAGE TEST
+==================================================
+
+Read the execution one final time.
+
+Remove:
+
+- poetic wording;
+- emotional interpretation;
+- cinematic adjectives;
+- abstract visual language;
+- unnecessary artistic explanation.
+
+Replace them with observable actions.
+
+Bad:
+
+"The camera creates emotional intimacy."
+
+Good:
+
+"Keep the camera close to your face."
+
+Bad:
+
+"Gradually increase emotional intensity."
+
+Good:
+
+"Start quietly, then raise your energy on the second verse."
+
+Bad:
+
+"Use environmental storytelling."
+
+Good:
+
+"Keep the bedroom door open behind you and end by walking through it."
+
+Execution should sound like instructions, not film criticism.
+
+CONCRETE VISUAL LANGUAGE
+
+Describe what the artist should physically show, say, photograph, select or edit.
+
+Avoid invisible interpretation inside execution.
+
+Weak:
+
+"Use imagery symbolising resilience."
+
+Strong:
+
+"Use a close-up photo of a heavily used notebook, a quiet street after rain and
+the microphone in your room."
+
+Weak:
+
+"Show the artist's emotional journey."
+
+Strong:
+
+"Use one early image, one unfinished-work image and one recent image where the
+change is visible."
+
+Weak:
+
+"Capture a feeling of isolation."
+
+Strong:
+
+"Choose a wide photo where you appear small in the frame or an empty location
+you genuinely use."
+
+Concept may explain meaning.
+
+Execution must describe observable choices.
 
 ==================================================
 17. EXECUTION VALIDATION
