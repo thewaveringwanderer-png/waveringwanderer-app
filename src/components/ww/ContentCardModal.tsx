@@ -26,7 +26,7 @@ function parseCaptionSections(caption: string) {
     'CONTENT ANGLE:',
     'HOOK:',
     'ON-SCREEN TEXT:',
-    'VIDEO EXECUTION:',
+    'HOW TO FILM:',
     'CAPTION:',
     'CTA:',
     'WHY THIS WORKS:',
@@ -54,7 +54,7 @@ function parseCaptionSections(caption: string) {
     .replace(/content angle:/gi, 'CONTENT ANGLE:')
     .replace(/hook:/gi, 'HOOK:')
     .replace(/on-screen text:/gi, 'ON-SCREEN TEXT:')
-    .replace(/video execution:/gi, 'VIDEO EXECUTION:')
+    .replace(/how to film:/gi, 'HOW TO FILM:')
     .replace(/caption:/gi, 'CAPTION:')
     .replace(/cta:/gi, 'CTA:')
     .replace(/why this works:/gi, 'WHY THIS WORKS:')
@@ -72,8 +72,8 @@ function parseCaptionSections(caption: string) {
     isSectioned: true as const,
     contentAngle: takeBetween('CONTENT ANGLE:', 'HOOK:'),
     hook: takeBetween('HOOK:', 'ON-SCREEN TEXT:'),
-    onScreenText: takeBetween('ON-SCREEN TEXT:', 'VIDEO EXECUTION:'),
-    videoExecution: takeBetween('VIDEO EXECUTION:', 'CAPTION:'),
+    onScreenText: takeBetween('ON-SCREEN TEXT:', 'HOW TO FILM:'),
+    videoExecution: takeBetween('HOW TO FILM:', 'CAPTION:'),
     caption: takeBetween('CAPTION:', 'CTA:'),
     cta: takeBetween('CTA:', 'WHY THIS WORKS:'),
     whyThisWorks: takeBetween('WHY THIS WORKS:', 'BEST FOR:'),
@@ -157,6 +157,58 @@ function statusLabel(status: CalendarStatus | null | undefined) {
   if (s === 'posted') return 'Posted'
   if (s === 'idea') return 'Idea'
   return s
+}
+
+function modalEstimateDifficulty(args: {
+  stepCount: number
+  isSlideshow: boolean
+  editingConfidence?: string
+}) {
+  const editing = (args.editingConfidence || '').toLowerCase()
+
+  if (
+    args.stepCount <= 3 &&
+    !args.isSlideshow &&
+    !editing.includes('advanced')
+  ) {
+    return 'Easy'
+  }
+
+  if (
+    args.stepCount >= 7 ||
+    editing.includes('advanced')
+  ) {
+    return 'Advanced'
+  }
+
+  return 'Standard'
+}
+
+function modalEstimateTime(stepCount: number) {
+  if (stepCount <= 3) return '≈ 10–15 min'
+  if (stepCount <= 5) return '≈ 20–30 min'
+  if (stepCount <= 7) return '≈ 30–45 min'
+
+  return '≈ 45–60 min'
+}
+
+function modalArrayLabel(
+  value: unknown,
+  singularFallback: string,
+) {
+  if (!Array.isArray(value) || value.length === 0) return ''
+
+  const cleaned = value
+    .map(item => String(item).trim())
+    .filter(Boolean)
+
+  if (!cleaned.length) return ''
+
+  if (cleaned.length <= 2) {
+    return cleaned.join(' + ')
+  }
+
+  return `${cleaned.length} ${singularFallback}`
 }
 
 function normalizeTagsToArray(input: any): string[] {
@@ -314,7 +366,7 @@ function normaliseModalSlide(
 function parseModalTextSlides(value: string): SlideshowSlide[] {
   const cleaned = value
     .replace(/^SLIDE PLAN\s*:?\s*/i, '')
-    .replace(/^VIDEO EXECUTION\s*:?\s*/i, '')
+    .replace(/^HOW TO FILM\s*:?\s*/i, '')
     .trim()
 
   const blocks = cleaned
@@ -430,49 +482,52 @@ function ModalSlideshowPlan({
       </div>
 
       <div
-        className="
-          flex gap-3 overflow-x-auto pb-3
-          snap-x snap-mandatory
-          [scrollbar-width:thin]
-          [scrollbar-color:rgba(186,85,211,0.45)_transparent]
-        "
-      >
+  className="
+    flex gap-3 overflow-x-auto overflow-y-hidden pb-3
+    snap-x snap-mandatory
+    scroll-px-1
+    touch-pan-x
+    [-webkit-overflow-scrolling:touch]
+    [scrollbar-width:thin]
+    [scrollbar-color:rgba(186,85,211,0.45)_transparent]
+  "
+>
         {slides.map(slide => (
           <article
             key={slide.slide}
             className="
-              w-[250px] min-w-[250px]
-              snap-start
-              rounded-2xl
-              border border-white/10
-              bg-black/35
-              p-4
-            "
+  w-[94%] min-w-[94%] shrink-0
+  snap-center
+  rounded-2xl
+  border border-white/10
+  bg-black/35
+  px-3.5 py-2.5
+"
           >
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-ww-violet">
+            <p className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-ww-violet">
               Slide {slide.slide}
             </p>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
               {slide.visual ? (
                 <div>
                   <p className="mb-1 text-[0.65rem] uppercase tracking-wide text-white/40">
                     Visual
                   </p>
 
-                  <p className="text-sm leading-relaxed text-white/75">
+                  <p className="text-[0.78rem] leading-[1.4] text-white/75">
                     {slide.visual}
                   </p>
                 </div>
               ) : null}
 
               {slide.text ? (
-                <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+                <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
                   <p className="mb-1 text-[0.65rem] uppercase tracking-wide text-white/40">
                     Text
                   </p>
 
-                  <p className="text-sm italic leading-relaxed text-white/85">
+                  <p className="text-[0.8rem] italic leading-5 text-white/85">
                     {slide.text}
                   </p>
                 </div>
@@ -484,7 +539,7 @@ function ModalSlideshowPlan({
                     Purpose
                   </p>
 
-                  <p className="text-sm leading-relaxed text-white/65">
+                  <p className="text-[0.78rem] leading-[1.4] text-white/65">
                     {slide.purpose}
                   </p>
                 </div>
@@ -496,7 +551,7 @@ function ModalSlideshowPlan({
                     Transition
                   </p>
 
-                  <p className="text-sm leading-relaxed text-white/65">
+                  <p className="text-[0.78rem] leading-[1.4] text-white/65">
                     {slide.transition}
                   </p>
                 </div>
@@ -572,6 +627,12 @@ const structured =
     ? item.metadata.structured
     : null
 
+const productionContext =
+  item.metadata?.productionContext &&
+  typeof item.metadata.productionContext === 'object'
+    ? item.metadata.productionContext
+    : {}    
+
 const formatValue =
   String(item.metadata?.api?.content_type || '') ||
   String(item.metadata?.api?.contentType || '') ||
@@ -601,6 +662,41 @@ const rawExecution =
 const modalSlides = isSlideshow
   ? parseModalSlideshowSlides(rawExecution)
   : []
+
+ const executionText =
+  typeof rawExecution === 'string'
+    ? formatNumberedSteps(rawExecution)
+    : ''
+
+const modalExecutionSteps = executionText
+  .split('\n')
+  .map(step => step.trim())
+  .filter(Boolean)
+
+const productionStepCount =
+  isSlideshow && modalSlides.length
+    ? modalSlides.length
+    : modalExecutionSteps.length || 1
+
+const difficulty = modalEstimateDifficulty({
+  stepCount: productionStepCount,
+  isSlideshow,
+  editingConfidence: String(
+    productionContext.editingConfidence || ''
+  ),
+})
+
+const filmingTime = modalEstimateTime(productionStepCount)
+
+const locationLabel = modalArrayLabel(
+  productionContext.locations,
+  'locations',
+)
+
+const equipmentLabel = modalArrayLabel(
+  productionContext.equipment,
+  'equipment options',
+) 
 
 const hasAttachedCaption = !!item.caption?.trim()
 
@@ -650,8 +746,9 @@ const hasAttachedCaption = !!item.caption?.trim()
     try {
       const patch: Partial<ContentCard> = { in_momentum: true }
       await patchServer(patch)
-      onItemPatched(patch)
-      toast.success('Sent to Momentum Board ✅')
+onItemPatched(patch)
+onClose()
+toast.success('Sent to Momentum Board ✅')
     } catch (e: any) {
       toast.error(e?.message || 'Could not send to Momentum')
     } finally {
@@ -763,19 +860,20 @@ const hasAttachedCaption = !!item.caption?.trim()
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur flex items-center justify-center px-4"
-      onClick={onClose} // ✅ click outside closes
-      role="dialog"
-      aria-modal="true"
-    >
+  className="fixed inset-0 z-[200] flex items-center justify-center overflow-hidden bg-black/70 px-3 py-4 backdrop-blur sm:px-4"
+  onClick={onClose}
+  role="dialog"
+  aria-modal="true"
+>
       <div
   className={`${
   isSlideshow ? 'max-w-4xl' : 'max-w-lg'
-} w-full rounded-2xl border border-white/15 bg-black/95 p-5 flex flex-col max-h-[85vh]`}
+} relative z-[201] flex h-[86dvh] w-full flex-col overflow-hidden rounded-2xl border border-white/15 bg-black/95 p-4 sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:p-5`}
   onClick={e => e.stopPropagation()}
+  onTouchStart={e => e.stopPropagation()}
 >
 
-        <div className="flex items-start justify-between gap-3">
+        <div className="shrink-0 flex items-start justify-between gap-3">
           <div className="space-y-1 min-w-0">
             <p className="text-xs uppercase tracking-wide text-white/50">
               {platformLabel(item.platform)} • {statusLabel(item.status)} • {item.feature || 'calendar'}
@@ -808,8 +906,36 @@ const hasAttachedCaption = !!item.caption?.trim()
           </button>
         </div>
 
+        <div className="shrink-0 flex flex-wrap gap-2 py-3">
+  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-white/65">
+    {difficulty}
+  </span>
+
+  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-white/65">
+    {filmingTime}
+  </span>
+
+  {locationLabel ? (
+    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-white/65">
+      {locationLabel}
+    </span>
+  ) : null}
+
+  {equipmentLabel ? (
+    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-white/65">
+      {equipmentLabel}
+    </span>
+  ) : null}
+</div>
+
         {/* Body */}
-<div className="mt-4 flex-1 overflow-y-auto pr-1">
+<div
+  className={`mt-4 min-h-0 flex-1 ${
+    isSlideshow
+      ? 'overflow-y-auto overflow-x-hidden overscroll-contain pr-1 pb-4 touch-pan-y [-webkit-overflow-scrolling:touch]'
+      : 'overflow-hidden'
+  }`}
+>
   {isEditing ? (
     <div className="space-y-4">
       <textarea
@@ -864,18 +990,26 @@ const hasAttachedCaption = !!item.caption?.trim()
     </div>
   ) : (
     <div className="border-t border-white/10 pt-3">
-      {item.caption ? (
+      {structured || item.caption ? (
         (() => {
-         
-          const s = parseCaptionSections(item.caption)
 
-          if (!s.isSectioned) {
-            return (
-              <div className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
-                {s.plain}
-              </div>
-            )
-          }
+          const HighlightSection = ({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) => (
+  <div className="w-full rounded-2xl border border-ww-violet/25 bg-ww-violet/[0.06] px-3.5 py-2.5 sm:px-4 sm:py-3">
+   <div className="mb-1 text-[0.62rem] uppercase tracking-[0.14em] text-ww-violet sm:mb-1.5 sm:text-[0.65rem]">
+      {label}
+    </div>
+
+    <div className="text-[0.82rem] leading-[1.55] text-white/90 sm:text-sm sm:leading-relaxed">
+      {children}
+    </div>
+  </div>
+)
 
           const Section = ({
             label,
@@ -884,7 +1018,7 @@ const hasAttachedCaption = !!item.caption?.trim()
             label: string
             children: React.ReactNode
           }) => (
-            <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+            <div className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
               <div className="text-[0.65rem] uppercase tracking-wide text-white/45 mb-1">
                 {label}
               </div>
@@ -893,10 +1027,25 @@ const hasAttachedCaption = !!item.caption?.trim()
           )          
 
  if (structured && typeof structured === 'object') {
+  if (isSlideshow) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3 pb-2">
+      {structured.summary ? (
+        <HighlightSection label="The Idea">
+          {structured.summary}
+        </HighlightSection>
+      ) : null}
+
+      {structured.viewerExperience ? (
+        <HighlightSection label="What Viewers Will Experience">
+          {structured.viewerExperience}
+        </HighlightSection>
+      ) : null}
+
       {structured.hook ? (
-        <Section label="Hook">{structured.hook}</Section>
+        <Section label="Hook">
+          {structured.hook}
+        </Section>
       ) : null}
 
       {structured.onScreenText ? (
@@ -905,30 +1054,20 @@ const hasAttachedCaption = !!item.caption?.trim()
         </Section>
       ) : null}
 
-      {structured.concept ? (
-        <Section label="Content Angle">
-          {structured.concept}
-        </Section>
-      ) : null}
-
-      {isSlideshow && modalSlides.length > 0 ? (
+      {modalSlides.length > 0 ? (
         <ModalSlideshowPlan slides={modalSlides} />
-      ) : structured.execution ? (
-        <Section label="Video Execution">
-          <div className="whitespace-pre-wrap">
-            {formatNumberedSteps(
-              typeof structured.execution === 'string'
-                ? structured.execution
-                : ''
-            )}
-          </div>
-        </Section>
       ) : null}
 
       {structured.cta ? (
         <Section label="CTA">
           {refinedCaption || structured.cta}
         </Section>
+      ) : null}
+
+      {structured.whyChosenForArtist ? (
+        <HighlightSection label="Why WW Chose This">
+          {structured.whyChosenForArtist}
+        </HighlightSection>
       ) : null}
 
       {Array.isArray(structured.why) && structured.why.length ? (
@@ -940,6 +1079,114 @@ const hasAttachedCaption = !!item.caption?.trim()
           </ul>
         </Section>
       ) : null}
+    </div>
+  )
+}
+  return (
+    <div className="flex h-full snap-x snap-mandatory touch-pan-x gap-3 overflow-x-auto overflow-y-hidden pb-2 [-webkit-overflow-scrolling:touch]">
+
+      {/* PAGE 1 — IDEA + VIEWER EXPERIENCE */}
+      <div className="flex h-full w-[94%] min-w-[94%] snap-center flex-col gap-3">
+        {structured.summary ? (
+          <HighlightSection label="The Idea">
+            {structured.summary}
+          </HighlightSection>
+        ) : null}
+
+        {structured.viewerExperience ? (
+          <HighlightSection label="What Viewers Will Experience">
+            {structured.viewerExperience}
+          </HighlightSection>
+        ) : null}
+      </div>
+
+      {/* PAGE 2 — HOOK + ON-SCREEN TEXT */}
+      <div className="flex h-full w-[94%] min-w-[94%] snap-center flex-col gap-3">
+        {structured.hook ? (
+          <Section label="Hook">
+            {structured.hook}
+          </Section>
+        ) : null}
+
+        {structured.onScreenText ? (
+          <Section label="On-Screen Text">
+            {structured.onScreenText}
+          </Section>
+        ) : null}
+      </div>
+
+      {/* PAGE 3 — CONTENT ANGLE */}
+      {structured.concept ? (
+        <div className="h-full w-[94%] min-w-[94%] snap-center">
+          <Section label="Content Angle">
+            {structured.concept}
+          </Section>
+        </div>
+      ) : null}
+
+      {/* PAGE 4 — HOW TO FILM */}
+      {isSlideshow && modalSlides.length > 0 ? (
+        <div className="flex h-full w-[94%] min-w-[94%] shrink-0 snap-start flex-col overflow-hidden">
+  <ModalSlideshowPlan slides={modalSlides} />
+</div>
+      ) : structured.execution ? (
+        <div className="h-full w-[94%] min-w-[94%] snap-center">
+          <div className="rounded-2xl border border-white/15 bg-white/[0.035] px-4 py-3">
+            <div className="mb-2 text-[0.65rem] uppercase tracking-[0.14em] text-white/50">
+              How to Film
+            </div>
+
+            <div className="whitespace-pre-wrap text-[0.82rem] leading-6 text-white/85">
+              {formatNumberedSteps(
+                typeof structured.execution === 'string'
+                  ? structured.execution
+                  : ''
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* PAGE 5 — CTA + WHY WW CHOSE THIS */}
+      <div className="flex h-full w-[94%] min-w-[94%] snap-center flex-col gap-3">
+        {structured.cta ? (
+          <Section label="CTA">
+            {refinedCaption || structured.cta}
+          </Section>
+        ) : null}
+
+        {structured.whyChosenForArtist ? (
+          <HighlightSection label="Why WW Chose This">
+            {structured.whyChosenForArtist}
+          </HighlightSection>
+        ) : null}
+      </div>
+
+      {/* PAGE 6 — WHY THIS WORKS */}
+      {Array.isArray(structured.why) && structured.why.length ? (
+        <div className="h-full w-[94%] min-w-[94%] snap-center">
+          <Section label="Why This Works">
+            <ul className="space-y-1">
+              {structured.why.map((line: string, index: number) => (
+                <li key={index}>• {line}</li>
+              ))}
+            </ul>
+          </Section>
+        </div>
+      ) : null}
+
+    </div>
+  )
+}
+
+
+
+const s = parseCaptionSections(item.caption || '')
+
+if (!s.isSectioned) {
+  return (
+    <div className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
+      {s.plain}
     </div>
   )
 }
@@ -961,7 +1208,7 @@ const hasAttachedCaption = !!item.caption?.trim()
 {isSlideshow && modalSlides.length > 0 ? (
   <ModalSlideshowPlan slides={modalSlides} />
 ) : s.videoExecution ? (
-  <Section label="Video Execution">
+  <Section label="How to Film">
     <div className="whitespace-pre-wrap">
       {formatNumberedSteps(s.videoExecution)}
     </div>
@@ -996,7 +1243,7 @@ const hasAttachedCaption = !!item.caption?.trim()
 
 
         {/* Actions */}
-        <div className="mt-4 shrink-0 flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-white/10">
+        <div className="relative z-10 mt-4 shrink-0 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-black/95 pt-3">
 
           <div className="flex flex-wrap gap-2">
             {!isEditing ? (

@@ -32,6 +32,10 @@ export type ContentFormatGene = {
   avoid: string[]
   exampleDirection: string
   mechanics?: ContentFormatMechanic[]
+  validation?: string[]
+  performanceUse?: string 
+commonMistakes?: string[]
+batchVariety?: string[]
 }
 
 export const CONTENT_FORMAT_GENOME: ContentFormatGene[] = [
@@ -435,7 +439,40 @@ export const CONTENT_FORMAT_GENOME: ContentFormatGene[] = [
   psychology:
     'Creates memorability by giving the music a clear visual rule, progression, contrast or transformation.',
     coreMechanic:
-"A visual rule or transformation creates the engagement rather than dialogue or narrative.",
+"The viewer should remember the visual idea before they remember the performance. Performance may support the concept but must never be the primary mechanism creating curiosity. If the performance could be swapped with another performance without changing the concept, the mechanic is incorrect.",
+validation: [
+  'Can the concept be described in one visual sentence?',
+  'Could somebody describe the visual idea without mentioning the performance?',
+  'Is the visual progression more important than the performance?',
+  'Does at least one visual rule evolve during the post?',
+  'Would another artist performing the same song produce a different result?',
+  'Does the visual staging materially change how the performance is experienced?',
+  'Would the idea still work if the artist never spoke?',
+'Is the primary viewer experience visual rather than verbal?',
+'Does the visual rule create the curiosity rather than the explanation?',
+'Would this feel incorrect if labelled as Talking to Camera?',
+'Is the visual mechanic stronger than the performance itself?',
+'Would the idea still work if the performance were removed?',
+'Is the visual mechanic creating the curiosity rather than the performance?',
+'Would the viewer describe the visual concept before describing the performance?',
+'Could this be mistaken for a Talking to Camera idea?',
+],
+commonMistakes: [
+  "Calling slow walking cinematic.",
+  "Calling attractive lighting cinematic.",
+  "Replacing visual storytelling with performance.",
+  "Using random B-roll.",
+  "Making the camera movement the only visual idea.",
+  "Confusing aesthetics with concept.",
+  'Using talking-to-camera as the primary mechanic.',
+'Explaining the concept instead of showing it.',
+'Making performance carry the entire idea.',
+],
+batchVariety: [
+  'Do not build the entire batch around room details, lighting changes or close-ups.',
+  'Across a batch, vary the primary visual mechanic between transformation, perspective, repetition, contrast, object progression and movement.',
+  'Two ideas using the same environment are acceptable only when the viewer experience is materially different.',
+],
   structure: [
     'Choose one understandable visual rule',
     'Use the environment, composition, movement or available objects deliberately',
@@ -450,7 +487,11 @@ export const CONTENT_FORMAT_GENOME: ContentFormatGene[] = [
     'Inventing symbolic meaning that the artist did not supply',
     'Making the visual too complicated to execute',
     'Using performance as the automatic centre of every idea',
+    'Talking directly to camera as the primary mechanic',
+'Explaining the concept before showing it',
   ],
+  performanceUse:
+  'Use performance only to strengthen a visual concept. The primary viewer experience should always come from the visual rule, not the performance.',
   exampleDirection:
     'Build the post around one simple visual rule that changes with the music and ends on a memorable image.',
   mechanics: [

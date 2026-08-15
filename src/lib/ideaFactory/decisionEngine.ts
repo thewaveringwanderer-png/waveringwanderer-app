@@ -149,6 +149,25 @@ If desire is low, change the underlying creative route.
 
 Do not merely simplify the execution.
 
+
+==================================================
+4A. CREATIVE DIRECTOR TEST
+==================================================
+
+Ask:
+
+Would an experienced creative director genuinely approve this concept?
+
+Reject ideas that are:
+
+- technically correct;
+- predictable;
+- visually flat;
+- mechanically generated;
+- interchangeable with another artist.
+
+If the concept feels merely acceptable rather than genuinely exciting, redesign it before approval.
+
 ==================================================
 5. CONCEPT-INDEPENDENCE TEST
 ==================================================
@@ -320,6 +339,121 @@ Require at least one memorable decision such as:
 Do not add novelty as decoration.
 
 The decision must strengthen the premise.
+
+==================================================
+6A. DISCOVERY STRANGER TEST
+==================================================
+
+Discovery is not about introducing the artist.
+
+Discovery is about giving strangers a reason to care before they know who the artist is.
+
+The first responsibility of every discovery idea is to earn the next second of attention.
+
+Run this test only when the audience stage is DISCOVERY.
+
+Assume the viewer:
+
+- has never heard of the artist;
+- does not recognise the song;
+- does not know the artist's history;
+- has no existing emotional investment;
+- is actively looking for a reason to leave.
+
+Ask:
+
+1. Does the opening make sense without prior knowledge?
+2. Is there an immediate reason to stop?
+3. Does the idea present music, emotion, tension, curiosity or visual proof quickly?
+4. Is the concept viewer-relevant before it becomes artist-relevant?
+5. Could a stranger understand the payoff without explanation?
+6. Does the CTA ask for a level of commitment the idea has earned?
+7. Would this still be interesting if another unknown artist posted it?
+
+A discovery idea passes when it provides at least one strong entry point:
+
+- immediate emotional recognition;
+- immediate musical proof;
+- a clear relatable tension;
+- a compelling visual contrast;
+- a curiosity gap;
+- an unusual but understandable visual rule;
+- a viewer-facing statement;
+- a recognisable situation.
+
+A discovery idea passes when it earns attention through at least one of two routes.
+
+EMOTIONAL ENTRY
+
+- immediate emotional recognition
+- relatable frustration
+- relatable desire
+- recognisable life situation
+
+or
+
+CURIOSITY ENTRY
+
+- unusual visual rule
+- compelling visual contrast
+- unexpected reveal
+- mystery
+- immediate musical payoff
+- visual transformation
+
+A discovery idea fails when it relies on:
+
+- unexplained personal history;
+- artist lore;
+- existing fan knowledge;
+- vague emotional language;
+- long setup before the music or premise appears;
+- a reflective question that requires high effort;
+- a generic introduction to the artist;
+- a CTA that assumes loyalty.
+
+Personal stories are allowed only when their tension is translated for a stranger.
+
+Weak:
+"There was one moment when everything changed for me."
+
+Stronger:
+"I stopped making better music when I started following every piece of advice."
+
+Weak:
+"This song means a lot to me."
+
+Stronger:
+"This is what overthinking sounds like when it finally breaks."
+
+Visual curiosity can pass the test without personal relatability.
+
+For example, an empty frame, a microphone waiting in focus and an artist entering
+at the exact musical transition can create enough curiosity for a stranger.
+
+If the idea fails the Discovery Stranger Test, it must not proceed unchanged.
+
+Either:
+
+- redesign the opening;
+- translate private context into public relevance;
+- introduce visual or musical proof earlier;
+- reduce the required viewer commitment;
+- replace the concept entirely.
+
+Do not reveal this test.
+
+Discovery ideas optimise for stopping power.
+
+Not likes.
+
+Not comments.
+
+Not shares.
+
+The first victory is earning one more second of attention.
+
+Everything else happens afterwards.
 
 ==================================================
 7. ARTIST OWNERSHIP TEST
@@ -981,6 +1115,7 @@ Approve the concept only when:
 - it occupies a meaningfully distinct creative territory;
 - it earns space in the batch;
 - the Lighthouse would recommend it.
+- If the audience stage is Discovery, the idea passes the Discovery Stranger Test.
 
 If any critical condition fails:
 

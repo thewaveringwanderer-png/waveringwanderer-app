@@ -34,7 +34,7 @@ function parseCaptionSections(caption: string) {
     'CONTENT ANGLE:',
     'HOOK:',
     'ON-SCREEN TEXT:',
-    'VIDEO EXECUTION:',
+    'HOW TO FILM:',
     'CAPTION:',
     'CTA:',
     'WHY THIS WORKS:',
@@ -70,7 +70,7 @@ function parseCaptionSections(caption: string) {
     .replace(/content angle:/gi, 'CONTENT ANGLE:')
     .replace(/hook:/gi, 'HOOK:')
     .replace(/on-screen text:/gi, 'ON-SCREEN TEXT:')
-    .replace(/video execution:/gi, 'VIDEO EXECUTION:')
+    .replace(/how to film:/gi, 'HOW TO FILM:')
     .replace(/caption:/gi, 'CAPTION:')
     .replace(/cta:/gi, 'CTA:')
     .replace(/why this works:/gi, 'WHY THIS WORKS:')
@@ -90,8 +90,8 @@ function parseCaptionSections(caption: string) {
 
   const contentAngle = takeBetween('CONTENT ANGLE:', 'HOOK:')
   const hook = takeBetween('HOOK:', 'ON-SCREEN TEXT:')
-  const onScreenText = takeBetween('ON-SCREEN TEXT:', 'VIDEO EXECUTION:')
-  const videoExecution = takeBetween('VIDEO EXECUTION:', 'CAPTION:')
+  const onScreenText = takeBetween('ON-SCREEN TEXT:', 'HOW TO FILM:')
+  const videoExecution = takeBetween('HOW TO FILM:', 'CAPTION:')
   const captionText = takeBetween('CAPTION:', 'CTA:')
   const whyThisWorks = takeBetween('WHY THIS WORKS:', 'BEST FOR:')
   const bestFor = takeBetween('BEST FOR:')
@@ -260,6 +260,12 @@ export default function ContentCard({
 
   const isRefinedCaption = !!metadata?.caption_refined
 
+  const structured =
+  metadata?.structured &&
+  typeof metadata.structured === 'object'
+    ? metadata.structured
+    : null
+
   // Prefer Momentum-style props if provided; fall back to legacy ones.
   const finalSubtitle =
     subtitle ??
@@ -281,7 +287,11 @@ export default function ContentCard({
 
   const clickable = !!onOpen || !!onClick
 
-  const containerPadding = isMini ? 'px-2 py-1.5' : 'p-3'
+  const containerPadding = isMini
+  ? 'px-2 py-1.5'
+  : isPool
+  ? 'p-3 sm:p-4'
+  : 'p-3'
 
   const highlightRing = highlighted
     ? 'ring-2 ring-ww-violet/60 shadow-[0_0_18px_rgba(186,85,211,0.28)]'
@@ -295,7 +305,9 @@ export default function ContentCard({
     <div
       onClick={clickable ? handleClick : undefined}
       className={[
-        'group rounded-xl border border-white/10 bg-white/5 transition',
+        isPool
+  ? 'group rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.045] to-black/40 transition'
+  : 'group rounded-xl border border-white/10 bg-white/5 transition',
         'hover:border-ww-violet/70 hover:shadow-[0_0_14px_rgba(186,85,211,0.22)]',
         containerPadding,
         clickable ? 'cursor-pointer' : '',
@@ -326,7 +338,9 @@ export default function ContentCard({
             className={
               isMini
                 ? 'truncate text-[0.7rem] text-white/85'
-                : 'truncate text-sm text-white/90 font-medium'
+                : isPool
+? 'text-lg font-semibold leading-snug text-white'
+: 'truncate text-sm text-white/90 font-medium'
             }
             title={title}
           >
@@ -338,7 +352,9 @@ export default function ContentCard({
               className={
                 isMini
                   ? 'text-[0.6rem] text-white/50 truncate'
-                  : 'text-[0.7rem] text-white/55 truncate'
+                  : isPool
+? 'mt-1 text-[0.7rem] uppercase tracking-wide text-white/40'
+: 'text-[0.7rem] text-white/55 truncate'
               }
               title={finalSubtitle}
             >
@@ -400,6 +416,69 @@ export default function ContentCard({
   }
 
   // ✅ POOL/FULL: keep your existing rich rendering
+
+if (isPool && structured) {
+  return (
+   <div className="mt-2.5 space-y-2 sm:mt-4 sm:space-y-3">
+      {structured.summary ? (
+        <p className="line-clamp-2 text-[0.82rem] leading-relaxed text-white/70 sm:line-clamp-3 sm:text-sm">
+          {structured.summary}
+        </p>
+      ) : null}
+
+      <div className="flex flex-wrap gap-2">
+        {metadata?.difficulty ? (
+          <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[0.65rem] text-white/60">
+            {metadata.difficulty}
+          </span>
+        ) : null}
+
+        {metadata?.filmingTime ? (
+          <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[0.65rem] text-white/60">
+            {metadata.filmingTime}
+          </span>
+        ) : null}
+      </div>
+
+      {structured.hook ? (
+        <div className="rounded-xl border border-white/15 bg-black/35 px-3 py-3">
+          <div className="mb-1.5 text-[0.62rem] uppercase tracking-[0.14em] text-white/40">
+            Hook
+          </div>
+
+          <div className="line-clamp-3 text-sm font-medium leading-relaxed text-white">
+            {structured.hook}
+          </div>
+        </div>
+      ) : null}
+
+      {structured.onScreenText ? (
+        <div className="rounded-xl border border-white/10 bg-white/[0.025] px-3 py-3">
+          <div className="mb-1.5 text-[0.62rem] uppercase tracking-[0.14em] text-white/40">
+            On-Screen Text
+          </div>
+
+          <div className="line-clamp-2 text-sm italic leading-relaxed text-white/80">
+            {structured.onScreenText}
+          </div>
+        </div>
+      ) : null}
+
+      {structured.cta ? (
+        <div className="rounded-xl border border-white/10 bg-white/[0.025] px-3 py-3">
+          <div className="mb-1.5 text-[0.62rem] uppercase tracking-[0.14em] text-white/40">
+            CTA
+          </div>
+
+          <div className="line-clamp-2 text-sm leading-relaxed text-white/75">
+            {metadata?.refined_caption_text || structured.cta}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
   const s = parseCaptionSections(finalPreview)
 
   if (!s.isSectioned) {
@@ -416,12 +495,19 @@ export default function ContentCard({
   }
 
   return (
-    <div className="mt-2 space-y-2 text-[0.75rem] text-white/70 leading-snug">
+    <div className="mt-3 space-y-2 text-[0.75rem] leading-snug text-white/70">
       {s.idea ? (
         
-        <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
-          <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">Idea</div>
-          <div className={['whitespace-pre-line', isPool ? 'line-clamp-5' : 'line-clamp-4'].join(' ')}>
+        <div className="rounded-xl border border-white/10 bg-white/[0.025] px-3 py-3">
+          <div className="mb-1.5 text-[0.62rem] uppercase tracking-[0.14em] text-white/40">
+  Idea
+</div>
+          <div
+  className={[
+    'whitespace-pre-line leading-relaxed',
+    isPool ? 'line-clamp-3 text-sm text-white/75' : 'line-clamp-4',
+  ].join(' ')}
+>
             {s.idea}
           </div>
         </div>
@@ -434,7 +520,7 @@ export default function ContentCard({
         </div>
       ) : null}
 
-{s.contentAngle ? (
+{!isPool && s.contentAngle ? (
   <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
     <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">
       Content Angle
@@ -447,8 +533,8 @@ export default function ContentCard({
 ) : null}
 
 {s.hook ? (
-  <div className="rounded-xl border border-ww-violet/20 bg-ww-violet/[0.06] px-3 py-3">
-    <div className="text-[0.62rem] uppercase tracking-wide text-ww-violet/70 mb-1">
+  <div className="rounded-xl border border-white/20 bg-black/35 px-3 py-3">
+    <div className="mb-1.5 text-[0.62rem] uppercase tracking-[0.14em] text-white/40">
       Hook
     </div>
 
@@ -458,7 +544,7 @@ export default function ContentCard({
   </div>
 ) : null}
 
-{s.onScreenText ? (
+{!isPool && s.onScreenText ? (
   <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
     <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">
       On-Screen Text
@@ -470,10 +556,10 @@ export default function ContentCard({
   </div>
 ) : null}
 
-{s.videoExecution ? (
+{!isPool && s.videoExecution ? (
   <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
     <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">
-      Video Execution
+      How to Film
     </div>
 
     <div className="line-clamp-4">
@@ -482,7 +568,7 @@ export default function ContentCard({
   </div>
 ) : null}
 
-{s.caption ? (
+{!isPool && s.caption ? (
   <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
     <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">
       Caption
@@ -494,7 +580,7 @@ export default function ContentCard({
   </div>
 ) : null}
 
-{s.whyThisWorks ? (
+{!isPool && s.whyThisWorks ? (
   <div className="rounded-lg border border-emerald-400/15 bg-emerald-400/[0.04] px-2.5 py-2">
     <div className="text-[0.62rem] uppercase tracking-wide text-emerald-300/70 mb-1">
       Why This Works
@@ -506,7 +592,7 @@ export default function ContentCard({
   </div>
 ) : null}
 
-{s.bestFor ? (
+{!isPool && s.bestFor ? (
   <div className="flex items-center justify-between gap-2 px-1">
     <span className="text-[0.62rem] uppercase tracking-wide text-white/45">
       Best For
@@ -518,7 +604,7 @@ export default function ContentCard({
   </div>
 ) : null}
 
-      {s.angle ? (
+      {!isPool && s.angle ? (
         <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
           <div className="text-[0.62rem] uppercase tracking-wide text-white/45 mb-1">Angle</div>
           <div className="line-clamp-2">{s.angle}</div>
@@ -526,9 +612,11 @@ export default function ContentCard({
       ) : null}
 
       {s.cta ? (
-  <div className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2">
+  <div className="rounded-xl border border-white/10 bg-white/[0.025] px-3 py-3">
     <div className="mb-1 flex items-center justify-between gap-2">
-      <div className="text-[0.62rem] uppercase tracking-wide text-white/45">CTA</div>
+      <div className="text-[0.62rem] uppercase tracking-[0.14em] text-white/40">
+  CTA
+</div>
 
       {isRefinedCaption ? (
         <span className="inline-flex items-center rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[0.58rem] uppercase tracking-wide text-emerald-300 whitespace-nowrap">
@@ -537,13 +625,13 @@ export default function ContentCard({
       ) : null}
     </div>
 
-    <div className="line-clamp-2">
+    <div className="line-clamp-2 text-sm leading-relaxed text-white/75">
       {metadata?.refined_caption_text || s.cta}
     </div>
   </div>
 ) : null}
 
-      {s.pillar ? (
+      {!isPool && s.pillar ? (
         <div className="flex items-center justify-between gap-2 px-1">
           <span className="text-[0.62rem] uppercase tracking-wide text-white/45">Pillar</span>
           <span className="text-[0.7rem] text-white/70 truncate">{s.pillar}</span>

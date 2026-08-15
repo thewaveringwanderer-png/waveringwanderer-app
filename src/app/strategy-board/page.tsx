@@ -368,6 +368,10 @@ async function handleClearCurrentMonth() {
 
   // Click-to-schedule: item armed from idea pool
   const [armedItemId, setArmedItemId] = useState<string | null>(null)
+  const [mobileMomentumTab, setMobileMomentumTab] =
+  useState<'pool' | 'calendar'>('pool')
+  const [poolViewMode, setPoolViewMode] =
+  useState<'cards' | 'list'>('cards')
 
   // Visual: highlight idea pool as drop target + preview slot index
   const [draggingToPool, setDraggingToPool] = useState(false)
@@ -490,6 +494,10 @@ useEffect(() => {
     return list
   }, [poolItems, featureFilter, platformFilter, sortOrder, search])
 
+  const armedItem = armedItemId
+  ? items.find(item => item.id === armedItemId) ?? null
+  : null
+
   const calendarItemsByDay = useMemo(() => {
     const map: Record<string, ContentCalendarItem[]> = {}
     for (const it of calendarItems) {
@@ -552,6 +560,7 @@ useEffect(() => {
     const item = items.find(it => it.id === armedItemId)
     if (!item) {
       setArmedItemId(null)
+      setMobileMomentumTab('pool')
       return
     }
 
@@ -567,18 +576,20 @@ useEffect(() => {
     )
 
     try {
-      await updateItemOnServer(item.id, {
-        scheduled_at: iso,
-        status: item.status === 'posted' ? 'posted' : 'scheduled',
-      })
-      setRecentlyScheduledDayKey(dateKey(day))
+  await updateItemOnServer(item.id, {
+    scheduled_at: iso,
+    status: item.status === 'posted' ? 'posted' : 'scheduled',
+  })
 
-      toast.success('Idea scheduled from pool ✅')
-    } catch (e: any) {
-      toast.error(e?.message || 'Could not schedule idea')
-    } finally {
-      setArmedItemId(null)
-    }
+  setRecentlyScheduledDayKey(dateKey(day))
+  setMobileMomentumTab('pool')
+
+  toast.success('Idea scheduled from pool ✅')
+} catch (e: any) {
+  toast.error(e?.message || 'Could not schedule idea')
+} finally {
+  setArmedItemId(null)
+}
   }
 
   // ---------- Drag & Drop (calendar <-> pool) ----------
@@ -1072,10 +1083,44 @@ async function handleDeleteCard(id: string) {
   }}
 >
 
+{/* MOBILE PANEL SWITCHER */}
+<div className="sticky top-14 z-20 mb-4 lg:hidden">
+  <div className="rounded-2xl border border-white/10 bg-black/85 p-1 backdrop-blur">
+    <div className="grid grid-cols-2 gap-1">
+      <button
+        type="button"
+        onClick={() => setMobileMomentumTab('pool')}
+        className={`h-10 rounded-xl text-sm font-semibold transition ${
+          mobileMomentumTab === 'pool'
+            ? 'bg-ww-violet text-white shadow-[0_0_14px_rgba(186,85,211,0.35)]'
+            : 'text-white/55 hover:text-white'
+        }`}
+      >
+        Idea Pool
+      </button>
 
-          <div className="grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[400px_minmax(0,1fr)]">
+      <button
+        type="button"
+        onClick={() => setMobileMomentumTab('calendar')}
+        className={`h-10 rounded-xl text-sm font-semibold transition ${
+          mobileMomentumTab === 'calendar'
+            ? 'bg-ww-violet text-white shadow-[0_0_14px_rgba(186,85,211,0.35)]'
+            : 'text-white/55 hover:text-white'
+        }`}
+      >
+        Calendar
+      </button>
+    </div>
+  </div>
+</div>
+
+          <div className="grid min-w-0 gap-6 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[400px_minmax(0,1fr)]">
             {/* IDEA POOL */}
-            <section className="rounded-3xl border border-white/10 bg-black/70 p-4 md:p-5 flex flex-col shadow-[0_0_30px_rgba(186,85,211,0.08)]">
+            <section
+  className={`min-w-0 overflow-hidden rounded-3xl border border-white/10 bg-black/70 p-4 md:p-5 flex-col shadow-[0_0_30px_rgba(186,85,211,0.08)] ${
+    mobileMomentumTab === 'pool' ? 'flex' : 'hidden'
+  } lg:flex`}
+>
               <div className="flex items-center justify-between gap-3 mb-3 flex-wrap sm:flex-nowrap">
 
                 <div className="space-y-1">
@@ -1088,7 +1133,31 @@ async function handleDeleteCard(id: string) {
 </p>
 </div>
                 <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+<div className="flex items-center rounded-full border border-white/10 bg-black/60 p-1 lg:hidden">
+  <button
+    type="button"
+    onClick={() => setPoolViewMode('cards')}
+    className={`rounded-full px-3 py-1.5 text-[0.65rem] font-medium transition ${
+      poolViewMode === 'cards'
+        ? 'bg-ww-violet text-white shadow-[0_0_12px_rgba(186,85,211,0.4)]'
+        : 'text-white/45'
+    }`}
+  >
+    Cards
+  </button>
 
+  <button
+    type="button"
+    onClick={() => setPoolViewMode('list')}
+    className={`rounded-full px-3 py-1.5 text-[0.65rem] font-medium transition ${
+      poolViewMode === 'list'
+        ? 'bg-ww-violet text-white shadow-[0_0_12px_rgba(186,85,211,0.4)]'
+        : 'text-white/45'
+    }`}
+  >
+    List
+  </button>
+</div>
               
 
                 </div>
@@ -1096,7 +1165,7 @@ async function handleDeleteCard(id: string) {
 
               {/* Filters */}
               <div className="space-y-2 mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-                <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-white/60">
+                <div className="grid grid-cols-2 gap-2 text-[0.7rem] text-white/60 sm:flex sm:flex-wrap sm:items-center">
                   <span className="inline-flex items-center gap-1">
                     <Filter className="w-3 h-3" />
                     Filters
@@ -1108,10 +1177,9 @@ async function handleDeleteCard(id: string) {
                     className="bg-black border border-white/15 rounded-full px-2 py-1 hover:border-ww-violet hover:bg-ww-violet/10 focus:outline-none focus:border-ww-violet"
                   >
                     <option value="all">All features</option>
-                    <option value="calendar">Calendar</option>
-                    <option value="trends">Trend Finder</option>
-                    <option value="captions">Captions</option>
-                    <option value="identity">Identity Kit</option>
+<option value="calendar">Idea Factory</option>
+<option value="trends">Trend Finder</option>
+<option value="captions">Captions</option>
                   </select>
 
                   <select
@@ -1166,12 +1234,18 @@ async function handleDeleteCard(id: string) {
                       poolContainerRef.current = el
                     }}
                     {...provided.droppableProps}
-                    className={`mt-1 space-y-2 overflow-y-auto pr-1 rounded-2xl border ${
-                      draggingToPool
-                        ? 'border-ww-violet/70 bg-ww-violet/10 shadow-[0_0_18px_rgba(186,85,211,0.5)]'
-                        : 'border-transparent'
-                    }`}
-                    style={{ maxHeight: '72vh' }}
+                    className={`mt-1 w-full min-w-0 rounded-2xl border ${
+  poolViewMode === 'cards'
+    ? 'flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-hidden pb-2 lg:block lg:space-y-2 lg:overflow-x-hidden lg:overflow-y-auto lg:pb-0'
+    : 'space-y-2 overflow-x-hidden overflow-y-auto'
+} ${
+  draggingToPool
+    ? 'border-ww-violet/70 bg-ww-violet/10 shadow-[0_0_18px_rgba(186,85,211,0.5)]'
+    : 'border-transparent'
+}`}
+                    style={{
+  maxHeight: poolViewMode === 'list' ? '72vh' : undefined,
+}}
                   >
                     {filteredPoolItems.map((item, idx) => {
                       const isArmed = armedItemId === item.id
@@ -1200,80 +1274,143 @@ async function handleDeleteCard(id: string) {
     if (el) poolItemRefs.current[item.id] = el
   }}
   {...dragProvided.draggableProps}
-  className="relative"
+  className={`relative min-w-0 ${
+    poolViewMode === 'cards'
+      ? 'w-full shrink-0 snap-center lg:w-auto'
+      : 'w-full'
+  }`}
+>
+  {poolViewMode === 'cards' ? (
+    <>
+      <button
+        type="button"
+        onClick={e => {
+          e.stopPropagation()
+          handleDeleteCard(item.id)
+        }}
+        className="absolute top-2 right-2 z-10 inline-flex items-center justify-center w-7 h-7 rounded-full border border-white/20 bg-black/60 text-white/75 hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.7)] transition"
+        aria-label="Delete card"
+        title="Delete"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
 
->
-  <button
-  type="button"
-  onClick={e => {
-    e.stopPropagation()
-    handleDeleteCard(item.id)
-  }}
-  className="absolute top-2 right-2 z-10 inline-flex items-center justify-center w-7 h-7 rounded-full border border-white/20 bg-black/60 text-white/75 hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.7)] transition"
-  aria-label="Delete card"
-  title="Delete"
->
-  <X className="w-3.5 h-3.5" />
-</button>
+      <div
+        className={`absolute bottom-3 left-3 z-10 inline-flex items-center px-2 py-1 rounded-full border text-[10px] font-medium ${featureBadgeClass(
+          item.feature
+        )}`}
+      >
+        {featureLabel(item.feature)}
+      </div>
 
-<div
-  className={`absolute bottom-3 left-3 z-10 inline-flex items-center px-2 py-1 rounded-full border text-[10px] font-medium ${featureBadgeClass(item.feature)}`}
->
-  {featureLabel(item.feature)}
+      <ContentCard
+        variant="pool"
+        title={item.title || 'Untitled idea'}
+        subtitle={platformLabel(item.platform)}
+        statusDotClass={statusDotColor(item.status)}
+        metadata={item.metadata}
+        highlighted={item.id === highlightedCardId}
+        previewText={item.caption || ''}
+        hashtagsPreview={hashtagsPreview}
+        armed={isArmed}
+        onOpen={() => setExpandedItem(toSharedCard(item))}
+        actions={
+  <div className="space-y-2 pt-1">
+    <button
+      type="button"
+      onClick={e => {
+        e.stopPropagation()
+        setExpandedItem(toSharedCard(item))
+      }}
+      className="flex h-9 sm:h-10 w-full items-center justify-center rounded-xl bg-ww-violet px-4 text-sm font-semibold text-white shadow-[0_0_18px_rgba(186,85,211,0.28)] transition hover:brightness-110"
+    >
+      Open idea
+    </button>
+
+    <div className="flex items-center justify-end gap-2">
+      <button
+        type="button"
+        onClick={e => {
+          e.stopPropagation()
+          setArmedItemId(isArmed ? null : item.id)
+          setMobileMomentumTab('calendar')
+        }}
+        className={`inline-flex h-7 sm:h-8 items-center gap-1.5 rounded-full border px-3 text-[0.68rem] font-medium transition ${
+          isArmed
+            ? 'border-ww-violet bg-ww-violet/20 text-white'
+            : 'border-white/15 bg-white/[0.02] text-white/60 hover:border-ww-violet/50 hover:text-white'
+        }`}
+      >
+        <CalendarDays className="h-3 w-3" />
+        {isArmed ? 'Date selected' : 'Pick date'}
+      </button>
+
+      <button
+        type="button"
+        onClick={e => {
+          e.stopPropagation()
+          setExpandedItem(toSharedCard(item))
+        }}
+        className="inline-flex h-8 items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.02] px-3 text-[0.68rem] font-medium text-white/60 transition hover:border-ww-violet/50 hover:text-white"
+      >
+        <Maximize2 className="h-3 w-3" />
+        Expand
+      </button>
+    </div>
+  </div>
+}
+      />
+    </>
+  ) : (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => setExpandedItem(toSharedCard(item))}
+      className="group flex min-w-0 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3 py-3 transition hover:border-ww-violet/40 hover:bg-ww-violet/[0.06] lg:hidden"
+    >
+      <span
+        className={`h-2 w-2 shrink-0 rounded-full ${statusDotColor(
+          item.status
+        )}`}
+      />
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-white/90">
+          {item.title || 'Untitled idea'}
+        </p>
+
+        <div className="mt-1 flex items-center gap-2 text-[0.62rem] text-white/40">
+          <span>{platformLabel(item.platform)}</span>
+          <span>•</span>
+          <span>{featureLabel(item.feature)}</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={e => {
+          e.stopPropagation()
+          setArmedItemId(isArmed ? null : item.id)
+          setMobileMomentumTab('calendar')
+        }}
+        className={`shrink-0 rounded-full border px-2.5 py-1.5 text-[0.62rem] font-medium transition ${
+          isArmed
+            ? 'border-ww-violet bg-ww-violet/25 text-white'
+            : 'border-white/15 text-white/60'
+        }`}
+      >
+        {isArmed ? 'Selected' : 'Schedule'}
+      </button>
+    </div>
+  )}
 </div>
-
-                                <ContentCard
-  variant="pool"
-  title={item.title || 'Untitled idea'}
-  subtitle={platformLabel(item.platform)}
-  statusDotClass={statusDotColor(item.status)}
-  metadata={item.metadata}
-  highlighted={item.id === highlightedCardId}
-  previewText={item.caption || ''}
-  hashtagsPreview={hashtagsPreview}
-  armed={isArmed}
-  onOpen={() => setExpandedItem(toSharedCard(item))}
-  actions={
-                                   
-                                    <div className="flex items-center justify-end gap-2 pt-1 flex-wrap">             
-                                      <button
-                                        type="button"
-                                        onClick={e => {
-                                          e.stopPropagation()
-                                          setArmedItemId(isArmed ? null : item.id)
-                                        }}
-                                        className={`inline-flex items-center gap-1.5 px-3 h-7 rounded-full border text-[0.7rem] transition ${
-                                          isArmed
-                                            ? 'border-ww-violet bg-ww-violet/30 text-white shadow-[0_0_14px_rgba(186,85,211,0.6)]'
-                                            : 'border-white/20 text-white/80 hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.7)]'
-                                        }`}
-                                      >
-                                        <CalendarDays className="w-3 h-3" />
-                                        {isArmed ? 'Date selected' : 'Pick date'}
-                                      </button>
-
-                                      <button
-                                        type="button"
-                                        onClick={e => {
-                                          e.stopPropagation()
-                                          setExpandedItem(toSharedCard(item))
-                                        }}
-                                        className="inline-flex items-center gap-1.5 px-3 h-7 rounded-full border border-white/20 text-[0.7rem] text-white/80 hover:border-ww-violet hover:bg-ww-violet/20 hover:text-white hover:shadow-[0_0_16px_rgba(186,85,211,0.7)] transition"
-                                      >
-                                        <Maximize2 className="w-3 h-3" />
-                                        Expand
-                                      </button>
-
-                                      
-                                    </div>
-                                  }
-                                />
-                              </div>
                             </Fragment>
                           )}
                         </Draggable>
                       )
                     })}
+
+                    
 
                     {poolDropIndex !== null && poolDropIndex >= filteredPoolItems.length && (
                       <div className="h-2 rounded-xl bg-ww-violet/30 transition-all" />
@@ -1298,14 +1435,17 @@ async function handleDeleteCard(id: string) {
               </Droppable>
             </section>
 
+            
+
             {/* CALENDAR */}
             <section
-  className={
-    'rounded-3xl border bg-black/75 p-5 md:p-6 space-y-5 transition ' +
-    (armedItemId
+  className={`rounded-3xl border bg-black/75 p-4 md:p-6 space-y-5 transition ${
+    mobileMomentumTab === 'calendar' ? 'block' : 'hidden'
+  } lg:block ${
+    armedItemId
       ? 'border-ww-violet/60 shadow-[0_0_26px_rgba(186,85,211,0.32)]'
-      : 'border-white/10 shadow-[0_0_30px_rgba(186,85,211,0.06)]')
-  }
+      : 'border-white/10 shadow-[0_0_30px_rgba(186,85,211,0.06)]'
+  }`}
 >
 
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1350,15 +1490,42 @@ async function handleDeleteCard(id: string) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-7 text-[0.7rem] uppercase tracking-wide text-white/40">
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-                  <div key={d} className="px-1 pb-1 text-center">
-                    {d}
-                  </div>
-                ))}
-              </div>
+{armedItem ? (
+  <div className="rounded-2xl border border-ww-violet/30 bg-ww-violet/10 px-4 py-3">
+    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-ww-violet">
+      Choose a date
+    </p>
 
-              <div className="grid grid-cols-7 gap-px bg-white/10 rounded-2xl overflow-hidden text-xs">
+    <p className="mt-1 text-sm leading-relaxed text-white/75">
+      Pick a day for{' '}
+      <span className="font-medium text-white">
+        “{armedItem.title || 'this idea'}”
+      </span>
+      .
+    </p>
+  </div>
+) : null}              
+
+<div className="w-full pb-2">
+  <div className="w-full">
+              <div className="grid w-full grid-cols-7 text-[0.6rem] uppercase tracking-wide text-white/40 sm:text-[0.7rem]">
+  {[
+    ['M', 'Mon'],
+    ['T', 'Tue'],
+    ['W', 'Wed'],
+    ['T', 'Thu'],
+    ['F', 'Fri'],
+    ['S', 'Sat'],
+    ['S', 'Sun'],
+  ].map(([mobile, desktop], index) => (
+    <div key={`${desktop}-${index}`} className="pb-1 text-center">
+      <span className="sm:hidden">{mobile}</span>
+      <span className="hidden sm:inline">{desktop}</span>
+    </div>
+  ))}
+</div>
+
+              <div className="grid w-full grid-cols-7 gap-px bg-white/10 rounded-2xl overflow-hidden text-xs">
                 {days.map((d, idx) => {
                   const key = dateKey(d)
                   const dayItems = calendarItemsByDay[key] || []
@@ -1371,7 +1538,7 @@ async function handleDeleteCard(id: string) {
                         <div
                           ref={provided.innerRef}
                           {...provided.droppableProps}
-                          className={`min-h-[118px] bg-black/70 p-2 flex flex-col gap-1.5 border border-transparent cursor-pointer transition-all ${
+                          className={`relative min-h-[64px] sm:min-h-[88px] lg:min-h-[118px] bg-black/70 p-1 sm:p-2 flex flex-col gap-1.5 border border-transparent cursor-pointer transition-all ${
   inCurrentMonth ? '' : 'opacity-40'
 } ${
   armedItemId
@@ -1385,10 +1552,19 @@ async function handleDeleteCard(id: string) {
                           <div className="flex items-center justify-between">
                             <span className="text-[0.7rem] text-white/60">{d.getDate()}</span>
                             {isToday && (
-                              <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-ww-violet/20 text-ww-violet">
-                                Today
-                              </span>
-                            )}
+  <>
+    {/* Mobile */}
+    <span
+      className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-ww-violet shadow-[0_0_8px_rgba(186,85,211,0.9)] sm:hidden"
+      aria-label="Today"
+    />
+
+    {/* Tablet / desktop */}
+    <span className="hidden rounded-full bg-ww-violet/20 px-2 py-0.5 text-[0.6rem] font-medium text-ww-violet sm:inline">
+      Today
+    </span>
+  </>
+)}
                           </div>
 
                           <div className="flex flex-col gap-1 mt-1">
@@ -1405,26 +1581,36 @@ async function handleDeleteCard(id: string) {
           setExpandedItem(toSharedCard(item))
         }}
       >
-        <div className="relative rounded-xl border border-white/10 bg-black/70 px-2 py-2 min-h-[48px] flex items-end">
-          <div
-            className={`w-full inline-flex items-center justify-center px-2.5 py-1 rounded-lg border text-[10px] font-medium leading-none whitespace-nowrap overflow-hidden ${featureBadgeClass(item.feature)}`}
-          >
-            <span className="truncate">{featureLabelShort(item.feature)}</span>
-          </div>
+        <>
+  {/* Mobile compact event chip */}
+<div className="sm:hidden flex w-full min-w-0 items-center border-l-2 border-ww-violet bg-ww-violet/[0.08] px-1.5 py-1">
+  <span className="truncate text-[0.48rem] font-medium leading-none text-white/70">
+    Idea
+  </span>
+</div>
 
-          <button
-            type="button"
-            onClick={e => {
-              e.stopPropagation()
-              void handleDeleteCard(item.id)
-            }}
-            className="absolute top-1.5 right-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full border border-white/15 bg-black/85 text-white/60 opacity-0 group-hover:opacity-100 hover:border-red-400 hover:bg-red-500/10 hover:text-red-200 transition"
-            aria-label="Delete scheduled card"
-            title="Delete"
-          >
-            <X className="w-3 h-3" />
-          </button>
-        </div>
+  {/* Tablet / desktop existing card style */}
+  <div className="relative hidden min-h-[48px] items-end rounded-xl border border-white/10 bg-black/70 px-2 py-2 sm:flex">
+    <div
+      className={`w-full inline-flex items-center justify-center px-2.5 py-1 rounded-lg border text-[10px] font-medium leading-none whitespace-nowrap overflow-hidden ${featureBadgeClass(item.feature)}`}
+    >
+      <span className="truncate">{featureLabelShort(item.feature)}</span>
+    </div>
+
+    <button
+      type="button"
+      onClick={e => {
+        e.stopPropagation()
+        void handleDeleteCard(item.id)
+      }}
+      className="absolute top-1.5 right-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full border border-white/15 bg-black/85 text-white/60 opacity-0 group-hover:opacity-100 hover:border-red-400 hover:bg-red-500/10 hover:text-red-200 transition"
+      aria-label="Delete scheduled card"
+      title="Delete"
+    >
+      <X className="w-3 h-3" />
+    </button>
+  </div>
+</>
       </div>
     )}
   </Draggable>
@@ -1443,6 +1629,8 @@ async function handleDeleteCard(id: string) {
                     </Droppable>
                   )
                 })}
+              </div>
+              </div>
               </div>
 
               {loading && (

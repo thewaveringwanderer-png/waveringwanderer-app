@@ -1391,7 +1391,7 @@ function PaletteGroup({
   if (!colors?.length) return null
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
+    <div className="flex h-[305px] w-full flex-col rounded-2xl border border-white/10 bg-black/45 p-4 md:h-auto">
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">{title}</p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {colors.map((color, i) => (
@@ -1418,7 +1418,7 @@ function PaletteGroup({
 
     return (
       <div
-  className="rounded-2xl border border-ww-violet/15 bg-gradient-to-br from-white/[0.04] via-white/[0.02] to-transparent overflow-hidden transition hover:border-ww-violet/30"
+  className="w-full min-w-0 max-w-full rounded-2xl border border-ww-violet/15 bg-gradient-to-br from-white/[0.04] via-white/[0.02] to-transparent overflow-hidden transition hover:border-ww-violet/30"
   style={{ overflowAnchor: 'none' as any }}
 >
         <button
@@ -1438,9 +1438,14 @@ function PaletteGroup({
         </button>
 
         {open ? (
-          <div className="px-4 pb-4" style={{ overflowAnchor: 'none' as any }}>
-            {children}
-          </div>
+          <div
+  className="w-full min-w-0 max-w-full overflow-hidden px-4 pb-4"
+  style={{ overflowAnchor: 'none' as any }}
+>
+  <div className="w-full min-w-0 max-w-full overflow-hidden">
+    {children}
+  </div>
+</div>
         ) : null}
       </div>
     )
@@ -2222,7 +2227,7 @@ one consistent artist brief.
   <div
     ref={identityCardRef}
     className={
-      'relative overflow-hidden rounded-[28px] border bg-gradient-to-br from-ww-violet/[0.08] via-black to-black p-5 md:p-6 xl:p-7 space-y-5 transition-all duration-500 ' +
+      'relative w-full min-w-0 max-w-full overflow-hidden rounded-[28px] border bg-gradient-to-br from-ww-violet/[0.08] via-black to-black p-5 md:p-6 xl:p-7 space-y-5 transition-all duration-500 ' +
       (pulseResultGlow || isKitLoaded
         ? 'border-ww-violet/70 shadow-[0_0_36px_rgba(186,85,211,0.30)] -translate-y-[2px]'
         : 'border-ww-violet/20 hover:border-ww-violet/35 hover:shadow-[0_0_24px_rgba(186,85,211,0.14)]')
@@ -2236,7 +2241,7 @@ one consistent artist brief.
 
     
 
-    <div className="relative flex flex-col gap-4 border-b border-white/10 pb-5">
+    <div className="relative w-full min-w-0 max-w-full flex flex-col gap-4 border-b border-white/10 pb-5">
   <div className="flex flex-col gap-4">
 
   {/* Top: title + description */}
@@ -2355,25 +2360,40 @@ one consistent artist brief.
   title="Strategic foundations"
   hint="The deeper beliefs, tensions, and emotional territory behind the artist"
 >
-  <div className="grid gap-3 md:grid-cols-2">
-    <div className={outputInnerCardClass}>
+  <div
+  className="
+    flex w-0 min-w-full max-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    md:w-full md:grid md:grid-cols-2 md:overflow-visible md:pb-0
+    [-webkit-overflow-scrolling:touch]
+  "
+>
+    <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Core beliefs</p>
       <BulletList items={Array.isArray(result?.strategicFoundations?.coreBeliefs) ? result.strategicFoundations.coreBeliefs : []} />
     </div>
 
-    <div className={outputInnerCardClass}>
+    <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Core tensions</p>
       <BulletList items={Array.isArray(result?.strategicFoundations?.coreTensions) ? result.strategicFoundations.coreTensions : []} />
     </div>
 
-    <div className={outputInnerCardClass}>
+    <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Emotional territory</p>
       <p className="text-white/78 text-sm leading-relaxed">
         {String(result?.strategicFoundations?.emotionalTerritory || '—')}
       </p>
     </div>
 
-    <div className={outputInnerCardClass}>
+    <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Listener transformation</p>
       <p className="text-white/78 text-sm leading-relaxed">
         {String(result?.strategicFoundations?.listenerTransformation || '—')}
@@ -2394,32 +2414,50 @@ one consistent artist brief.
       </p>
     </div>
 
-    <div className={outputInnerCardClass}>
+    <div
+  className="
+    flex w-0 min-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    md:w-full md:grid md:grid-cols-2 md:overflow-visible md:pb-0
+    [-webkit-overflow-scrolling:touch]
+  "
+>
+
+    <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Ownable difference</p>
       <p className="text-white/78 text-sm leading-relaxed">
         {String(result?.snapshot?.ownableDifference || result?.strategy?.usp || '—')}
       </p>
     </div>
 
-    <div className={outputInnerCardClass}>
+    <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Audience promise</p>
       <p className="text-white/78 text-sm leading-relaxed">
         {String(result?.snapshot?.audiencePromise || result?.strategy?.brandMessage || '—')}
       </p>
     </div>
 
-    <div className={outputInnerCardClass}>
+    <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Visual shorthand</p>
       <p className="text-white/78 text-sm leading-relaxed">
         {String(result?.snapshot?.visualShorthand || result?.visuals?.lighting || '—')}
       </p>
     </div>
 
-    <div className={outputInnerCardClass}>
+    <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Content direction</p>
       <p className="text-white/78 text-sm leading-relaxed">
         {String(result?.snapshot?.contentDirection || result?.content?.pillars?.[0]?.purpose || '—')}
       </p>
+    </div>
     </div>
   </div>
 </Section>
@@ -2441,20 +2479,34 @@ one consistent artist brief.
         </p>
       </div>
 
-      <div className={outputInnerCardClass}>
+<div
+  className="
+    flex w-0 min-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    md:w-full md:grid md:grid-cols-2 md:overflow-visible md:pb-0
+    [-webkit-overflow-scrolling:touch]
+  "
+>      
+
+      <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Positioning</p>
         <p className="text-white/82 text-sm leading-relaxed">
           {String(result?.core?.positioning || '—')}
         </p>
       </div>
 
-      <div className={outputInnerCardClass}>
+      <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Artist manifesto</p>
         <p className="text-white/78 text-sm whitespace-pre-wrap leading-relaxed">
           {String(result?.core?.manifesto || '—')}
         </p>
       </div>
     </div>
+  </div>
   </div>
 </Section>
 
@@ -2467,18 +2519,32 @@ one consistent artist brief.
       </p>
     </div>
 
-    <div className={outputInnerCardClass}>
+   <div
+  className="
+    flex w-0 min-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    md:w-full md:grid md:grid-cols-2 md:overflow-visible md:pb-0
+    [-webkit-overflow-scrolling:touch]
+  "
+>
+
+    <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Brand message</p>
       <p className="text-white/78 text-sm leading-relaxed">
         {String(result?.strategy?.brandMessage || result?.messaging?.brandMessage || '—')}
       </p>
     </div>
 
-    <div className={outputInnerCardClass}>
+    <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Listener identity</p>
       <BulletList items={Array.isArray(result?.strategy?.listenerIdentity) ? result.strategy.listenerIdentity : []} />
     </div>
   </div>
+  </div> 
 </Section>
 
         <Section id="audience" title="Audience" hint="Who they are, how they think, and what makes them respond">
@@ -2498,26 +2564,36 @@ one consistent artist brief.
         </p>
       </div>
 
-      <div className={outputInnerCardClass}>
+      <div
+  className="
+    flex w-0 min-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    md:w-full md:grid md:grid-cols-2 md:overflow-visible md:pb-0
+    [-webkit-overflow-scrolling:touch]
+  "
+>
+
+      <div className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Frustrations</p>
         <BulletList items={Array.isArray(result?.audience?.frustrations) ? result.audience.frustrations : []} />
       </div>
 
-      <div className={outputInnerCardClass}>
+      <div className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Hidden desires</p>
         <BulletList items={Array.isArray(result?.audience?.hiddenDesires) ? result.audience.hiddenDesires : []} />
       </div>
 
-      <div className={outputInnerCardClass}>
+      <div className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Content triggers</p>
         <BulletList items={Array.isArray(result?.audience?.contentTriggers) ? result.audience.contentTriggers : []} />
       </div>
 
-      <div className={outputInnerCardClass}>
+      <div className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Content turnoffs</p>
         <BulletList items={Array.isArray(result?.audience?.contentTurnoffs) ? result.audience.contentTurnoffs : []} />
       </div>
     </div>
+  </div>
   </div>
 </Section>
 
@@ -2637,7 +2713,18 @@ one consistent artist brief.
         </p>
       </div>
 
-      <div className={outputInnerCardClass + ' md:col-span-2'}>
+      <div
+  className="
+    flex w-0 min-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    md:w-full md:grid md:grid-cols-2 md:overflow-visible md:pb-0
+    [-webkit-overflow-scrolling:touch]
+  "
+>
+
+      <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none md:col-span-2`}
+>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Lean into</p>
         <div className="space-y-3">
           {(Array.isArray(result?.tone?.do) ? result.tone.do : []).map((item: any, idx: number) => (
@@ -2648,7 +2735,9 @@ one consistent artist brief.
         </div>
       </div>
 
-      <div className={outputInnerCardClass}>
+      <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none md:col-span-2`}
+>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Avoid</p>
         <div className="space-y-3">
           {(Array.isArray(result?.tone?.dont) ? result.tone.dont : []).map((item: any, idx: number) => (
@@ -2660,6 +2749,7 @@ one consistent artist brief.
       </div>
     </div>
   </div>
+  </div>
 </Section>
 
         <Section
@@ -2667,28 +2757,68 @@ one consistent artist brief.
   title="Visual system"
   hint="Palette, lighting, environments, framing, texture, symbolism"
 >
-  <div className="space-y-4">
+  <div className="flex flex-1 flex-col gap-3">
     <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-4">Colour palette</p>
 
-            <div className="grid gap-3 md:grid-cols-3">
-        <PaletteGroup
-          title="Primary"
-          colors={Array.isArray(result?.visuals?.colorPalette?.primary) ? result.visuals.colorPalette.primary : []}
-        />
-        <PaletteGroup
-          title="Secondary"
-          colors={Array.isArray(result?.visuals?.colorPalette?.secondary) ? result.visuals.colorPalette.secondary : []}
-        />
-        <PaletteGroup
-          title="Accent"
-          colors={Array.isArray(result?.visuals?.colorPalette?.accent) ? result.visuals.colorPalette.accent : []}
-        />
-      </div>
+      <div
+  className="
+    flex w-0 min-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    md:w-full md:grid md:grid-cols-3 md:overflow-visible md:pb-0
+    [-webkit-overflow-scrolling:touch]
+  "
+>
+
+            <div className="w-[78%] min-w-[78%] max-w-[78%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none">
+  <PaletteGroup
+    title="Primary"
+    colors={
+      Array.isArray(result?.visuals?.colorPalette?.primary)
+        ? result.visuals.colorPalette.primary
+        : []
+    }
+  />
+</div>
+
+<div className="w-[78%] min-w-[78%] max-w-[78%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none">
+  <PaletteGroup
+    title="Secondary"
+    colors={
+      Array.isArray(result?.visuals?.colorPalette?.secondary)
+        ? result.visuals.colorPalette.secondary
+        : []
+    }
+  />
+</div>
+
+<div className="w-[78%] min-w-[78%] max-w-[78%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none">
+  <PaletteGroup
+    title="Accent"
+    colors={
+      Array.isArray(result?.visuals?.colorPalette?.accent)
+        ? result.visuals.colorPalette.accent
+        : []
+    }
+  />
+</div>
+</div>
 
       {result?.visuals?.colorMeanings ? (
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <div className={outputInnerCardClass}>
+
+<div
+  className="
+    flex w-0 min-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    md:w-full md:grid md:grid-cols-3 md:overflow-visible md:pb-0
+    [-webkit-overflow-scrolling:touch]
+  "
+>
+
+          <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
             <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">
               Primary meaning
             </p>
@@ -2701,7 +2831,9 @@ one consistent artist brief.
             />
           </div>
 
-          <div className={outputInnerCardClass}>
+          <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
             <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">
               Secondary meaning
             </p>
@@ -2714,7 +2846,9 @@ one consistent artist brief.
             />
           </div>
 
-          <div className={outputInnerCardClass}>
+          <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
             <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">
               Accent meaning
             </p>
@@ -2727,33 +2861,53 @@ one consistent artist brief.
             />
           </div>
         </div>
+        </div>
       ) : null}
     </div>
 
-    <div className="grid gap-3 md:grid-cols-2">
-      <div className={outputInnerCardClass}>
+    
+
+    <div
+  className="
+    flex w-0 min-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    md:w-full md:grid md:grid-cols-3 md:overflow-visible md:pb-0
+    [-webkit-overflow-scrolling:touch]
+  "
+>
+      <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42">Lighting</p>
         <p className="text-white/85 mt-3 leading-relaxed">
           {String(result?.visuals?.lighting || '—')}
         </p>
       </div>
 
-      <div className={outputInnerCardClass}>
+      <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42">Environment</p>
         <BulletList items={Array.isArray(result?.visuals?.environment) ? result.visuals.environment : []} />
       </div>
 
-      <div className={outputInnerCardClass}>
+      <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42">Framing</p>
         <BulletList items={Array.isArray(result?.visuals?.framing) ? result.visuals.framing : []} />
       </div>
 
-      <div className={outputInnerCardClass}>
+      <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42">Texture</p>
         <BulletList items={Array.isArray(result?.visuals?.texture) ? result.visuals.texture : []} />
       </div>
 
-      <div className={outputInnerCardClass + ' md:col-span-2'}>
+      <div
+  className={`${outputInnerCardClass} w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none`}
+>
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42">Symbolism</p>
         <BulletList items={Array.isArray(result?.visuals?.symbolism) ? result.visuals.symbolism : []} />
       </div>
@@ -2761,104 +2915,153 @@ one consistent artist brief.
   </div>
 </Section>
 
-        <Section id="content" title="Content system" hint="Pillars and repeatable containers for showing up consistently">
-  <div className="space-y-4">
+        <Section
+  id="content"
+  title="Content system"
+  hint="Pillars and repeatable containers for showing up consistently"
+>
+  <div className="min-w-0 space-y-4">
+
+    {/* HOW TO USE */}
     <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
-      <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-1">How to use this</p>
-      <p className="text-sm text-white/68 leading-relaxed max-w-3xl">
+      <p className="mb-1 text-[11px] uppercase tracking-[0.16em] text-white/42">
+        How to use this
+      </p>
+
+      <p className="text-sm leading-relaxed text-white/68">
         Pillars define the recurring themes your brand keeps returning to.
         Formats define the repeatable containers that deliver those themes in a recognisable way.
       </p>
     </div>
 
-    <div className="grid gap-3 xl:grid-cols-[0.95fr,1.05fr]">
-      <div className={outputInnerCardClass}>
-        <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Content pillars</p>
+    {/* CONTENT PILLARS */}
+    <div className={outputInnerCardClass}>
+      <p className="mb-3 text-[11px] uppercase tracking-[0.16em] text-white/42">
+        Content pillars
+      </p>
 
-        <div className="space-y-3">
-          {(Array.isArray(result?.content?.pillars) ? result.content.pillars : []).map((pillar: any, idx: number) => (
-            <div
-              key={idx}
-              className="rounded-2xl border border-white/10 bg-white/[0.02] p-4"
-            >
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-ww-violet/25 bg-ww-violet/10 text-[11px] font-medium text-ww-violet">
-                  {idx + 1}
-                </div>
-
-                <div className="min-w-0">
-                  <p className="text-white/92 font-medium leading-snug">
-                    {String(pillar?.name || `Pillar ${idx + 1}`)}
-                  </p>
-                  <p className="text-white/65 mt-2 text-sm leading-relaxed">
-                    {String(pillar?.purpose || '—')}
-                  </p>
-                </div>
-
-                {Array.isArray(pillar.examples) && pillar.examples.length ? (
-  <div className="mt-3 space-y-2">
-    <p className="text-[10px] uppercase tracking-[0.16em] text-white/35">
-      Example angles
-    </p>
-    <BulletList items={pillar.examples} />
-  </div>
-) : null}
-              
-              </div>
-            </div>
-          ))}
-        </div>      
-      </div>
-
-      <div className={outputInnerCardClass}>
-        <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Repeatable formats</p>
-
-        <div className="space-y-3">
-          {(Array.isArray(result?.content?.formats) ? result.content.formats : []).map((format: any, idx: number) => (
-            <div
-              key={idx}
-              className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 space-y-3"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-white/92 font-medium leading-snug">
-                    {String(format?.name || `Format ${idx + 1}`)}
-                  </p>
-
-                  {format?.type ? (
-                    <p className="text-white/50 mt-1 text-[11px] uppercase tracking-[0.14em]">
-                      {String(format.type)}
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="inline-flex items-center rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] text-white/50 shrink-0">
-                  Format {idx + 1}
-                </div>
+      <div
+        className="
+          flex w-0 min-w-full snap-x snap-mandatory gap-3
+          overflow-x-auto overflow-y-hidden pb-2
+          md:w-full md:grid md:grid-cols-2 md:overflow-visible
+          [-webkit-overflow-scrolling:touch]
+        "
+      >
+        {(Array.isArray(result?.content?.pillars)
+          ? result.content.pillars
+          : []
+        ).map((pillar: any, idx: number) => (
+          <div
+            key={idx}
+            className="
+              w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start
+              rounded-2xl border border-white/10 bg-white/[0.02] p-4
+              md:w-auto md:min-w-0 md:max-w-none
+            "
+          >
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-ww-violet/25 bg-ww-violet/10 text-[11px] font-medium text-ww-violet">
+                {idx + 1}
               </div>
 
-              {format?.structure ? (
-                <div className="rounded-xl border border-white/8 bg-black/35 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-white/42 mb-2">Structure</p>
-                  <p className="text-white/72 text-sm leading-relaxed">
-                    {String(format.structure)}
-                  </p>
-                </div>
-              ) : null}
+              <div className="min-w-0 flex-1">
+                <p className="font-medium leading-snug text-white/92">
+                  {String(pillar?.name || `Pillar ${idx + 1}`)}
+                </p>
 
-              {format?.emotionalGoal ? (
-                <div className="rounded-xl border border-ww-violet/15 bg-ww-violet/[0.05] p-3">
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-white/42 mb-2">Emotional goal</p>
-                  <p className="text-white/76 text-sm leading-relaxed">
-                    {String(format.emotionalGoal)}
-                  </p>
-                </div>
-              ) : null}
+                <p className="mt-2 text-sm leading-relaxed text-white/65">
+                  {String(pillar?.purpose || '—')}
+                </p>
+              </div>
             </div>
-          ))}
-        </div>
+
+            {Array.isArray(pillar?.examples) && pillar.examples.length ? (
+              <div className="mt-4 border-t border-white/8 pt-3">
+                <p className="mb-2 text-[10px] uppercase tracking-[0.16em] text-white/35">
+                  Example angles
+                </p>
+
+                <BulletList items={pillar.examples} />
+              </div>
+            ) : null}
+          </div>
+        ))}
       </div>
     </div>
+
+    {/* REPEATABLE FORMATS */}
+    <div className={outputInnerCardClass}>
+      <p className="mb-3 text-[11px] uppercase tracking-[0.16em] text-white/42">
+        Repeatable formats
+      </p>
+
+      <div
+        className="
+          flex w-0 min-w-full snap-x snap-mandatory gap-3
+          overflow-x-auto overflow-y-hidden pb-2
+          md:w-full md:grid md:grid-cols-2 md:overflow-visible
+          [-webkit-overflow-scrolling:touch]
+        "
+      >
+        {(Array.isArray(result?.content?.formats)
+          ? result.content.formats
+          : []
+        ).map((format: any, idx: number) => (
+          <div
+            key={idx}
+            className="
+              w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start
+              rounded-2xl border border-white/10 bg-white/[0.02] p-4
+              md:w-auto md:min-w-0 md:max-w-none
+            "
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="font-medium leading-snug text-white/92">
+                  {String(format?.name || `Format ${idx + 1}`)}
+                </p>
+
+                {format?.type ? (
+                  <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-white/50">
+                    {String(format.type)}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="shrink-0 rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] text-white/50">
+                {idx + 1}
+              </div>
+            </div>
+
+            {format?.structure ? (
+              <div className="mt-3 rounded-xl border border-white/8 bg-black/35 p-3">
+                <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-white/42">
+                  Structure
+                </p>
+
+                <p className="text-sm leading-relaxed text-white/72">
+                  {String(format.structure)}
+                </p>
+              </div>
+            ) : null}
+
+            {format?.emotionalGoal ? (
+              <div className="mt-3 rounded-xl border border-ww-violet/15 bg-ww-violet/[0.05] p-3">
+                <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-white/42">
+                  Emotional goal
+                </p>
+
+                <p className="text-sm leading-relaxed text-white/76">
+                  {String(format.emotionalGoal)}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </div>
+
   </div>
 </Section>
 
@@ -2867,11 +3070,23 @@ one consistent artist brief.
   title="Creative DNA"
   hint="The permanent identity ingredients that make this artist recognisable"
 >
-  <div className="grid gap-3 md:grid-cols-2">
+  <div
+  className="
+    flex w-0 min-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    md:w-full md:grid md:grid-cols-2 md:overflow-visible md:pb-0
+    [-webkit-overflow-scrolling:touch]
+  "
+>
     {(Array.isArray(result?.creativeDNA) ? result.creativeDNA : []).map((item: any, idx: number) => (
       <div
         key={idx}
-        className="rounded-2xl border border-white/10 bg-black/45 p-4 transition hover:border-ww-violet/30"
+        className="
+  w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start
+  rounded-2xl border border-white/10 bg-black/45 p-4
+  transition hover:border-ww-violet/30
+  md:w-auto md:min-w-0 md:max-w-none
+"
       >
         <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-2">
           DNA {idx + 1}
@@ -2903,7 +3118,14 @@ one consistent artist brief.
       </p>
     </div>
 
-    <div className="grid gap-3">
+    <div
+  className="
+    flex w-0 min-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    md:w-full md:grid md:grid-cols-2 md:overflow-visible md:pb-0
+    [-webkit-overflow-scrolling:touch]
+  "
+>
       {(Array.isArray(result?.identityRules) ? result.identityRules : []).map((rule: any, idx: number) => {
         const section = typeof rule === 'string' ? '' : String(rule?.section || '')
         const principle = typeof rule === 'string' ? rule : String(rule?.principle || '')
@@ -2914,7 +3136,12 @@ one consistent artist brief.
         return (
           <div
             key={idx}
-            className="rounded-2xl border border-white/10 bg-black/45 p-4 transition hover:border-ww-violet/30"
+            className="
+  w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start
+  rounded-2xl border border-white/10 bg-black/45 p-4
+  transition hover:border-ww-violet/30
+  md:w-auto md:min-w-0 md:max-w-none
+"
           >
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ww-violet/25 bg-ww-violet/10 text-[11px] font-semibold text-ww-violet">
@@ -2982,6 +3209,7 @@ one consistent artist brief.
 </div>
  </>
 )}
+
       </div>
     ) : null}
   </div>
@@ -3152,68 +3380,100 @@ one consistent artist brief.
         </button>
       </div>
 
-      {c.hook ? (
-        <div className="rounded-2xl border border-ww-violet/20 bg-ww-violet/[0.06] p-4">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-2">Hook</p>
-          <p className="text-white/84 text-sm md:text-[15px] leading-relaxed">
-            {c.hook}
-          </p>
-        </div>
-      ) : null}
-
-      {c.synopsis ? (
-        <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-2">Core idea</p>
-          <p className="text-white/74 text-sm leading-relaxed whitespace-pre-wrap">
-            {c.synopsis}
-          </p>
-        </div>
-      ) : null}
-
-      <div className="grid gap-3 md:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Deliverables</p>
-          {Array.isArray(c.deliverables) && c.deliverables.length ? (
-            <div className="space-y-2">
-              {c.deliverables.slice(0, 8).map((item: string, i: number) => (
-                <div key={i} className="rounded-xl border border-white/8 bg-white/[0.02] px-3 py-2">
-                  <p className="text-sm text-white/78 leading-relaxed">{item}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-white/45">—</p>
-          )}
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-3">Caption tones</p>
-          {Array.isArray(c.caption_tones) && c.caption_tones.length ? (
-            <div className="flex flex-wrap gap-2">
-              {c.caption_tones.slice(0, 8).map((item: string, i: number) => (
-                <div
-                  key={i}
-                  className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-white/72"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-white/45">—</p>
-          )}
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
-        <p className="text-[11px] uppercase tracking-[0.16em] text-white/42 mb-2">Best next step</p>
-        <p className="text-sm text-white/72 leading-relaxed">
-          If this is the direction you want to pursue, turn it into concrete post ideas in Idea Factory.
+      <div
+  className="
+    flex w-0 min-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    [-webkit-overflow-scrolling:touch]
+  "
+>
+  {/* PAGE 1 — HOOK + CORE IDEA */}
+  <div className="w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start space-y-3">
+    {c.hook ? (
+      <div className="rounded-2xl border border-ww-violet/20 bg-ww-violet/[0.06] p-4">
+        <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-white/42">
+          Hook
+        </p>
+        <p className="text-sm leading-relaxed text-white/84 md:text-[15px]">
+          {c.hook}
         </p>
       </div>
+    ) : null}
+
+    {c.synopsis ? (
+      <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
+        <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-white/42">
+          Core idea
+        </p>
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/74">
+          {c.synopsis}
+        </p>
+      </div>
+    ) : null}
+  </div>
+
+  {/* PAGE 2 — DELIVERABLES */}
+  <div className="w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start">
+    <div className="h-full rounded-2xl border border-white/10 bg-black/45 p-4">
+      <p className="mb-3 text-[11px] uppercase tracking-[0.16em] text-white/42">
+        Deliverables
+      </p>
+
+      {Array.isArray(c.deliverables) && c.deliverables.length ? (
+        <div className="space-y-2">
+          {c.deliverables.slice(0, 8).map((item: string, i: number) => (
+            <div
+              key={i}
+              className="rounded-xl border border-white/8 bg-white/[0.02] px-3 py-2"
+            >
+              <p className="text-sm leading-relaxed text-white/78">
+                {item}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-white/45">—</p>
+      )}
+    </div>
+  </div>
+
+  {/* PAGE 3 — CAPTION TONES + BEST NEXT STEP */}
+  <div className="w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start space-y-3">
+    <div className="rounded-2xl border border-white/10 bg-black/45 p-4">
+      <p className="mb-3 text-[11px] uppercase tracking-[0.16em] text-white/42">
+        Caption tones
+      </p>
+
+      {Array.isArray(c.caption_tones) && c.caption_tones.length ? (
+        <div className="flex flex-wrap gap-2">
+          {c.caption_tones.slice(0, 8).map((item: string, i: number) => (
+            <div
+              key={i}
+              className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-white/72"
+            >
+              {item}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-white/45">—</p>
+      )}
+    </div>
+
+    <div className="rounded-2xl border border-ww-violet/18 bg-ww-violet/[0.05] p-4">
+      <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-white/42">
+        Best next step
+      </p>
+      <p className="text-sm leading-relaxed text-white/72">
+        If this is the direction you want to pursue, turn it into concrete post ideas in Idea Factory.
+      </p>
+    </div>
+  </div>
+</div>
+
     </div>
   ))}
-</div>
 
 <div className="mt-6 rounded-2xl border border-ww-violet/20 bg-black/50 p-4 flex items-center justify-between gap-4">
   <div>
@@ -3245,7 +3505,7 @@ one consistent artist brief.
     Go to Idea Factory
   </button>
 </div>
-
+</div>
         </div>
       ) : null}
     </div>
@@ -3292,7 +3552,15 @@ one consistent artist brief.
         </div>
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+      <div
+  className="
+    mt-5 flex w-0 min-w-full snap-x snap-mandatory gap-3
+    overflow-x-auto overflow-y-hidden pb-2
+    md:w-full md:grid md:grid-cols-2 md:overflow-visible md:pb-0
+    lg:grid-cols-3
+    [-webkit-overflow-scrolling:touch]
+  "
+>
         {libraryTab === 'kits' ? (
           kits.length ? (
             kits.map((kit) => {
@@ -3305,7 +3573,7 @@ one consistent artist brief.
                 <div
                   key={kit.id}
                   className={
-                    'rounded-2xl border bg-black/45 p-4 transition ' +
+  'w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start rounded-2xl border bg-black/45 p-4 transition md:w-auto md:min-w-0 md:max-w-none ' +
                     (isLoaded
                       ? 'border-ww-violet/75 shadow-[0_0_18px_rgba(186,85,211,0.24)]'
                       : 'border-white/8 hover:border-ww-violet/25 hover:shadow-[0_0_12px_rgba(186,85,211,0.08)]')
@@ -3434,7 +3702,7 @@ one consistent artist brief.
               <div
                 key={row.id}
                 className={
-                  'rounded-2xl border bg-black/45 p-4 transition ' +
+  'w-[88%] min-w-[88%] max-w-[88%] shrink-0 snap-start rounded-2xl border bg-black/45 p-4 transition md:w-auto md:min-w-0 md:max-w-none ' +
                   (isLoaded
                     ? 'border-ww-violet/75 shadow-[0_0_18px_rgba(186,85,211,0.24)]'
                     :'border-white/8 hover:border-ww-violet/25 hover:shadow-[0_0_12px_rgba(186,85,211,0.08)]')

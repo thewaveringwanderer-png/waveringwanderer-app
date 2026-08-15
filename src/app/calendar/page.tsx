@@ -56,6 +56,9 @@ type ApiCalendarItem = {
   date?: string
   platform?: string
   title?: string
+  summary?: string
+viewerExperience?: string
+whyChosenForArtist?: string
   short_label?: string
   pillar?: string
   format?: string
@@ -65,6 +68,9 @@ type ApiCalendarItem = {
   cta?: string
   structured?: {
   title?: string
+  summary?: string
+viewerExperience?: string
+whyChosenForArtist?: string
   platform?: string
   contentType?: string
   attentionStrategy?: string
@@ -84,6 +90,9 @@ type StructuredIdea = {
   title?: string
   platform?: string
   contentType?: string
+  summary?: string
+viewerExperience?: string
+whyChosenForArtist?: string
   attentionStrategy?: string
 attentionReason?: string
   hook?: string
@@ -241,12 +250,13 @@ const CONTENT_ENERGY_OPTIONS = [
 ]
 
 const IDEA_FACTORY_GENERATING_MESSAGES = [
-  'Reading your creative direction...',
-  'Mapping your audience and content style...',
-  'Finding ideas that fit your current journey...',
-  'Building hooks around your creative reality...',
-  'Turning your direction into usable content...',
-  'Adding new points to your creative map...',
+  'Understanding your creative world...',
+  'Exploring different directions...',
+  'Checking what fits you...',
+  'Pressure-testing the strongest ideas...',
+  'Building practical execution...',
+  'Sharpening hooks and next steps...',
+  'Finalising your ideas...',
 ]
 
 
@@ -613,7 +623,7 @@ function splitExecutionSteps(value: unknown): string[] {
   }
 
   const withoutHeading = trimmed
-    .replace(/^VIDEO EXECUTION\s*:?\s*/i, '')
+    .replace(/^HOW TO FILM\s*:?\s*/i, '')
     .replace(/^EXECUTION\s*:?\s*/i, '')
 
   // Split explicit numbered or bulleted instructions.
@@ -649,6 +659,67 @@ function safeExecutionText(value: unknown): string {
   const steps = splitExecutionSteps(value)
 
   return steps.join('\n')
+}
+
+function estimateIdeaDifficulty(args: {
+  stepCount: number
+  isSlideshow: boolean
+  editingConfidence?: string
+}) {
+  const {
+    stepCount,
+    isSlideshow,
+    editingConfidence = '',
+  } = args
+
+  if (
+    stepCount <= 3 &&
+    editingConfidence !== 'advanced' &&
+    !isSlideshow
+  ) {
+    return 'Easy'
+  }
+
+  if (
+    stepCount >= 7 ||
+    editingConfidence === 'advanced'
+  ) {
+    return 'Advanced'
+  }
+
+  return 'Standard'
+}
+
+function estimateFilmingTime(stepCount: number) {
+  if (stepCount <= 3) return '≈ 10–15 min'
+  if (stepCount <= 5) return '≈ 20–30 min'
+  if (stepCount <= 7) return '≈ 30–45 min'
+
+  return '≈ 45–60 min'
+}
+
+function productionLocationLabel(locations: unknown) {
+  if (!Array.isArray(locations) || locations.length === 0) {
+    return ''
+  }
+
+  if (locations.length === 1) {
+    return String(locations[0])
+  }
+
+  return `${locations.length} locations available`
+}
+
+function productionEquipmentLabel(equipment: unknown) {
+  if (!Array.isArray(equipment) || equipment.length === 0) {
+    return ''
+  }
+
+  if (equipment.length <= 2) {
+    return equipment.map(String).join(' + ')
+  }
+
+  return `${equipment.length} equipment options`
 }
 
 function getRecordString(
@@ -725,7 +796,7 @@ function normaliseSlideshowSlide(
 function parseTextSlideshowSlides(value: string): SlideshowSlide[] {
   const cleaned = value
     .replace(/^SLIDE PLAN\s*:?\s*/i, '')
-    .replace(/^VIDEO EXECUTION\s*:?\s*/i, '')
+    .replace(/^HOW TO FILM\s*:?\s*/i, '')
     .trim()
 
   const blocks = cleaned
@@ -971,6 +1042,10 @@ const concept =
   parsed.captionBody ||
   'A platform-ready content idea built from your artist brief.'
 
+const summary =
+  safeString(structured?.summary).trim() ||
+  concept
+
 const rawHook = safeString(structured?.hook).trim() || ''
 const titleLower = title.toLowerCase()
 const conceptLower = concept.toLowerCase()
@@ -1037,7 +1112,34 @@ const executionSteps = isSlideshow
   ? []
   : splitExecutionSteps(execution)
 
+const executionPreview = executionSteps.slice(0, 3)
+const remainingExecutionSteps = Math.max(
+  executionSteps.length - executionPreview.length,
+  0
+)
 
+const productionContext =
+  item.metadata?.productionContext || {}
+
+const difficulty = estimateIdeaDifficulty({
+  stepCount: executionSteps.length || slideshowSlides.length,
+  isSlideshow,
+  editingConfidence: safeString(
+    productionContext.editingConfidence
+  ),
+})
+
+const filmingTime = estimateFilmingTime(
+  executionSteps.length || slideshowSlides.length
+)
+
+const locationLabel = productionLocationLabel(
+  productionContext.locations
+)
+
+const equipmentLabel = productionEquipmentLabel(
+  productionContext.equipment
+)
 
   return (
    <div className="relative h-full rounded-[24px] border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] p-4 md:p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] transition hover:border-ww-violet/40 hover:shadow-[0_0_24px_rgba(186,85,211,0.18)] flex flex-col">
@@ -1059,8 +1161,29 @@ const executionSteps = isSlideshow
         </h3>
 
         <p className="text-sm leading-relaxed text-white/62">
-          {concept}
-        </p>
+  {summary}
+</p>
+<div className="flex flex-wrap gap-2">
+  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-white/65">
+    {difficulty}
+  </span>
+
+  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-white/65">
+    {filmingTime}
+  </span>
+
+  {locationLabel ? (
+    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-white/65">
+      {locationLabel}
+    </span>
+  ) : null}
+
+  {equipmentLabel ? (
+    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-white/65">
+      {equipmentLabel}
+    </span>
+  ) : null}
+</div>
       </div>
 
       <div className="mt-5 space-y-4">
@@ -1115,11 +1238,11 @@ const executionSteps = isSlideshow
 ) : executionSteps.length > 0 ? (
   <div>
     <p className="mb-3 text-[11px] uppercase tracking-[0.16em] text-white/40">
-      Video execution
+      How to film
     </p>
 
     <div className="space-y-2.5">
-      {executionSteps.map((step, index) => (
+      {executionPreview.map((step, index) => (
         <div
           key={`${index}-${step}`}
           className="flex items-start gap-3"
@@ -1133,6 +1256,16 @@ const executionSteps = isSlideshow
           </p>
         </div>
       ))}
+      {remainingExecutionSteps > 0 && (
+  <button
+    type="button"
+    onClick={onOpen}
+    className="mt-3 text-xs text-ww-violet hover:text-white transition"
+  >
+    Open idea for {remainingExecutionSteps} more step
+    {remainingExecutionSteps > 1 ? 's' : ''} →
+  </button>
+)}
     </div>
   </div>
 ) : null}
@@ -1437,6 +1570,7 @@ const [existingFootage, setExistingFootage] = useState('No')
   const [loadingItems, setLoadingItems] = useState(true)
   const [items, setItems] = useState<CalendarItem[]>([])
   const [generating, setGenerating] = useState(false)
+  const [generationSeconds, setGenerationSeconds] = useState(0)
   const [expandedItem, setExpandedItem] = useState<SharedContentCard | null>(null)
   const [viewMode, setViewMode] = useState<'latest' | 'all'>('latest')
   const [lastBatchId, setLastBatchId] = useState('')
@@ -1708,6 +1842,19 @@ useEffect(() => {
     cancelled = true
   }
 }, [])
+
+useEffect(() => {
+  if (!generating) {
+    setGenerationSeconds(0)
+    return
+  }
+
+  const interval = window.setInterval(() => {
+    setGenerationSeconds(seconds => seconds + 1)
+  }, 1000)
+
+  return () => window.clearInterval(interval)
+}, [generating])
 
   // ---------- Derived ----------
  const visibleItems = useMemo(() => {
@@ -2072,6 +2219,19 @@ contentEnergy,
   tone,
   ideaDepth,
   releaseContext: releaseContext || null,
+  productionContext: {
+  availableTime,
+  equipment,
+  locations,
+  budget,
+  worksAlone,
+  existingFootage,
+  cameraConfidence,
+  speakingConfidence,
+  performanceConfidence,
+  editingConfidence,
+  productionStyles,
+},
   api: {
     short_label: safeString(it.short_label),
     content_type: safeString((it as any).content_type),
@@ -2267,7 +2427,7 @@ format: safeString((it as any).content_type),
     "CONTENT ANGLE",
     "HOOK",
     "ON-SCREEN TEXT",
-    "VIDEO EXECUTION",
+    "HOW TO FILM",
     "CAPTION",
     "CTA",
     "WHY THIS WORKS",
@@ -2298,6 +2458,85 @@ const selectedAudienceStage =
   return (
   <main className="min-h-screen bg-black text-white">
     <Toaster position="top-center" richColors />
+
+    {generating ? (
+  <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/80 px-3 py-3 backdrop-blur-sm sm:flex sm:items-center sm:justify-center sm:px-4 sm:py-6">
+  <div className="mx-auto w-full max-w-lg rounded-3xl border border-ww-violet/25 bg-[#09070d] p-5 shadow-[0_0_60px_rgba(168,85,247,0.14)] sm:p-8">
+
+      <div className="flex items-center gap-3">
+        <div className="relative flex h-11 w-11 items-center justify-center rounded-full border border-ww-violet/30 bg-ww-violet/[0.08]">
+          <div className="h-4 w-4 animate-pulse rounded-full bg-ww-violet" />
+        </div>
+
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-ww-violet">
+            Idea Factory
+          </p>
+
+          <h2 className="mt-1 text-xl font-semibold text-white">
+            Building your ideas
+          </h2>
+        </div>
+      </div>
+
+      <p className="mt-5 text-sm leading-relaxed text-white/65">
+        WW takes a little longer than a standard generation because it checks
+        each direction against your creative reality, audience and goals before
+        showing it to you.
+      </p>
+
+      <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-1 h-2 w-2 shrink-0 animate-pulse rounded-full bg-ww-violet" />
+
+          <div>
+            <p className="text-sm font-medium text-white">
+              {generatingMessage}
+            </p>
+
+            <p className="mt-1 text-xs leading-relaxed text-white/45">
+              WW is exploring, testing and refining before returning the final
+              batch.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 space-y-2.5 sm:mt-6 sm:space-y-3">
+        {[
+          ['Understand your world', 'How you naturally create and what is realistic for you.'],
+          ['Explore directions', 'Different creative routes that could serve the goal.'],
+          ['Test the ideas', 'Removing weak, repetitive or mismatched directions.'],
+          ['Build the execution', 'Turning the strongest concepts into practical posts.'],
+          ['Polish the details', 'Sharpening hooks, CTAs and filming guidance.'],
+        ].map(([title, description]) => (
+          <div key={title} className="flex gap-3">
+            <div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-white/25" />
+
+            <div>
+              <p className="text-xs font-medium text-white/75">
+                {title}
+              </p>
+              <p className="mt-0.5 text-xs leading-relaxed text-white/40">
+                {description}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 sm:mt-6">
+        <p className="text-xs text-white/40">
+          More considered ideas can take a little longer.
+        </p>
+
+        <p className="font-mono text-xs text-white/55">
+          {generationSeconds}s
+        </p>
+      </div>
+    </div>
+  </div>
+) : null}
 
     <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-10 space-y-8">
       <header className="border-b border-white/10 pb-6">
@@ -3475,7 +3714,7 @@ Share where you are in your journey, how you create, and what you want to build.
       </p>
     </div>
 
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-2 2xl:grid-cols-3">
       {Array.from({ length: 3 }).map((_, index) => (
         <div
           key={index}
@@ -3520,9 +3759,9 @@ Share where you are in your journey, how you create, and what you want to build.
     </div>
   </div>
 ) : visibleItems.length ? (
-  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+  <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-2 2xl:grid-cols-3">
     {visibleItems.map(item => (
-      <div key={item.id} className="group">
+      <div key={item.id} className="group h-full">
         <IdeaResultCard
           item={item}
           onOpen={() => setExpandedItem(toSharedCard(item))}

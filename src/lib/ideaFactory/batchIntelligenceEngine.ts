@@ -569,6 +569,41 @@ Two ideas are redundant when they share most of these:
 - same music role;
 - same CTA purpose.
 
+A concept is defined by its primary viewer experience, not by its wording.
+
+Treat two ideas as duplicates when they share the same underlying creative mechanic, even if any of the following change:
+
+- title;
+- hook;
+- CTA;
+- location;
+- camera angle;
+- emotional wording;
+- object;
+- lighting;
+- performance section.
+
+Examples of duplicate mechanic families include:
+
+- repeated performance from multiple positions;
+- gradual lighting or atmosphere changes;
+- object progression concepts;
+- reflection-based reveals;
+- repeated room transformation;
+- walking or movement progression;
+- multiple-location performance;
+- before versus after comparisons.
+
+Changing execution details does not create a new concept.
+
+Only one concept from each mechanic family should survive into the final batch.
+
+When duplicates exist:
+
+1. Keep the stronger concept.
+2. Replace the weaker concept with a fundamentally different viewer experience.
+3. Re-run redundancy validation.
+
 If two ideas are redundant:
 
 1. Identify which one has stronger artist fit, memorability and strategic value.

@@ -11,6 +11,8 @@ import { formatPresentationEngineForPrompt } from '@/lib/ideaFactory/presentatio
 import { formatDecisionEngineForPrompt } from "@/lib/ideaFactory/decisionEngine"
 import { formatBatchIntelligenceEngineForPrompt } from '@/lib/ideaFactory/batchIntelligenceEngine'
 import { formatCreativeCompassForPrompt } from '@/lib/ideaFactory/creativeCompass'
+import { formatHookEngineForPrompt } from '@/lib/ideaFactory/hookEngine'
+import { formatCtaEngineForPrompt } from '@/lib/ideaFactory/ctaEngine'
 import {
   formatCreatorGenomeForPrompt,
   formatCreatorInferenceEngineForPrompt,
@@ -266,7 +268,6 @@ selectedIdentityKitId?: string | null
   lyrics?: string
   lyricsFocus?: string
   avoidTitles?: string[]
-  focusMode?: string
   releaseContext?: string
   tone?: string
   ideaDepth?: 'simple' | 'balanced' | 'detailed'
@@ -311,7 +312,11 @@ export type CalendarItem = {
   platform: string
   contentType: string
   attentionStrategy: string
-attentionReason: string
+  attentionReason: string
+
+  summary: string
+  viewerExperience: string
+
   hook: string
   onScreenText: string
   concept: string
@@ -319,6 +324,8 @@ attentionReason: string
   caption: string
   cta: string
   why: string[]
+
+  whyChosenForArtist: string
 }
 }
 
@@ -331,6 +338,8 @@ type AiCalendarItem = {
   content_type?: string
   attentionStrategy?: string
 attentionReason?: string
+ summary?: string
+  viewerExperience?: string
  hook?: string
 onScreenText?: string
 on_screen_text?: string
@@ -503,7 +512,6 @@ function fallbackCalendar(args: {
   artistName: string
   goal: string
   genre?: string
-  focusMode?: string
   releaseContext?: string
   ideaDepth?: 'simple' | 'balanced' | 'detailed'
   contextSource?: 'manual' | 'identity' | 'campaign' | 'release_strategy'
@@ -511,6 +519,30 @@ function fallbackCalendar(args: {
   releaseStrategyContext?: CalendarRequest['releaseStrategyContext']
   contentTypes?: string[]
   hasLyrics: boolean
+  cameraConfidence:
+  | 'love-camera'
+  | 'comfortable'
+  | 'neutral'
+  | 'prefer-not'
+  | 'faceless'
+
+speakingConfidence:
+  | 'love-speaking'
+  | 'comfortable'
+  | 'short-scripted'
+  | 'voiceover-only'
+  | 'never-speak'
+
+performanceConfidence:
+  | 'love-performing'
+  | 'comfortable'
+  | 'sometimes'
+  | 'rarely'
+  | 'avoid-performance'
+
+existingFootage: string
+worksAlone: string
+locations: string[]
 }) {
   const {
     startDate,
@@ -519,7 +551,6 @@ function fallbackCalendar(args: {
     artistName,
     goal,
     genre = '',
-    focusMode = 'general',
     releaseContext = '',
     ideaDepth = 'balanced',
     contextSource = 'manual',
@@ -527,6 +558,12 @@ function fallbackCalendar(args: {
     releaseStrategyContext = null,
     contentTypes = [],
     hasLyrics,
+    cameraConfidence,
+speakingConfidence,
+performanceConfidence,
+existingFootage,
+worksAlone,
+locations,
     
   } = args
 
@@ -544,13 +581,18 @@ function fallbackCalendar(args: {
         artistName,
         goal,
         genre,
-        focusMode,
         releaseContext,
         ideaDepth,
         contextSource,
         campaignContext,
         releaseStrategyContext,
-        hasLyrics
+        hasLyrics,
+        cameraConfidence,
+speakingConfidence,
+performanceConfidence,
+existingFootage,
+worksAlone,
+locations,
       })
     )
   }
@@ -565,36 +607,47 @@ function buildFallbackItem(args: {
   artistName: string
   goal: string
   genre?: string
-  focusMode?: string
+  
   releaseContext?: string
   ideaDepth: 'simple' | 'balanced' | 'detailed'
   contextSource?: 'manual' | 'identity' | 'campaign' | 'release_strategy'
   campaignContext?: CalendarRequest['campaignContext']
   releaseStrategyContext?: CalendarRequest['releaseStrategyContext']
   contentTypes?: string[]
-  
+  cameraConfidence: CalendarRequest['cameraConfidence']
+speakingConfidence: CalendarRequest['speakingConfidence']
+performanceConfidence: CalendarRequest['performanceConfidence']
+
+existingFootage: string
+worksAlone: string
+locations: string[]
   usedTitles?: string[]
 usedConcepts?: string[]
 hasLyrics: boolean
 }): CalendarItem {
   const {
-    startDate,
-    index,
-    platforms,
-    artistName,
-    goal,
-    genre = '',
-    focusMode = 'general',
-    releaseContext = '',
-    ideaDepth,
-    contextSource = 'manual',
-    campaignContext = null,
-    releaseStrategyContext = null,
-    usedTitles = [],
-usedConcepts = [],
-contentTypes = [],
-hasLyrics,
-  } = args
+  startDate,
+  index,
+  platforms,
+  artistName,
+  goal,
+  genre = '',
+  releaseContext = '',
+  ideaDepth,
+  contextSource = 'manual',
+  campaignContext = null,
+  releaseStrategyContext = null,
+  usedTitles = [],
+  usedConcepts = [],
+  contentTypes = [],
+  hasLyrics,
+  cameraConfidence,
+  speakingConfidence,
+  performanceConfidence,
+  existingFootage,
+  worksAlone,
+  locations,
+} = args
 
   const date = addDaysIso(startDate, index)
   const platform = platforms[index % platforms.length] || 'instagram'
@@ -624,8 +677,14 @@ hasLyrics,
   cta: string
   why: string[]
   requiresLyrics?: boolean
+  requiresExistingFootage?: boolean
+  requiresFace?: boolean
+  requiresSpeaking?: boolean
+  requiresPerformance?: boolean
+  requiresAnotherPerson?: boolean
+  requiresOutdoorAccess?: boolean
   supportedTypes: string[]
-} 
+}
 
  const fallbackVariants: FallbackVariant[] = [
   {
@@ -755,9 +814,61 @@ supportedTypes: ['direct-performance'],
   },
 ]
 
+const isFaceless = cameraConfidence === 'faceless'
+const avoidsFace =
+  cameraConfidence === 'faceless' ||
+  cameraConfidence === 'prefer-not'
+
+const cannotSpeak =
+  speakingConfidence === 'never-speak' ||
+  speakingConfidence === 'voiceover-only'
+
+const cannotPerform =
+  performanceConfidence === 'avoid-performance'
+
+const hasExistingFootage =
+  normalizeForComparison(existingFootage) === 'yes'
+
+const worksSolo =
+  normalizeForComparison(worksAlone) === 'yes'
+
+const confirmedLocationText = locations
+  .map(normalizeForComparison)
+  .join(' ')
+
+const hasConfirmedOutdoorAccess =
+  confirmedLocationText.includes('outdoor') ||
+  confirmedLocationText.includes('street') ||
+  confirmedLocationText.includes('park') ||
+  confirmedLocationText.includes('garden') ||
+  confirmedLocationText.includes('outside')
 
 const eligibleFallbackVariants = fallbackVariants.filter(variant => {
   if (variant.requiresLyrics && !hasLyrics) {
+    return false
+  }
+
+  if (variant.requiresExistingFootage && !hasExistingFootage) {
+    return false
+  }
+
+  if (variant.requiresFace && isFaceless) {
+    return false
+  }
+
+  if (variant.requiresSpeaking && cannotSpeak) {
+    return false
+  }
+
+  if (variant.requiresPerformance && cannotPerform) {
+    return false
+  }
+
+  if (variant.requiresAnotherPerson && worksSolo) {
+    return false
+  }
+
+  if (variant.requiresOutdoorAccess && !hasConfirmedOutdoorAccess) {
     return false
   }
 
@@ -766,11 +877,30 @@ const eligibleFallbackVariants = fallbackVariants.filter(variant => {
   )
 })
 
+const universalSafeFallback: FallbackVariant = {
+  title: 'Music-first text post',
+  supportedTypes: ['text-on-screen'],
+  pillar: 'Discovery',
+  format: 'text-on-screen',
+  idea:
+    'Pair the song audio with one clear audience-facing thought that communicates the feeling or purpose of the music.',
+  hook:
+    'Some songs find you before you know why you need them.',
+  onScreenText:
+    'For the person this song is meant to find.',
+  execution:
+    'Place the phone in a stable position using only confirmed equipment or a safe available surface. Film a simple detail from a confirmed location, or use a plain background with native text over the song audio. Keep it to one take or two simple cuts.',
+  cta:
+    'Save this if the feeling makes sense to you.',
+  why: [
+    'It keeps the music central without requiring speech, facial performance, lyrics or existing footage.',
+    'It can be made alone with minimal editing and no assumed props.',
+  ],
+}
+
 const fallbackPool = eligibleFallbackVariants.length
   ? eligibleFallbackVariants
-  : fallbackVariants.filter(
-      variant => !variant.requiresLyrics || hasLyrics
-    )
+  : [universalSafeFallback]
 
 const variantIndex =
   (index + usedTitles.length + usedConcepts.length) %
@@ -789,120 +919,138 @@ let cta = variant.cta
 let onScreenText = variant.onScreenText
 let why = variant.why
 
-  if (focusMode === 'old_release') {
-    title = 'Bring an older track back into focus'
-    pillar = 'Story'
-    format = 'story'
-    idea = simple
-      ? `Revisit one older song and give people a fresh reason to care about it now.`
-      : `Create a post that reintroduces an older release through reflection, meaning, memory, or a fresh angle that makes it feel relevant again.`
-    hook = 'This track still has something to say.'
-    execution = detailed
-      ? `Record a direct-to-camera clip or lyric-led visual that connects one older song to who you are now. Reference a specific line, moment, or feeling, and keep the framing personal rather than promotional.`
-      : `Film a short direct-to-camera or lyric-led clip that revisits an older release and explains why it still matters.`
-    cta = 'Which older track should I revisit next?'
-    why = [
-      'Older songs can gain new life when reframed with meaning or hindsight.',
-      'Catalogue content builds value without needing a new release.',
-    ]
-  } else if (focusMode === 'release') {
-    title = 'Support the current release with a clear angle'
-    pillar = 'Story'
-    format = 'story'
-    idea = simple
-      ? `Make one short post that gives people a reason to care about the current release.`
-      : `Create a focused post that supports the current release by highlighting one emotional, lyrical, or personal angle behind it.`
-    hook = 'Here’s the part of this release that matters most to me.'
-    execution = detailed
-      ? `Record a short clip that isolates one part of the release story — a lyric meaning, emotional shift, visual theme, or creative decision — and build the post around that single angle. Context should be specific and concise.`
-      : `Film one short clip explaining or showing a key angle behind the release in a way that feels natural and easy to post.`
-    cta = 'What part of the release stands out most to you?'
-    why = [
-      'Single-angle release content is easier to understand and engage with.',
-      'Helps the release feel more human and memorable.',
-    ]
-  } else if (focusMode === 'gig') {
-    title = 'Turn live momentum into content'
-    pillar = 'BTS'
-    format = 'bts'
-    idea = simple
-      ? `Post one simple piece of content that builds anticipation around the live moment.`
-      : `Create a practical live-focused post that builds anticipation, captures preparation, or reflects the energy around an upcoming show.`
-    hook = 'This is the energy I’m taking into the next show.'
-    execution = detailed
-      ? `Film a short preparation or reflection clip around rehearsal, setlist thinking, nerves, or performance energy. Keep it grounded in what the live moment actually means rather than generic promo.`
-      : `Film a short clip that shows preparation, anticipation, or reflection around the show.`
-    cta = 'Who’s pulling up?'
-    why = [
-      'Live context creates urgency and natural story tension.',
-      'Turns performance moments into content without overcomplicating them.',
-    ]
-  } else if (focusMode === 'growth') {
-    title = 'Make one highly relatable growth post'
-    pillar = 'Community'
-    format = 'community'
-    idea = simple
-      ? `Post a short relatable idea designed to start conversation and bring new people in.`
-      : `Create a relatable, audience-facing post that encourages response, sharing, or conversation while still sounding like the artist.`
-    hook = 'You ever feel like this too?'
-    execution = detailed
-      ? `Record a short thought, feeling, or observation that your audience is likely to recognise in themselves. Keep the framing specific enough to feel personal, but open enough for people to project onto.`
-      : `Film a short direct-to-camera post with a relatable thought or question that encourages response.`
-    cta = 'Tell me if this hits for you.'
-    why = [
-      'Relatable posts are easier for new people to respond to.',
-      'Strong audience recognition helps growth content travel further.',
-    ]
-  }
+  const normalizedGoal = normalizeForComparison(goal)
 
-  if (contextSource === 'campaign' && firstConcept) {
-    title = simple
-      ? (campaignTitle || 'Campaign-led content idea')
-      : campaignTitle
-      ? `Bring the ${campaignTitle} campaign world into content`
-      : 'Campaign-led content idea'
+if (normalizedGoal === 'reach new listeners') {
+  title = `Discovery-focused: ${variant.title}`
 
-    pillar = 'Visual'
-    format = 'visual'
-    idea = campaignSynopsis
-      ? `Create one content idea that feels like a natural execution of the campaign world: ${campaignSynopsis}`
-      : `Create one post that clearly belongs to the campaign world and extends its concept into content.`
+  idea = simple
+    ? `Use this idea to introduce the music clearly to someone discovering the artist for the first time.`
+    : `Use this idea to reach new listeners through immediate context, curiosity and a clear music-first reason to stay.`
 
-    hook = campaignHook && campaignHook.toLowerCase() !== title.toLowerCase()
-      ? campaignHook
-      : 'This is another piece of the world I’m building.'
+  hook = variant.hook
 
-    execution = detailed
-      ? `Use the campaign’s tone, world, and visual logic to make one focused content execution. Keep it simple enough to shoot, but specific enough that it feels like part of the same rollout — not a random standalone post.`
-      : `Make one simple post that feels visually and emotionally connected to the campaign. Keep it clear, branded, and easy to execute.`
+  cta = 'Stay if this sounds like something you would listen to.'
 
-    cta = 'Which part of this campaign world hits you most?'
-    why = [
-      'Campaign-led ideas make the rollout feel coherent.',
-      'Keeps content aligned with the bigger creative direction.',
-    ]
-  } else if (contextSource === 'release_strategy' && releaseStrategyContext) {
-    title = releaseStrategyTitle
-      ? `Execution idea from ${releaseStrategyTitle}`
-      : 'Release-strategy-led content idea'
+  why = [
+    'The idea is understandable without requiring prior knowledge of the artist.',
+    'It gives new listeners an immediate reason to connect with the music.',
+  ]
+} else if (normalizedGoal === 'deepen fan connection') {
+  title = `Connection-focused: ${variant.title}`
 
-    pillar = 'Story'
-    format = 'story'
-    idea = `Create one post that turns the current release strategy into an actual piece of content your audience can understand and engage with.`
-    hook = 'Let me show you one part of this rollout in a real way.'
-    execution = detailed
-      ? `Take one strategic angle from the rollout and turn it into a simple, clear content execution. Prioritise clarity, timing, and relevance over complexity.`
-      : `Turn one rollout idea into a short, practical post that feels easy to make and easy to understand.`
-    cta = 'Want more from this rollout?'
-    why = [
-      'Strategy becomes more valuable when it turns into actual content.',
-      'Makes the rollout easier to execute consistently.',
-    ]
-  }
+  idea = simple
+    ? `Use this idea to help existing listeners understand the artist or music more deeply.`
+    : `Use this idea to deepen fan connection by revealing more personality, meaning, process or emotional context around the music.`
 
-  if (releaseContext && focusMode !== 'old_release' && contextSource === 'manual') {
-    idea = `${idea} Use this context where helpful: ${releaseContext}.`
-  }
+  cta = 'What does this bring to mind for you?'
+
+  why = [
+    'Personal or creative context helps listeners form a stronger relationship with the artist.',
+    'The content adds meaning beyond simply promoting the song.',
+  ]
+} else if (normalizedGoal === 'promote a release') {
+  title = `Release-focused: ${variant.title}`
+
+  idea = simple
+    ? `Use this idea to give people one clear reason to care about the current release.`
+    : `Use this idea to support the current release through one focused emotional, musical or creative angle.`
+
+  cta = 'Listen to the full release when you are ready.'
+
+  why = [
+    'One focused release angle is easier to understand than a generic announcement.',
+    'It keeps the release visible while offering the audience fresh value.',
+  ]
+} else if (normalizedGoal === 'increase streams') {
+  title = `Listening-focused: ${variant.title}`
+
+  idea = simple
+    ? `Use this idea to make the song memorable enough for viewers to listen again.`
+    : `Use this idea to highlight a memorable feeling, sound or moment that gives viewers a reason to hear the full song.`
+
+  cta = 'Listen to the full track if this moment stayed with you.'
+
+  why = [
+    'A memorable music-first moment can encourage listeners to hear more.',
+    'The CTA asks for one clear listening action.',
+  ]
+} else if (normalizedGoal === 'build consistency') {
+  title = `Repeatable format: ${variant.title}`
+
+  idea = simple
+    ? `Use this as a low-pressure post that can be repeated regularly.`
+    : `Use this idea as a repeatable content format that is realistic to produce consistently within the artist's available time and resources.`
+
+  cta = 'Follow to see the next one.'
+
+  why = [
+    'Repeatable formats reduce the pressure of inventing a new structure every time.',
+    'A realistic production burden makes consistent posting more sustainable.',
+  ]
+} else if (normalizedGoal === 'grow my mailing list') {
+  title = `Mailing-list-focused: ${variant.title}`
+
+  idea = simple
+    ? `Use this idea to give listeners a clear reason to stay connected beyond social media.`
+    : `Use this idea to build trust and offer a meaningful reason for interested listeners to join the artist's mailing list.`
+
+  cta = 'Join the mailing list for the next update.'
+
+  why = [
+    'The content builds interest before asking for contact information.',
+    'The CTA creates one clear route into the artist’s owned audience.',
+  ]
+} else if (normalizedGoal === 'sell tickets') {
+  title = `Live-show-focused: ${variant.title}`
+
+  idea = simple
+    ? `Use this idea to make the upcoming live experience feel worth attending.`
+    : `Use this idea to build anticipation around the upcoming show through genuine energy, context or a clear reason to attend.`
+
+  cta = 'Get your ticket if you want to experience this live.'
+
+  why = [
+    'The idea connects the content to the value of the live experience.',
+    'The CTA gives interested viewers one clear next action.',
+  ]
+} else if (normalizedGoal === 'build community') {
+  title = `Community-focused: ${variant.title}`
+
+  idea = simple
+    ? `Use this idea to invite listeners into a shared conversation around the music.`
+    : `Use this idea to encourage participation, shared recognition or recurring interaction while keeping the music central.`
+
+  cta = 'Add your answer in the comments.'
+
+  why = [
+    'Participation helps listeners feel included in the artist’s world.',
+    'The prompt encourages interaction without replacing the music.',
+  ]
+} else if (normalizedGoal === 'test new content ideas') {
+  title = `Creative test: ${variant.title}`
+
+  idea = simple
+    ? `Use this as a simple experiment and observe how the audience responds.`
+    : `Use this idea to test a distinct creative direction, viewer experience or presentation style without overcommitting resources.`
+
+  cta = 'Should I make more content like this?'
+
+  why = [
+    'The post tests a clear creative variable rather than changing everything at once.',
+    'Audience response can guide future content decisions.',
+  ]
+} else if (normalizedGoal === 'other') {
+  title = variant.title
+  idea = variant.idea
+  hook = variant.hook
+  cta = variant.cta
+  why = variant.why
+}
+
+  if (releaseContext && contextSource === 'manual') {
+  idea = `${idea} Use this supplied context where relevant: ${releaseContext}.`
+}
 
   const selectedFallbackBadges = contentTypes
   .map(normalizeContentType)
@@ -919,31 +1067,74 @@ const fallbackBadge =
     )
   }
 
-  const fallbackCaption =
-  contextSource === 'campaign' && campaignTitle
-    ? simple
+  const fallbackCaption = (() => {
+  if (contextSource === 'campaign' && campaignTitle) {
+    return simple
       ? `Another piece of the ${campaignTitle} world.`
       : `Building out the ${campaignTitle} campaign world one post at a time.`
-    : focusMode === 'old_release'
-    ? simple
-      ? `This older track still deserves a moment.`
-      : `Bringing an older release back into focus with a new angle.`
-    : focusMode === 'release'
-    ? simple
-      ? `One more angle around this release.`
-      : `Keeping the release moving with a more human, specific angle.`
-    : focusMode === 'gig'
-    ? simple
-      ? `Turning live energy into content.`
-      : `Taking the energy around the show and turning it into something worth posting.`
-    : focusMode === 'growth'
-    ? simple
-      ? `A simple post designed to connect.`
-      : `A stronger audience-facing post that still feels natural to the artist.`
-    : simple
-    ? `One post to keep the momentum moving.`
-    : `A clear, usable post that keeps momentum moving without overcomplicating the content.`
+  }
 
+  if (
+    contextSource === 'release_strategy' &&
+    releaseStrategyContext
+  ) {
+    return simple
+      ? `Turning the release plan into something real.`
+      : `Taking one part of the release strategy and turning it into clear, usable content.`
+  }
+
+  switch (normalizedGoal) {
+    case 'reach new listeners':
+      return simple
+        ? `Maybe this finds the right new listener.`
+        : `Making it easier for the right new listeners to discover the music.`
+
+    case 'deepen fan connection':
+      return simple
+        ? `A little more of the story behind the music.`
+        : `Sharing more of the meaning, personality and process behind the music.`
+
+    case 'promote a release':
+      return simple
+        ? `One more reason to hear the release.`
+        : `Giving the current release another meaningful angle instead of repeating the same announcement.`
+
+    case 'increase streams':
+      return simple
+        ? `Hear the full track when you are ready.`
+        : `Highlighting one moment that might make the full track worth another listen.`
+
+    case 'build consistency':
+      return simple
+        ? `Keeping the momentum moving.`
+        : `Building consistency through content that is realistic enough to repeat.`
+
+    case 'grow my mailing list':
+      return simple
+        ? `Stay connected beyond the feed.`
+        : `Creating a stronger way for listeners to stay connected beyond social media.`
+
+    case 'sell tickets':
+      return simple
+        ? `This one is meant to be experienced live.`
+        : `Building anticipation for the energy and experience of the upcoming show.`
+
+    case 'build community':
+      return simple
+        ? `This one is for the people who understand.`
+        : `Creating more space for listeners to participate in the artist’s world.`
+
+    case 'test new content ideas':
+      return simple
+        ? `Trying something different with this one.`
+        : `Testing a new creative direction and seeing how the audience responds.`
+
+    default:
+      return simple
+        ? `One post to keep the momentum moving.`
+        : `A clear, usable post that keeps momentum moving without overcomplicating the content.`
+  }
+})()
   return {
     date,
     platform,
@@ -956,19 +1147,29 @@ const fallbackBadge =
     angle: execution,
     cta,
     structured: {
-      title,
-      platform,
-      contentType: format,
-      attentionStrategy: '',
-attentionReason: '',
-      hook,
-      onScreenText,
-      caption: fallbackCaption,
-      concept: idea,
-      execution,
-      cta,
-      why: simple ? why.slice(0, 1) : why.slice(0, 2),
-    },
+  title,
+  platform,
+  contentType: format,
+  attentionStrategy: '',
+  attentionReason: '',
+
+  summary: idea,
+
+  viewerExperience:
+    'The viewer follows one clear visual, emotional or musical progression before the idea reaches its payoff.',
+
+  hook,
+  onScreenText,
+  concept: idea,
+  execution,
+  caption: fallbackCaption,
+  cta,
+
+  why: simple ? why.slice(0, 1) : why.slice(0, 2),
+
+  whyChosenForArtist:
+    'This idea fits the artist’s selected content style and can be produced within their confirmed Creative Reality.',
+},
   }
 }
 
@@ -1603,7 +1804,6 @@ export async function POST(req: Request) {
 
     tone = 'brand-consistent, concise, human, engaging',
     ideaDepth = 'balanced',
-    focusMode = 'general',
     releaseContext = '',
     mix,
     energyPattern,
@@ -1723,7 +1923,6 @@ Idea depth mode: BALANCED
   artistName,
   goal,
   genre,
-  focusMode,
   releaseContext,
   ideaDepth,
   contextSource,
@@ -1731,6 +1930,12 @@ Idea depth mode: BALANCED
   releaseStrategyContext,
   contentTypes: allowedBadgeTypes,
   hasLyrics: lyrics.trim().length > 0,
+  cameraConfidence,
+speakingConfidence,
+performanceConfidence,
+locations: safeLocations,
+worksAlone,
+existingFootage,
 }),
         _fallback: true,
         _fallbackReason: 'missing_openai_key',
@@ -2072,16 +2277,6 @@ ${creativeReality || 'None supplied'}
   const releaseStrategyContextBlock = extractReleaseStrategyContextBlock(releaseStrategyContext)
 const identityKitContextBlock = extractIdentityKitContextBlock(identityKitContext)
 
-  const oldReleaseGuidance =
-    focusMode === 'old_release'
-      ? `
-Old release focus:
-- The user wants ideas for an older existing release, not a new drop.
-- Prioritize rediscovery, recontextualising, nostalgia, overlooked bars/lyrics, “you missed this” framing, fan memory, story-behind-the-song, and fresh angles that revive catalogue momentum.
-- Avoid language that assumes the song is brand new unless the supplied context explicitly says so.
-- Good old-release ideas can include: lyric reframes, meaning/story posts, performance revisits, alternate visual cuts, acoustic/live reintroductions, fan-comment reactions, “still relevant” angles, and personal reflections on the song after time has passed.
-`.trim()
-      : ''
 
  const lyricMoments = lyrics.trim()
   ? await analyseLyricsForContent({
@@ -2120,6 +2315,37 @@ ${moment.why}
   : 'No lyric moments identified.'  
   
 const contentFormatKnowledge = CONTENT_FORMAT_GENOME.map((format) => {
+const validationBlock = format.validation?.length
+  ? `
+FORMAT VALIDATION:
+
+${format.validation.map(item => `- ${item}`).join('\n')}
+`
+  : ''
+
+const commonMistakesBlock = format.commonMistakes?.length
+  ? `
+COMMON FORMAT MISTAKES:
+
+${format.commonMistakes.map(item => `- ${item}`).join('\n')}
+`
+  : ''
+
+const batchVarietyBlock = format.batchVariety?.length
+  ? `
+BATCH VARIETY RULES:
+
+${format.batchVariety.map(item => `- ${item}`).join('\n')}
+`
+  : ''
+
+const performanceUseBlock = format.performanceUse
+  ? `
+PERFORMANCE USE:
+
+${format.performanceUse}
+`
+  : ''
 const mechanicsBlock = format.mechanics?.length
   ? `
 AVAILABLE FORMAT MECHANICS:
@@ -2215,6 +2441,14 @@ ${format.avoid.map((item) => `- ${item}`).join('\n')}
 EXAMPLE DIRECTION:
 ${format.exampleDirection}
 
+${performanceUseBlock}
+
+${validationBlock}
+
+${commonMistakesBlock}
+
+${batchVarietyBlock}
+
 ${mechanicsBlock}
 `.trim()
 }).join('\n\n')
@@ -2229,7 +2463,9 @@ const interferenceEngine = formatInterferenceEngineForPrompt()
 const conceptEngine = formatConceptEngineForPrompt()
 const decisionEngine = formatDecisionEngineForPrompt()
 const batchIntelligenceEngine = formatBatchIntelligenceEngineForPrompt()
+const hookEngine = formatHookEngineForPrompt()
 const executionEngine = formatExecutionEngineForPrompt()
+const ctaEngine = formatCtaEngineForPrompt()
 const presentationEngine = formatPresentationEngineForPrompt()
 const creativeCompass = formatCreativeCompassForPrompt()
 
@@ -2456,9 +2692,163 @@ ${creativeCompass}
 
 ${batchIntelligenceEngine}
 
+${hookEngine}
+
 ${executionEngine}
 
+${ctaEngine}
+
+POST-EXECUTION INTERFERENCE GATE
+
+The concepts have now passed Concept Interference, the Decision Engine,
+Creative Compass, Batch Intelligence and the Execution Engine.
+
+Before presenting any idea, perform the final two Interference Engine passes.
+
+LYRIC AND SONG-STRUCTURE GROUNDING
+
+When no lyrics were supplied, the final hook, on-screen text, concept, execution
+and CTA must not mention or require:
+
+- lyrics;
+- lines;
+- bars;
+- verses;
+- choruses;
+- bridges;
+- drops;
+- specific song sections;
+- lyrical delivery;
+- lyric meaning.
+
+Generic performance wording is allowed:
+
+- perform part of the track;
+- perform a short section;
+- begin when the music changes;
+- move when the energy shifts.
+
+If any prohibited song-structure reference appears without supplied evidence,
+rewrite it before returning the item.
+
+PASS B — EXECUTION INTERFERENCE
+
+Re-check every completed execution against:
+
+- explicit user instructions;
+- hard Creative Reality;
+- verified equipment and locations;
+- whether the artist works alone;
+- existing-footage availability;
+- camera, speaking, performance and editing confidence;
+- selected content style;
+- artist type;
+- lyric availability;
+- the approved concept;
+- every earlier prohibition and adaptation.
+- the approved hook;
+- the approved CTA;
+- the Hook Engine validation;
+- the CTA commitment ceiling;
+
+The execution must not introduce an asset, behaviour, location, person, fact,
+lyric dependency or production demand that was absent from the approved concept.
+
+Confirm that:
+
+- the hook still accurately promises the completed viewer experience;
+- the CTA naturally follows the concept and execution;
+- the CTA does not exceed the audience-stage commitment ceiling;
+- neither the hook nor CTA introduces unsupported facts, lyrics, offers or context;
+- the hook, concept, execution and CTA form one continuous psychological arc:
+
+Stop → Stay → Experience → Act
+
+If execution creates a conflict:
+
+- adapt the execution first;
+- preserve the approved concept where possible;
+- replace the concept only when the concept itself caused the contradiction;
+- rerun Concept Interference if replacement is necessary.
+
+A conflict resolved earlier must not reappear through different wording.
+
+PASS C — FINAL BATCH INTERFERENCE
+
+Now inspect all completed ideas together.
+
+Confirm that the batch does not repeatedly use:
+
+- the same central concept mechanic;
+- the same viewer experience;
+- the same emotional entry point;
+- the same creator behaviour;
+- the same location or tangible anchor;
+- substantially similar hooks;
+- surface-level variations of one underlying idea.
+- No unsupported lyric or song-structure language appears anywhere in the completed item.
+
+Do not manufacture variety by violating artist fit, Creative Reality or selected
+content styles.
+
+Where repetition exists, replace the weakest duplicated creative route and run
+that replacement through Concept Interference, the Decision Engine and Execution
+Interference again.
+
+Do not reveal this validation.
+
 ${presentationEngine}
+
+IDEA CARD V2 OUTPUT FIELDS
+
+Every completed idea must include the following additional fields.
+
+SUMMARY
+
+- Write one immediately understandable sentence.
+- Explain the idea in plain language.
+- Aim for 12–22 words.
+- Help the artist picture the finished post quickly.
+- Do not repeat the title word for word.
+- Do not include detailed filming instructions.
+
+VIEWER EXPERIENCE
+
+- Explain what the audience sees, hears, notices or waits for.
+- Focus on the experience created by the concept mechanic.
+- Write one concise sentence.
+- Describe the viewer journey rather than the artist's production process.
+- Do not repeat the concept or execution.
+
+WHY CHOSEN FOR THIS ARTIST
+
+- Explain why this idea fits this specific artist.
+- Reference verified information such as:
+  - selected content style;
+  - Creative Reality;
+  - camera, speaking, performance or editing confidence;
+  - available location or equipment;
+  - Identity Kit;
+  - audience stage;
+  - primary goal.
+- Mention only information actually supplied or inferred through an approved engine.
+- Write one or two concise sentences.
+- Do not give generic praise.
+- Do not claim the idea fits the artist merely because it is easy.
+
+FIELD DIFFERENTIATION
+
+Summary explains the finished post at a glance.
+
+Viewer Experience explains what the audience experiences.
+
+Concept explains the central creative mechanism.
+
+Execution explains how the artist produces it.
+
+Why Chosen for This Artist explains why WW selected it for this person.
+
+These fields must not repeat or lightly paraphrase one another.
 
 CONCEPT AND EXECUTION OUTPUT CONTRACT
 
@@ -2598,7 +2988,6 @@ ${structuredCreativeRealityGuidance}
 - Do not make title, hook, or concept much longer in DETAILED mode than in BALANCED mode.
 - If contextSource is "campaign", use campaign concept, rollout, tone, deliverables, and visual direction to shape the ideas.
 - If contextSource is "release_strategy", use that strategic direction to shape the ideas.
-- If focusMode is "old_release", generate ideas for catalogue revival and renewed attention rather than new-release hype.
 - When campaign context is present, the ideas should feel like they belong to the campaign world, not like generic standalone ideas.
 - When release strategy context is present, the ideas should reflect the broader rollout logic and priorities.
 - When lyrics or release context are provided, extract the deeper human experiences behind the song before creating ideas.
@@ -2624,6 +3013,132 @@ ${structuredCreativeRealityGuidance}
 - If lyrics are provided, YOU must choose the strongest lyric moment yourself.
 
 
+==================================================
+IDEA CARD V2 FIELD RULES
+==================================================
+
+Every completed idea must include summary, viewerExperience and
+whyChosenForArtist.
+
+SUMMARY
+
+- Describe the finished post in one immediately understandable sentence.
+- Use plain language.
+- Aim for 12–22 words.
+- Help the artist picture the post quickly.
+- Do not repeat the title.
+- Do not include filming instructions.
+
+VIEWER EXPERIENCE
+
+- Describe what the audience sees, hears, notices or waits for.
+- Focus on the concept mechanic and payoff.
+- Describe the viewer journey, not the production process.
+- Use one concise sentence.
+- Do not repeat the summary or concept.
+
+WHY CHOSEN FOR ARTIST
+
+Purpose:
+
+Explain the DECISION WW made when selecting this concept for this artist.
+
+This field must answer:
+
+"Why was THIS creative direction a better decision than another plausible direction?"
+
+Do not summarise the artist's inputs.
+
+Do not simply state that the idea matches:
+- their content style;
+- their equipment;
+- their location;
+- their confidence;
+- their audience stage;
+- their goal;
+- their genre.
+
+Those facts may be referenced only when explaining how they changed the creative decision.
+
+Every answer must contain two things:
+
+1. DECISION
+Explain what creative advantage this concept creates for this particular artist.
+
+2. TRADE-OFF
+Explain what weaker, less suitable, less efficient or less aligned direction this choice avoids.
+
+Examples:
+
+WEAK:
+"This suits the artist's cinematic style and simple editing confidence."
+
+STRONG:
+"The repeated composition creates visual progression without requiring complicated editing, so the artist can make the performance feel cinematic through staging rather than production complexity."
+
+WEAK:
+"This works for Discovery and helps reach new listeners."
+
+STRONG:
+"The visual transformation gives a stranger something understandable to follow before they know the artist, avoiding an opening that depends on personal history or existing fan interest."
+
+WEAK:
+"This uses the artist's available bedroom and tripod."
+
+STRONG:
+"Keeping the camera fixed turns one ordinary room into part of the concept itself, giving the post a deliberate visual rule without requiring extra locations or another person to film."
+
+WEAK:
+"This fits an artist who enjoys performing."
+
+STRONG:
+"Because performance is already a strength, WW keeps the artist at the centre but adds a reflection mechanic so the post does not become interchangeable performance footage."
+
+The explanation should reveal why WW chose the concept mechanic, structure or viewer experience.
+
+Prefer:
+- creative trade-offs;
+- strategic reasoning;
+- audience consequences;
+- identity preservation;
+- simplicity used deliberately;
+- why one mechanic beats another;
+- what the concept avoids.
+
+Avoid:
+- listing inputs;
+- generic compatibility statements;
+- generic praise;
+- repeating "this fits";
+- repeating "this aligns";
+- repeating "this suits";
+- repeating "because you selected";
+- merely naming the audience stage.
+
+The artist should learn one useful principle about creative strategy by reading this field.
+
+Use 1–2 concise sentences.
+
+WHY CHOSEN FOR ARTIST must be meaningfully different from WHY THIS WORKS.
+
+WHY CHOSEN FOR ARTIST = why WW selected this direction for this artist.
+
+WHY THIS WORKS = why the resulting content should work on the viewer.
+
+FIELD DIFFERENTIATION
+
+Summary explains the finished post at a glance.
+
+Viewer Experience explains what the audience experiences.
+
+Concept explains the central creative mechanism.
+
+Execution explains how to produce it.
+
+Why Chosen for Artist explains why WW selected it for this artist.
+
+Do not return lightly reworded versions of the same sentence across these fields.
+
 Output STRICTLY valid JSON with this shape:
 
 {
@@ -2635,6 +3150,9 @@ Output STRICTLY valid JSON with this shape:
       "short_label": "Very short label",
       "pillar": "Performance" | "POV" | "Lyrics" | "Slideshow" | "Cinematic" | "BTS" | "Discovery" | "Community" | "Humour",
       "content_type": "Must be exactly one of these selected badge values only: ${allowedBadgeTypes.join(', ')}",
+      "summary": "One plain-language sentence of 12–22 words that helps the artist picture the finished post immediately.",
+"viewerExperience": "One concise sentence explaining what the viewer sees, anticipates or feels as the post unfolds.",
+"whyChosenForArtist": "One or two concise sentences explaining why this idea fits this specific artist, their identity and verified Creative Reality.",
       "hook": "A first spoken line or scroll-stopping opening phrase. It must NOT repeat the title wording.",
 "onScreenText": "Short text overlay for the video. Must be different from the hook and must express the approved Attention Gene and concept psychology.",
 "concept": "Exactly one concise sentence of 12–24 words, with a hard maximum of 30 words. State only the central creative premise, transformation, contrast, reveal or payoff. Do not include filming, camera, lighting, editing, text-placement or production instructions.",
@@ -2844,8 +3362,7 @@ ${
 
 
 
-Focus mode: ${focusMode}
-Release/gig context: ${releaseContext || 'None'}
+
 
 Context source: ${contextSource}
 Selected campaign ID: ${selectedCampaignId || 'None'}
@@ -2901,8 +3418,6 @@ Good:
 "Film a close-up phone video at your desk using text on screen, hands, notebook shots, or room details."
 
 Every idea should respect the artist's available time, confidence, location, equipment and energy.
-
-${oldReleaseGuidance || ''}
 
 LYRIC AVAILABILITY FOR THIS GENERATION
 
@@ -3003,7 +3518,6 @@ You MUST:
 - When a candidate would repeat an earlier idea, replace its underlying creative route.
 - If campaign context is present, make the ideas feel like content executions of that campaign.
 - If release strategy context is present, make the ideas feel guided by that rollout plan.
-- If focusMode is "old_release", make the ideas feel like revival content for an existing song/project.
 
 ${
   ideaDepth === 'simple'
@@ -3039,7 +3553,6 @@ ${
   artistName,
   goal,
   genre,
-  focusMode,
   releaseContext,
   ideaDepth,
   contextSource,
@@ -3047,6 +3560,12 @@ ${
   releaseStrategyContext,
   contentTypes: allowedBadgeTypes,
   hasLyrics,
+  cameraConfidence,
+  speakingConfidence,
+  performanceConfidence,
+  existingFootage,
+  worksAlone,
+  locations,
 }),
           _fallback: true,
           _fallbackReason: 'empty_model_response',
@@ -3064,7 +3583,7 @@ ${
 
       return NextResponse.json(
         {
-          ...fallbackCalendar({ startDate, totalSlots, platforms, artistName, goal, hasLyrics }),
+          ...fallbackCalendar({ startDate, totalSlots, platforms, artistName, goal, hasLyrics, cameraConfidence, speakingConfidence, performanceConfidence, existingFootage, worksAlone, locations }),
           _fallback: true,
           _fallbackReason: 'json_parse_error',
         },
@@ -3078,7 +3597,7 @@ ${
 
       return NextResponse.json(
         {
-          ...fallbackCalendar({ startDate, totalSlots, platforms, artistName, goal, hasLyrics }),
+          ...fallbackCalendar({ startDate, totalSlots, platforms, artistName, goal, hasLyrics, cameraConfidence, speakingConfidence, performanceConfidence, existingFootage, worksAlone, locations }),
           _fallback: true,
           _fallbackReason: 'items_not_array',
         },
@@ -3128,7 +3647,7 @@ parsed.items = parsed.items.map((item: any, index: number) => {
 const safeContentTypes = allowedBadgeTypes.length
   ? allowedBadgeTypes
   : ['text-on-screen']
-   const candidateItems = (parsed.items as CalendarItem[])
+   const candidateItems: CalendarItem[] = (parsed.items as CalendarItem[])
   .map((item, index) => {
     const rawItem = item as any
     const fallbackPlatform = safePlatforms[0] || 'instagram'
@@ -3170,6 +3689,20 @@ const concept =
 
 const execution =
   safeString(rawItem.execution).trim()
+
+
+
+  const summary =
+  safeString(rawItem.summary).trim() ||
+  concept
+
+const viewerExperience =
+  safeString(rawItem.viewerExperience).trim() ||
+  'The viewer follows one clear progression before the concept reaches its payoff.'
+
+const whyChosenForArtist =
+  safeString(rawItem.whyChosenForArtist).trim() ||
+  'This idea fits the selected content style and the artist’s confirmed Creative Reality.'
 
     const onScreenText =
       rawItem.on_screen_text?.trim() ||
@@ -3214,16 +3747,35 @@ const execution =
       angle: execution,
       cta,
       structured: {
-        title,
-        platform,
-        contentType,
-        onScreenText: safeOnScreenText,
-        hook,
-        concept,
-        execution,
-        cta,
-        why: why.length ? why : ['Built to be clear, usable, and easy to post.'],
-      },
+  title,
+  platform,
+  contentType,
+
+  attentionStrategy:
+    safeString(rawItem.attentionStrategy).trim(),
+
+  attentionReason:
+    safeString(rawItem.attentionReason).trim(),
+
+  summary,
+  viewerExperience,
+
+  onScreenText: safeOnScreenText,
+  hook,
+  concept,
+  execution,
+
+  caption:
+    safeString(rawItem.suggested_caption).trim(),
+
+  cta,
+
+  why: why.length
+    ? why
+    : ['This gives new listeners a clear reason to connect with the song.'],
+
+  whyChosenForArtist,
+},
     }
   })
   .filter(item => {
@@ -3251,7 +3803,7 @@ if (!hasTitle || !hasValidConcept || !hasExecution) {
 const trimmedItems = candidateItems.slice(0, totalSlots)
 
 
-let completedItems = [...trimmedItems]
+let completedItems: CalendarItem[] = [...trimmedItems]
 
 if (completedItems.length < totalSlots) {
   const missingCount = totalSlots - completedItems.length
@@ -3384,7 +3936,9 @@ Rules:
         replacementParsed.items = replacementParsed.items.filter(
   item => !itemContainsLeakedJson(item)
 )
-        const replacementItems = (replacementParsed.items as CalendarItem[])
+        const replacementItems: CalendarItem[] = (
+  replacementParsed.items as CalendarItem[]
+)
           .map((item, index) => {
             const rawItem = item as any
             const fallbackPlatform = safePlatforms[0] || 'instagram'
@@ -3417,6 +3971,18 @@ const contentType = safeContentTypes.includes(normalisedContentType)
 
 const execution =
   safeString(rawItem.execution).trim()
+
+  const summary =
+  safeString(rawItem.summary).trim() ||
+  concept
+
+const viewerExperience =
+  safeString(rawItem.viewerExperience).trim() ||
+  'The viewer follows one clear progression before the concept reaches its payoff.'
+
+const whyChosenForArtist =
+  safeString(rawItem.whyChosenForArtist).trim() ||
+  'This idea fits the selected content style and the artist’s confirmed Creative Reality.'
 
             const rawHook = rawItem.hook?.trim() || ''
             const onScreenText =
@@ -3457,18 +4023,35 @@ const execution =
               angle: execution,
               cta,
               structured: {
-                title,
-                platform,
-                contentType,
-                onScreenText: safeOnScreenText,
-                hook,
-                concept,
-                execution,
-                cta,
-                why: why.length
-                  ? why
-                  : ['This gives new listeners a clear reason to connect with the song.'],
-              },
+  title,
+  platform,
+  contentType,
+
+  attentionStrategy:
+    safeString(rawItem.attentionStrategy).trim(),
+
+  attentionReason:
+    safeString(rawItem.attentionReason).trim(),
+
+  summary,
+  viewerExperience,
+
+  onScreenText: safeOnScreenText,
+  hook,
+  concept,
+  execution,
+
+  caption:
+    safeString(rawItem.suggested_caption).trim(),
+
+  cta,
+
+  why: why.length
+    ? why
+    : ['This gives new listeners a clear reason to connect with the song.'],
+
+  whyChosenForArtist,
+},
             }
           })
           .filter(item => {
@@ -3502,7 +4085,6 @@ while (completedItems.length < totalSlots) {
       artistName,
       goal,
       genre,
-      focusMode,
       releaseContext,
       ideaDepth,
       contextSource,
@@ -3511,6 +4093,12 @@ while (completedItems.length < totalSlots) {
       usedTitles: completedItems.map(i => i.title),
       usedConcepts: completedItems.map(i => i.idea),
       hasLyrics,
+      cameraConfidence,
+speakingConfidence,
+performanceConfidence,
+locations: safeLocations,
+worksAlone,
+existingFootage,
     })
   )
 }
@@ -3552,13 +4140,18 @@ return NextResponse.json(
         artistName,
         goal,
         genre,
-        focusMode,
         releaseContext,
         ideaDepth,
         contextSource,
         campaignContext,
         releaseStrategyContext,
         hasLyrics,
+        cameraConfidence,
+  speakingConfidence,
+  performanceConfidence,
+  existingFootage,
+  worksAlone,
+  locations,
       }),
       _fallback: true,
       _fallbackReason:

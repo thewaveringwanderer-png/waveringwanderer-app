@@ -12,6 +12,7 @@ export type InterferenceConflictType =
   | 'lyrics'
   | 'artist-type'
   | 'execution'
+  | 'batch-variety'
 
 
 export type InterferenceSeverity =
@@ -64,7 +65,7 @@ Run it before writing:
 - CTA
 - why this works
 
-The engine performs two passes.
+The engine performs three passes.
 
 PASS A — CONCEPT INTERFERENCE
 
@@ -105,6 +106,34 @@ The engine performs four internal operations:
 
 Do not return its internal analysis.
 
+PASS C — BATCH INTERFERENCE
+
+After every individual idea has passed concept and execution interference,
+inspect the complete batch together.
+
+Detect whether multiple ideas:
+
+- use the same content format;
+- use the same concept mechanic;
+- enter through the same audience emotion;
+- rely on the same location, object or visual anchor;
+- use substantially similar hooks or viewer experiences;
+- ask the artist to perform the same behaviour repeatedly;
+- contradict one another strategically;
+- repeatedly explore only the safest part of Creative Reality;
+- create variety only by changing surface wording.
+
+A batch-variety conflict exists when ideas are individually valid but collectively
+repetitive, narrow or strategically unbalanced.
+
+Resolve batch conflicts by changing the lowest-value duplicated element while
+preserving each idea's strongest artist-specific insight.
+
+Do not introduce unsuitable formats, unavailable resources or unnatural behaviour
+merely to create variety.
+
+Creative variety must remain subordinate to artist fit.
+
 ==================================================
 1. AUTHORITY ORDER
 ==================================================
@@ -117,7 +146,7 @@ When evidence conflicts, use this authority order:
 4. Explicitly selected content styles
 5. Explicit artist type
 6. Explicit creator behaviour, confidence and comfort
-7. Current goal, focus mode and audience journey stage
+7. Current goal and audience journey stage
 8. Creative Constitution and brand guardrails
 9. Identity Kit and artist-specific source material
 10. Audience Psychology
@@ -126,8 +155,6 @@ When evidence conflicts, use this authority order:
 13. Content Format Gene
 14. Genre-based assumptions
 15. Batch variety
-
-Higher authorities always overrule lower authorities.
 
 Higher authorities always overrule lower authorities.
 
@@ -174,6 +201,26 @@ A conflict exists when the idea:
 - applies an unsuitable CTA;
 - weakens or contradicts artist identity;
 - contains incompatible filming instructions.
+
+When lyrics are unavailable, prohibit references to:
+
+- verses
+- chorus
+- bridge
+- bars
+- opening lyric
+- final lyric
+- lyric meaning
+
+Replace with:
+
+- musical section
+- energetic shift
+- quieter section
+- louder section
+- instrumental transition
+
+Never invent song structure.
 
 ==================================================
 3. CLASSIFY THE CONFLICT
@@ -245,11 +292,13 @@ REPLACE
 Use when adapting the idea would leave it generic, dishonest, contradictory
 or creatively weak.
 
-Do not mention conflicts in the final response.
+Discard the conflicting premise, format, mechanic or emotional direction.
 
-Do not return an idea with a warning attached.
+A replacement must be materially different rather than the same idea with safer
+wording.
 
-Resolve the problem before generating the final idea.
+After replacing the direction, rerun PASS A — CONCEPT INTERFERENCE before it
+can reach the Decision Engine.
 
 ==================================================
 5. PRESERVATION RULE
@@ -288,7 +337,42 @@ Side profile, cropped framing, silhouette, distant framing, seated delivery,
 reflection shot or several short low-pressure takes.
 
 ==================================================
-6. CREATIVE REALITY RESOLUTIONS
+6. CONSTRAIN THE REVISED DIRECTION
+==================================================
+
+After resolving detected conflicts, convert the decision into explicit boundaries
+for all later generation stages.
+
+The constraints must state:
+
+- what must remain;
+- what must change;
+- what must not be introduced;
+- which facts and assets are verified;
+- which behaviours are permitted;
+- which execution routes are unavailable.
+
+All later stages must inherit these constraints.
+
+The Concept Engine, Decision Engine and Execution Engine must not reinterpret,
+weaken or silently ignore them.
+
+If the decision is ADAPT:
+
+- preserve the approved strategic intent;
+- apply every required change;
+- prohibit the conflicting execution route.
+
+If the decision is REPLACE:
+
+- discard the conflicting premise rather than cosmetically rewriting it;
+- create a materially different direction;
+- rerun Concept Interference on the replacement.
+
+A resolved conflict must not reappear later under different wording.
+
+==================================================
+7. CREATIVE REALITY RESOLUTIONS
 ==================================================
 
 LOW TIME
@@ -388,7 +472,7 @@ Never prescribe:
 Replace these with something filmable now.
 
 ==================================================
-7. CREATOR COMFORT RESOLUTIONS
+8. CREATOR COMFORT RESOLUTIONS
 ==================================================
 
 LOW TALKING-TO-CAMERA CONFIDENCE
@@ -463,7 +547,7 @@ Allow:
 provided the music remains central.
 
 ==================================================
-8. IDENTITY AND CONSTITUTION CONFLICTS
+9. IDENTITY AND CONSTITUTION CONFLICTS
 ==================================================
 
 When Identity Kit context exists, check whether the tentative concept contradicts
@@ -490,7 +574,7 @@ Reject or rewrite ideas that:
 Identity should shape the premise, not merely decorate the caption.
 
 ==================================================
-9. AUDIENCE AND GOAL CONFLICTS
+10. AUDIENCE AND GOAL CONFLICTS
 ==================================================
 
 DISCOVERY
@@ -511,6 +595,15 @@ Avoid:
 - references requiring fan knowledge;
 - long introductions;
 - high-commitment asks.
+
+Reject ideas whose value depends on prior familiarity with the artist, song,
+release history or personal journey.
+
+Translate artist-specific context into an immediate stranger-facing tension before
+allowing the idea.
+
+Discovery does not require generic relatability when the idea provides strong
+visual curiosity, immediate musical proof or a clear stopping mechanism.
 
 CONNECTION
 
@@ -556,7 +649,7 @@ all in the same idea.
 Choose the action that best matches the concept’s psychology.
 
 ==================================================
-10. LYRIC INTERFERENCE
+11. LYRIC INTERFERENCE
 ==================================================
 
 If lyrics are unavailable, prohibit:
@@ -597,7 +690,7 @@ If lyrics are supplied, use only lyric content grounded in the supplied lyrics
 or pre-analysed lyric moments.
 
 ==================================================
-11. FORMAT INTERFERENCE
+12. FORMAT INTERFERENCE
 ==================================================
 
 The output content type and actual execution must agree.
@@ -650,7 +743,7 @@ atmosphere or visual progression.
 Do not label ordinary footage cinematic merely because lighting is mentioned.
 
 ==================================================
-12. EXECUTION INTERFERENCE
+13. EXECUTION INTERFERENCE
 ==================================================
 
 Before approving the execution, check every instruction against every other
@@ -679,7 +772,7 @@ The artist should be able to picture:
 - how the video ends.
 
 ==================================================
-13. INTERNAL DECISION OBJECT
+14. INTERNAL DECISION OBJECT
 ==================================================
 
 For every tentative direction, construct this silently:
@@ -708,7 +801,7 @@ For every tentative direction, construct this silently:
 Never return this object.
 
 ==================================================
-14. FINAL INTERFERENCE VALIDATION
+15. FINAL INTERFERENCE VALIDATION
 ==================================================
 
 Before writing the final idea, confirm:
@@ -728,6 +821,14 @@ Before writing the final idea, confirm:
 - Every specific asset, location, person, object and factual claim is verified.
 - No lower-authority inference overrules explicit user input.
 - No later execution detail reintroduces a conflict already resolved at concept level.
+- Every conflict detected earlier has been demonstrably resolved.
+- Every prohibited element remains absent.
+- An adapted idea still retains the high-value element it was meant to preserve.
+- A replaced idea is materially different from the rejected direction.
+- The Interference Engine governs three passes across the complete reasoning process.
+Pass A runs immediately after tentative concept selection.
+Pass B runs after execution has been developed.
+Pass C runs after the complete batch has been developed.
 
 If any answer is no, adapt or replace the direction before continuing.
 `.trim()
